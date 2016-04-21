@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>XRenderer Example</title>
+    <script src="../../libs/uil.js"></script>
+    <script src="../../libs/threejs/three.js"></script>
+    <script src="../../libs/threejs/controls/EditorControls.js"></script>
+    <script src="../../libs/threejs/loaders/OBJLoader.js"></script>
+    <script src="../../node_modules/systemjs/dist/system.src.js"></script>
+    <script>
+        System.config({
+            packages: {
+                "../": {
+                    format: 'register',
+                    defaultExtension: 'js'
+                }
+            }
+        });
+        System.import('Example').then(function(module){
+            new module.Example();
+        }, console.error.bind(console));
+    </script>
+</head>
+<body>
+</body>
+</html>
