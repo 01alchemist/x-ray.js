@@ -13,13 +13,13 @@ export class Example extends GUI {
 
     constructor() {
         super();
-        this.i_width = 2560 / 2;
-        this.i_height = 1440 / 2;
+        this.i_width = 2560 / 4;
+        this.i_height = 1440 / 4;
     }
     onInit() {
         var self = this;
 
-        this.threeJSView = new ThreeJSView(this.i_width, this.i_height, this.webglOutput);
+        this.threeJSView = new ThreeJSView(this.i_width, this.i_height, this.webglOutput, this.appContainer);
         this.giJSView = new GIJSView(this.i_width, this.i_height, this.giOutput);
 
         //var ambient = new THREE.AmbientLight(0x5C5C5C);
@@ -109,6 +109,9 @@ export class Example extends GUI {
         });*/
         this.threeJSView.onCameraChange = function(camera){
             self.giJSView.updateCamera(camera);
+            if(self._tracing.value && self.giJSView.dirty){
+                self.giJSView.toggleTrace(true);
+            }
         };
         this.render();
     }

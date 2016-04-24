@@ -85,9 +85,11 @@ export class TraceJobManager {
     }
 
     init(callback?):void {
+        console.log("Initializing threads...");
         console.time("init");
         this.threads = ThreadPool.getThreads();
         this.totalThreads = this.threads.length;
+        this.lockCount = this.threads.length;
         this.initNext(callback);
     }
 
@@ -122,32 +124,34 @@ export class TraceJobManager {
             this.deferredStart = false;
             this.restart();
         }
+        console.log("lockCount:" + this.lockCount);
     }
 
     /*pause() {
-        if (this.flags) {
-            this.flags[0] = 1;
-            this._await = true;
-            var thread:Thread;
-            for (var i:number = 0; i < this.threads.length; i++) {
-                thread = this.threads[i];
-                thread.terminate();
-            }
-        }
-    }*/
+     if (this.flags) {
+     this.flags[0] = 1;
+     this._await = true;
+     var thread:Thread;
+     for (var i:number = 0; i < this.threads.length; i++) {
+     thread = this.threads[i];
+     thread.terminate();
+     }
+     }
+     }*/
 
     /*resume() {
-        if (this.isAllLocked && this.flags) {
-            this.flags[0] = 0;
-            this._await = false;
-            this.start();
-        }else{
-            this.deferredStart = true;
-        }
-    }*/
+     if (this.isAllLocked && this.flags) {
+     this.flags[0] = 0;
+     this._await = false;
+     this.start();
+     }else{
+     this.deferredStart = true;
+     }
+     }*/
 
     stop() {
         if (this.flags) {
+            this.lockCount = 0;
             this.flags[0] = 1;
             this._await = true;
             var thread:Thread;
@@ -190,7 +194,7 @@ export class TraceJobManager {
     }
 
     restart() {
-        if (this.isAllLocked && this.flags) {
+        if (this.isAllThreadsFree && this.flags) {
             this.flags[0] = 0;
             this.queue = null;
             this.deferredQueue = null;
@@ -198,12 +202,12 @@ export class TraceJobManager {
             this.deferredQueue = [];
             this._await = false;
             this.start();
-        }else{
+        } else {
             this.deferredStart = true;
         }
     }
 
-    private isAllThreadsFree() {
+    get isAllThreadsFree() {
 
         var thread:Thread;
         for (var i:number = 0; i < this.threads.length; i++) {
@@ -264,7 +268,7 @@ export class TraceJobManager {
             });
 
         } else {
-            if (this.isAllThreadsFree()) {
+            if (this.isAllThreadsFree) {
                 this._finished = true;
                 console.timeEnd('trace::start');
                 this.initDeferredQueue();
@@ -285,9 +289,9 @@ export class TraceJobManager {
         self.deferredQueue.sort(function (a, b) {
             return b.time - a.time;
         });
-        console.log("Trace time");
-        console.log("   min:" + self.deferredQueue[self.deferredQueue.length - 1].time);
-        console.log("   max:" + self.deferredQueue[0].time);
+        //console.log("Trace time");
+        //console.log("   min:" + self.deferredQueue[self.deferredQueue.length - 1].time);
+        //console.log("   max:" + self.deferredQueue[0].time);
 
         /*if (this.currentLoop > 5) {
          self.queue = self.deferredQueue;

@@ -45,7 +45,6 @@ export class TraceWorker {
     iterations:number = 1;
     private locked:boolean;
 
-
     constructor() {
         var self = this;
 
@@ -112,6 +111,7 @@ export class TraceWorker {
                     if (self.iterations > 0 && e.data.blockIterations) {
                         for (var i = 0; i < e.data.blockIterations; i++) {
                             if (this.flags[0] === 1) {//pixels are locked
+                                this.lock();
                                 return;
                             }
                             self.run();
@@ -138,9 +138,11 @@ export class TraceWorker {
         this.absCameraSamples = Math.round(Math.abs(this.cameraSamples));
     }
 
-    private lock(){
-        this.locked = true;
-        postMessage(TraceWorker.LOCKED);
+    private lock() {
+        if (!this.locked) {
+            this.locked = true;
+            postMessage(TraceWorker.LOCKED);
+        }
     }
 
     run():void {

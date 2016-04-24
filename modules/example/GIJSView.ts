@@ -43,7 +43,7 @@ export class GIJSView extends GIRenderBase {
 
         this.cameraSamples = -1;
         this.hitSamples = 1;
-        this.bounces = 0;
+        this.bounces = 4;
         this.iterations = 1000000;
         this.blockIterations = 1;
     }

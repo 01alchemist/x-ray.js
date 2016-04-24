@@ -45,6 +45,7 @@ export class Thread {
     }
 
     init(param:any, transferable:any[], onInit:Function) {
+        console.log("Initializing thread " + this.id);
         this.onInitComplete = onInit;
         param.command = TraceWorker.INIT;
         param.id = this.id;
@@ -57,6 +58,7 @@ export class Thread {
         param.command = TraceWorker.TRACE;
         this.send(param);
     }
+
     send(data:any, buffers?):void {
         this.instance.postMessage(data, buffers);
     }
