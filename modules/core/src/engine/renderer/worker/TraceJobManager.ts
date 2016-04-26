@@ -30,7 +30,8 @@ export class TraceJobManager {
     private _initialized:boolean;
     private _finished:boolean;
     private _await:boolean;
-    private deferredStart:boolean;
+    private deferredStart:boolean = false;
+    private stopped:boolean;
     private lockCount:number = 0;
 
     get initialized():boolean {
@@ -38,7 +39,13 @@ export class TraceJobManager {
     }
 
     get isAllLocked():boolean {
-        return this.lockCount === this.threads.length;
+        for (var i:number = 0; i < this.totalThreads; i++) {
+            if (this.flags[3 + i] !== 3 && this.flags[3 + i] !== 0) {
+                console.log(this.flags);
+                return false;
+            }
+        }
+        return true;
     }
 
     get finished():boolean {
@@ -62,7 +69,7 @@ export class TraceJobManager {
         this.height = param.height;
 
         this.sceneMemory = scene.getMemory();
-        this.flags = new Uint8Array(this.sceneMemory.data.buffer, 0, 3);
+        this.flags = new Uint8Array(this.sceneMemory.data.buffer, 0, 3 + ThreadPool.maxThreads);
         this.pixelMemory = new Uint8Array(new SharedArrayBuffer(this.width * this.height * 3));
         this.sampleMemory = new Float32Array(new SharedArrayBuffer(4 * this.width * this.height * 3));
 
@@ -107,7 +114,7 @@ export class TraceJobManager {
         }
 
         var thread:Thread = this.threads[this.initCount++];
-        thread.onPixelsLocked = this.onPixelsLocked.bind(this);
+        thread.onThreadLocked = this.onThreadLocked.bind(this);
         thread.init(this.traceParameters, [
             this.traceParameters.pixelBuffer,
             this.traceParameters.sampleBuffer,
@@ -118,13 +125,27 @@ export class TraceJobManager {
         });
     }
 
-    private onPixelsLocked() {
+    private onThreadLocked(thread:Thread) {
         this.lockCount++;
+        this.flags[3 + thread.id] = 3;
         if (this.isAllLocked && this.deferredStart) {
             this.deferredStart = false;
             this.restart();
         }
         console.log("lockCount:" + this.lockCount);
+    }
+
+    private lockAllThreads() {
+        for (var i:number = 0; i < this.threads.length; i++) {
+
+                var thread = this.threads[i];
+                if (thread.isTracing) {
+                    this.flags[3 + i] = 2;
+                } else {
+                    this.flags[3 + i] = 0;
+                }
+
+        }
     }
 
     /*pause() {
@@ -151,16 +172,13 @@ export class TraceJobManager {
 
     stop() {
         if (this.flags) {
+            this.lockAllThreads();
+            this.stopped = true;
             this.lockCount = 0;
-            this.flags[0] = 1;
             this._await = true;
-            var thread:Thread;
             var job:TraceJob;
-            for (var i:number = 0; i < this.threads.length; i++) {
-                thread = this.threads[i];
-                thread.terminate();
-            }
-            for (i = 0; i < this.referenceQueue.length; i++) {
+
+            for (var i = 0; i < this.referenceQueue.length; i++) {
                 job = this.referenceQueue[i];
                 job.runCount = 0;
             }
@@ -194,8 +212,10 @@ export class TraceJobManager {
     }
 
     restart() {
-        if (this.isAllThreadsFree && this.flags) {
-            this.flags[0] = 0;
+        if (!this.stopped) {
+            this.stop();
+        }
+        if (this.flags && this.isAllThreadsFree) {
             this.queue = null;
             this.deferredQueue = null;
             this.queue = this.referenceQueue.concat();
@@ -213,8 +233,11 @@ export class TraceJobManager {
         for (var i:number = 0; i < this.threads.length; i++) {
             thread = this.threads[i];
             if (thread.isTracing) {
-                return false;
+                if(this.flags[3 + i] === 1 || this.flags[3 + i] === 2){
+                    return false;
+                }
             }
+
         }
         return true;
     }
@@ -229,6 +252,7 @@ export class TraceJobManager {
         var self = this;
         if (this._initialized) {
 
+            this.stopped = false;
             var thread:Thread;
             var job:TraceJob;
 

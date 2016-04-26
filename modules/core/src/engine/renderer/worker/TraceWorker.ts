@@ -12,6 +12,7 @@ import {LinearAttenuation} from "../../scene/materials/Attenuation";
 import {SpecularMaterial} from "../../scene/materials/SpecularMaterial";
 import {SharedScene} from "../../scene/SharedScene";
 import {DirectMemory} from "../../../pointer/DirectMemory";
+import {ThreadPool} from "./ThreadPool";
 /**
  * Created by Nidin Vinayakan on 10-01-2016.
  */
@@ -65,7 +66,7 @@ export class TraceWorker {
                         self.camera = Camera.fromJson(e.data.camera);
                     }
                     if (!self.scene) {
-                        self.flags = new Uint8Array(self.sceneMemory.data.buffer, 0, 3);
+                        self.flags = new Uint8Array(self.sceneMemory.data.buffer, 0, 3 + ThreadPool.maxThreads);
                         self.scene = SharedScene.getScene(self.sceneMemory);
                     }
 
@@ -80,7 +81,7 @@ export class TraceWorker {
 
                 case TraceWorker.TRACE:
 
-                    if (this.flags[0] === 1) {//pixels are locked
+                    if (self.flags[3 +self.id] === 2) {//thread locked
                         console.log("exit:1");
                         self.lock();
                         return;
@@ -108,10 +109,12 @@ export class TraceWorker {
                         self.locked = false;
                     }
 
+                    self.flags[3 +self.id] = 1;
+
                     if (self.iterations > 0 && e.data.blockIterations) {
                         for (var i = 0; i < e.data.blockIterations; i++) {
-                            if (this.flags[0] === 1) {//pixels are locked
-                                this.lock();
+                            if (self.flags[3 +self.id] === 2) {//thread locked
+                                self.lock();
                                 return;
                             }
                             self.run();
@@ -119,8 +122,8 @@ export class TraceWorker {
                     } else {
                         self.run();
                     }
-                    if (this.flags[0] === 1) {//pixels are locked
-                        this.lock();
+                    if (self.flags[3 +self.id] === 2) {//thread locked
+                        self.lock();
                         return;
                     }
                     postMessage(TraceWorker.TRACED);
@@ -141,6 +144,7 @@ export class TraceWorker {
     private lock() {
         if (!this.locked) {
             this.locked = true;
+            this.flags[3 +this.id] = 3;
             postMessage(TraceWorker.LOCKED);
         }
     }
@@ -162,7 +166,7 @@ export class TraceWorker {
 
             for (var x:number = this.xoffset; x < this.xoffset + this.width; x++) {
 
-                if (this.flags[0] === 1) {//pixels are locked
+                if (this.flags[3 +this.id] === 2) {//thread locked
                     console.log("exit:3");
                     this.lock();
                     return;
@@ -197,7 +201,7 @@ export class TraceWorker {
                     c = c.divScalar(n * n);
                 }
 
-                if (this.flags[0] === 1) {//pixels are locked
+                if (this.flags[3 +this.id] === 2) {//thread locked
                     console.log("exit:7");
                     this.lock();
                     return;
@@ -213,7 +217,7 @@ export class TraceWorker {
 
     updatePixel(color:Color, si:number):void {
 
-        if (this.flags[0] === 1) {//pixels are locked
+        if (this.flags[3 +this.id] === 2) {//thread locked
             console.log("exit:8");
             this.lock();
             return;

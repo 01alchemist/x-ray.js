@@ -11,6 +11,7 @@ import {ByteArrayBase} from "../../pointer/ByteArrayBase";
 import {Pointer} from "../../pointer/Pointer";
 import {DirectMemory} from "../../pointer/DirectMemory";
 import {Box} from "./shapes/Box";
+import {ThreadPool} from "../renderer/worker/ThreadPool";
 /**
  * Created by Nidin Vinayakan on 13/1/2016.
  */
@@ -79,6 +80,7 @@ export class SharedScene extends Scene {
         memory.writeByte(0);//pixels are not locked
         memory.writeByte(0);//samples are not locked
         memory.writeByte(0);//scene is not locked
+        memory.position += ThreadPool.maxThreads;//thread lock reserve
 
         //write materials first
         Material.write(memory);
@@ -104,6 +106,7 @@ export class SharedScene extends Scene {
         //skip flags
         memory.position = 0;
         memory.position += 3;
+        memory.position += ThreadPool.maxThreads;
 
         var offset:number = Material.restore(memory);
 

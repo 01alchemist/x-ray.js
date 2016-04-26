@@ -8,10 +8,13 @@ export class Thread {
 
     onTraceComplete:Function;
     onInitComplete:Function;
-    onPixelsLocked:Function;
+    onThreadLocked:Function;
 
     initialized:boolean;
-    isTracing:boolean;
+    private _isTracing:boolean;
+    get isTracing():boolean{
+        return this._isTracing;
+    }
 
     constructor(name:string, public id:number) {
 
@@ -24,21 +27,21 @@ export class Thread {
         this.instance.onmessage = function (event) {
             if (event.data == TraceWorker.INITED) {
                 self.initialized = true;
-                self.isTracing = false;
+                self._isTracing = false;
                 if (self.onInitComplete) {
                     self.onInitComplete(self);
                 }
             }
             if (event.data == TraceWorker.TRACED) {
-                self.isTracing = false;
+                self._isTracing = false;
                 if (self.onTraceComplete) {
                     self.onTraceComplete(self);
                 }
             }
             if (event.data == TraceWorker.LOCKED) {
-                self.isTracing = false;
-                if (self.onPixelsLocked) {
-                    self.onPixelsLocked(self);
+                self._isTracing = false;
+                if (self.onThreadLocked) {
+                    self.onThreadLocked(self);
                 }
             }
         }
@@ -54,7 +57,7 @@ export class Thread {
 
     trace(param:any, onComplete:Function):void {
         this.onTraceComplete = onComplete;
-        this.isTracing = true;
+        this._isTracing = true;
         param.command = TraceWorker.TRACE;
         this.send(param);
     }
@@ -65,7 +68,6 @@ export class Thread {
 
     terminate():void {
         //this.onTraceComplete = null;
-        this.isTracing = false;
         //this.send(TraceWorker.TERMINATE);
     }
 }
