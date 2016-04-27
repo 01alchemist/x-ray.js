@@ -19,7 +19,7 @@ export class Example extends GUI {
     onInit() {
         var self = this;
 
-        this.threeJSView = new ThreeJSView(this.i_width, this.i_height, this.webglOutput, this.appContainer);
+        this.threeJSView = new ThreeJSView(this.i_width, this.i_height, this.webglOutput, this.outputContainer);
         this.giJSView = new GIJSView(this.i_width, this.i_height, this.giOutput);
 
         //var ambient = new THREE.AmbientLight(0x5C5C5C);
@@ -72,8 +72,8 @@ export class Example extends GUI {
         this.threeJSView.scene.add(mesh);
 
         var loader = new THREE["OBJLoader"](manager);
-        loader.load('../../models/teapot.obj', function (object) {
-        //loader.load('../models/dragon.obj', function (object) {
+        //loader.load('../../models/teapot.obj', function (object) {
+        loader.load('../../models/stanford-dragon.obj', function (object) {
         //loader.load('../models/emerald.obj', function (object) {
             self.model = object;
             self.model.castShadow = true;

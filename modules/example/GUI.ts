@@ -23,6 +23,7 @@ export abstract class GUI {
     public giCapable:boolean;
     public info:UIL.Title;
     public appContainer:HTMLElement;
+    public outputContainer:HTMLElement;
     public controlGui:HTMLElement;
     public giOutput:HTMLElement;
     public webglOutput:HTMLElement;
@@ -134,16 +135,20 @@ export abstract class GUI {
         this.appContainer.style.height = "100%";
         this.appContainer.style.position = "absolute";
 
-        if(!this.giOutput){
-            this.giOutput = document.createElement("div");
-            this.giOutput.setAttribute("id", "giOutput");
-            this.appContainer.appendChild(this.giOutput);
-        }
+        this.outputContainer = document.createElement("div");
+        this.outputContainer.style.position = "absolute";
+        this.appContainer.appendChild(this.outputContainer);
 
         if(!this.webglOutput){
             this.webglOutput = document.createElement("div");
             this.webglOutput.setAttribute("id", "webglOutput");
-            this.appContainer.appendChild(this.webglOutput);
+            this.outputContainer.appendChild(this.webglOutput);
+        }
+
+        if(!this.giOutput){
+            this.giOutput = document.createElement("div");
+            this.giOutput.setAttribute("id", "giOutput");
+            this.outputContainer.appendChild(this.giOutput);
         }
 
         if(!this.controlGui){
@@ -155,12 +160,12 @@ export abstract class GUI {
         this.webglOutput.style.width = this.i_width + "px";
         this.webglOutput.style.height = this.i_height + "px";
         this.webglOutput.style.backgroundColor = "#585858";
-        this.webglOutput.style.position = "absolute";
+        this.webglOutput.style.position = "relative";
 
         this.giOutput.style.width = this.i_width + "px";
         this.giOutput.style.height = this.i_height + "px";
         this.giOutput.style.backgroundColor = "#3C3C3C";
-        this.giOutput.style.position = "absolute";
+        this.giOutput.style.position = "relative";
 
         this.resize();
 
@@ -228,13 +233,16 @@ export abstract class GUI {
         }
     }
     resize() {
-        this.giOutput.style.left = (window.innerWidth - this.i_width) / 2 + "px";
-        this.webglOutput.style.left = (window.innerWidth - this.i_width) / 2 + "px";
-        this.giOutput.style.top = (window.innerHeight - this.i_height) / 2 + "px";
-        this.webglOutput.style.top = (window.innerHeight - this.i_height) / 2 + "px";
+        this.outputContainer.style.left = (window.innerWidth - this.i_width) / 2 + "px";
+        this.outputContainer.style.top = (window.innerHeight - (this.i_height * 2)) / 2 + "px";
+        //this.giOutput.style.left = (window.innerWidth - this.i_width) / 2 + "px";
+        //this.webglOutput.style.left = (window.innerWidth - this.i_width) / 2 + "px";
+        //this.giOutput.style.top = (window.innerHeight - this.i_height) / 2 + "px";
+        //this.webglOutput.style.top = (window.innerHeight - this.i_height) / 2 + "px";
     }
 
     toggleGI(newValue) {
+        return;
         if (newValue) {
             this.webglOutput.style.display = "none";
             this.giOutput.style.display = "block";

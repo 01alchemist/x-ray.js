@@ -47,90 +47,92 @@ export class TraceWorker {
     private locked:boolean;
 
     constructor() {
-        var self = this;
+        addEventListener('message', this.onMessageReceived.bind(this), false);
+    }
 
-        addEventListener('message', (e:any) => {
+    onMessageReceived(e:any) {
 
-            var data = e.data;
+        var data = e.data;
 
-            switch (data.command) {
+        switch (data.command) {
 
-                case TraceWorker.INIT:
+            case TraceWorker.INIT:
 
-                    self.id = e.data.id;
-                    self.pixelMemory = new Uint8ClampedArray(e.data.pixelBuffer);
-                    self.sampleMemory = new Float32Array(e.data.sampleBuffer);
-                    self.sceneMemory = new DirectMemory(e.data.sceneBuffer);
+                this.id = e.data.id;
+                this.pixelMemory = new Uint8ClampedArray(e.data.pixelBuffer);
+                this.sampleMemory = new Float32Array(e.data.sampleBuffer);
+                this.sceneMemory = new DirectMemory(e.data.sceneBuffer);
 
-                    if (!self.camera) {
-                        self.camera = Camera.fromJson(e.data.camera);
-                    }
-                    if (!self.scene) {
-                        self.flags = new Uint8Array(self.sceneMemory.data.buffer, 0, 3 + ThreadPool.maxThreads);
-                        self.scene = SharedScene.getScene(self.sceneMemory);
-                    }
+                if (!this.camera) {
+                    this.camera = Camera.fromJson(e.data.camera);
+                }
+                if (!this.scene) {
+                    this.flags = new Uint8Array(this.sceneMemory.data.buffer, 0, 3 + ThreadPool.maxThreads);
+                    this.scene = SharedScene.getScene(this.sceneMemory);
+                }
 
-                    self.full_width = e.data.full_width;
-                    self.full_height = e.data.full_height;
-                    self.cameraSamples = e.data.cameraSamples;
-                    self.hitSamples = e.data.hitSamples;
-                    self.bounces = e.data.bounces;
+                this.full_width = e.data.full_width;
+                this.full_height = e.data.full_height;
+                this.cameraSamples = e.data.cameraSamples;
+                this.hitSamples = e.data.hitSamples;
+                this.bounces = e.data.bounces;
 
-                    postMessage(TraceWorker.INITED);
-                    break;
+                postMessage(TraceWorker.INITED);
+                break;
 
-                case TraceWorker.TRACE:
+            case TraceWorker.TRACE:
 
-                    if (self.flags[3 +self.id] === 2) {//thread locked
-                        console.log("exit:1");
-                        self.lock();
-                        return;
-                    }
+                if (this.flags[3 + this.id] === 2) {//thread locked
+                    console.log("exit:1");
+                    this.lock();
+                    return;
+                }
 
-                    self.init(
-                        e.data.width,
-                        e.data.height,
-                        e.data.xoffset,
-                        e.data.yoffset
-                    );
+                this.init(
+                    e.data.width,
+                    e.data.height,
+                    e.data.xoffset,
+                    e.data.yoffset
+                );
 
-                    self.cameraSamples = e.data.cameraSamples || self.cameraSamples;
-                    self.hitSamples = e.data.hitSamples || self.hitSamples;
+                this.cameraSamples = e.data.cameraSamples || this.cameraSamples;
+                this.hitSamples = e.data.hitSamples || this.hitSamples;
 
-                    if (e.data.camera) {
-                        self.camera.updateFromJson(e.data.camera);
-                        //console.log(e.data.camera);
-                    }
+                if (e.data.camera) {
+                    this.camera.updateFromJson(e.data.camera);
+                    //console.log(e.data.camera);
+                }
 
-                    self.iterations = e.data.init_iterations || 0;
+                this.iterations = e.data.init_iterations || 0;
 
-                    if (self.locked) {
-                        console.log("restarted:" + self.iterations, "samples:" + self.checkSamples());
-                        self.locked = false;
-                    }
+                if (this.locked) {
+                    console.log("restarted:" + this.iterations, "samples:" + this.checkSamples());
+                    this.locked = false;
+                }
 
-                    self.flags[3 +self.id] = 1;
-
-                    if (self.iterations > 0 && e.data.blockIterations) {
-                        for (var i = 0; i < e.data.blockIterations; i++) {
-                            if (self.flags[3 +self.id] === 2) {//thread locked
-                                self.lock();
-                                return;
-                            }
-                            self.run();
+                if (this.iterations > 0 && e.data.blockIterations) {
+                    for (var i = 0; i < e.data.blockIterations; i++) {
+                        if (this.flags[3 + this.id] === 2) {//thread locked
+                            this.lock();
+                            return;
                         }
-                    } else {
-                        self.run();
+                        this.run();
                     }
-                    if (self.flags[3 +self.id] === 2) {//thread locked
-                        self.lock();
+                } else {
+                    if (this.flags[3 + this.id] === 2) {//thread locked
+                        this.lock();
                         return;
                     }
-                    postMessage(TraceWorker.TRACED);
-                    break;
-            }
+                    this.run();
+                }
+                if (this.flags[3 + this.id] === 2) {//thread locked
+                    this.lock();
+                    return;
+                }
+                postMessage(TraceWorker.TRACED);
+                break;
+        }
 
-        }, false);
     }
 
     init(width:number, height:number, xoffset:number, yoffset:number):void {
@@ -144,7 +146,6 @@ export class TraceWorker {
     private lock() {
         if (!this.locked) {
             this.locked = true;
-            this.flags[3 +this.id] = 3;
             postMessage(TraceWorker.LOCKED);
         }
     }
@@ -166,7 +167,7 @@ export class TraceWorker {
 
             for (var x:number = this.xoffset; x < this.xoffset + this.width; x++) {
 
-                if (this.flags[3 +this.id] === 2) {//thread locked
+                if (this.flags[3 + this.id] === 2) {//thread locked
                     console.log("exit:3");
                     this.lock();
                     return;
@@ -201,7 +202,7 @@ export class TraceWorker {
                     c = c.divScalar(n * n);
                 }
 
-                if (this.flags[3 +this.id] === 2) {//thread locked
+                if (this.flags[3 + this.id] === 2) {//thread locked
                     console.log("exit:7");
                     this.lock();
                     return;
@@ -217,7 +218,7 @@ export class TraceWorker {
 
     updatePixel(color:Color, si:number):void {
 
-        if (this.flags[3 +this.id] === 2) {//thread locked
+        if (this.flags[3 + this.id] === 2) {//thread locked
             console.log("exit:8");
             this.lock();
             return;
