@@ -244,20 +244,20 @@ export class GIJSView extends GIRenderBase {
     }
 
     private static getMaterial(srcMaterial:any):Material {
-        var material:Material = new DiffuseMaterial(Color.hexColor(srcMaterial.color.getHex()));
-        //var material:Material = new Material(Color.hexColor(srcMaterial.color.getHex()));
-        //material.ior = srcMaterial.ior ? srcMaterial.ior : 1;
-        //material.tint = srcMaterial.tint?srcMaterial.tint:0;
-        //material.gloss = srcMaterial.gloss?srcMaterial.gloss:0;
-        //material.emittance = srcMaterial.emittance?srcMaterial.emittance:0;
-        //material.transparent = srcMaterial.transparent;
-        //material.attenuation = Attenuation.fromJson(srcMaterial.attenuation);
+        //var material:Material = new DiffuseMaterial(Color.hexColor(srcMaterial.color.getHex()));
+        var material:Material = new Material(Color.hexColor(srcMaterial.color.getHex()));
+        material.ior = srcMaterial.ior ? srcMaterial.ior : 1;
+        material.tint = srcMaterial.tint?srcMaterial.tint:0;
+        material.gloss = srcMaterial.gloss?srcMaterial.gloss:0;
+        material.emittance = srcMaterial.emittance?srcMaterial.emittance:0;
+        material.transparent = srcMaterial.transparent;
+        material.attenuation = Attenuation.fromJson(srcMaterial.attenuation);
         return material;
     }
 
     private getLight(src:any):Shape {
         var material = new LightMaterial(Color.hexColor(src.color.getHex()), src.intensity, new LinearAttenuation(src.distance));
-        var sphere = Sphere.newSphere(new Vector3(src.position.x, src.position.y, src.position.z), 100, material);
+        var sphere = Sphere.newSphere(new Vector3(src.position.x, src.position.y, src.position.z), 1, material);
         return sphere;
         //var mat:Matrix4 = Matrix4.fromTHREEJS(src.matrix.elements);
         //return TransformedShape.newTransformedShape(sphere, mat);

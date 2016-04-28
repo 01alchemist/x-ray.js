@@ -160,12 +160,13 @@ export abstract class GUI {
         this.webglOutput.style.width = this.i_width + "px";
         this.webglOutput.style.height = this.i_height + "px";
         this.webglOutput.style.backgroundColor = "#585858";
-        this.webglOutput.style.position = "relative";
+        this.webglOutput.style.position = "absolute";
 
         this.giOutput.style.width = this.i_width + "px";
         this.giOutput.style.height = this.i_height + "px";
         this.giOutput.style.backgroundColor = "#3C3C3C";
-        this.giOutput.style.position = "relative";
+        this.giOutput.style.position = "absolute";
+        this.giOutput.style.display = "none";
 
         this.resize();
 
@@ -234,7 +235,7 @@ export abstract class GUI {
     }
     resize() {
         this.outputContainer.style.left = (window.innerWidth - this.i_width) / 2 + "px";
-        this.outputContainer.style.top = (window.innerHeight - (this.i_height * 2)) / 2 + "px";
+        this.outputContainer.style.top = (window.innerHeight - (this.i_height)) / 2 + "px";
         //this.giOutput.style.left = (window.innerWidth - this.i_width) / 2 + "px";
         //this.webglOutput.style.left = (window.innerWidth - this.i_width) / 2 + "px";
         //this.giOutput.style.top = (window.innerHeight - this.i_height) / 2 + "px";
@@ -242,7 +243,7 @@ export abstract class GUI {
     }
 
     toggleGI(newValue) {
-        return;
+        //return;
         if (newValue) {
             this.webglOutput.style.display = "none";
             this.giOutput.style.display = "block";
