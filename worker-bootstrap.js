@@ -12,4 +12,4 @@ System.config({
         }
     }
 });
-System.import('modules/core/src/engine/renderer/worker/TraceWorker').then(null, console.error.bind(console));
+System.import('modules/xrenderer/workers/TraceWorker').then(null, console.error.bind(console));
