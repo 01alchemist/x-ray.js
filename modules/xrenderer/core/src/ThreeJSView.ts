@@ -9,6 +9,8 @@ export class ThreeJSView {
     public controls:any;
 
     public onCameraChange:Function;
+    public onMouseDown:Function;
+    public onMouseUp:Function;
 
     constructor(public width:number, public height:number, public container:HTMLElement, public appContainer:HTMLElement) {
 

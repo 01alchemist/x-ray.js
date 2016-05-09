@@ -111,7 +111,7 @@ THREE.EditorControls = function ( object, domElement ) {
 	};
 
 	// mouse
-
+	this.onMouseDown = null;
 	function onMouseDown( event ) {
 
 		if ( scope.enabled === false ) return;
@@ -137,6 +137,9 @@ THREE.EditorControls = function ( object, domElement ) {
 		domElement.addEventListener( 'mouseout', onMouseUp, false );
 		domElement.addEventListener( 'dblclick', onMouseUp, false );
 
+		if(scope.onMouseDown){
+			scope.onMouseDown(event);
+		}
 	}
 
 	function onMouseMove( event ) {
@@ -165,8 +168,12 @@ THREE.EditorControls = function ( object, domElement ) {
 		pointerOld.set( event.clientX, event.clientY );
 
 	}
-
+	this.onMouseUp = null;
 	function onMouseUp( event ) {
+
+        if(domElement.contains(event.relatedTarget)){
+            return;
+        }
 
 		domElement.removeEventListener( 'mousemove', onMouseMove, false );
 		domElement.removeEventListener( 'mouseup', onMouseUp, false );
@@ -175,8 +182,12 @@ THREE.EditorControls = function ( object, domElement ) {
 
 		state = STATE.NONE;
 
+		if(scope.onMouseUp){
+			scope.onMouseUp(event);
+		}
 	}
 
+    this.onMouseWheel = null;
 	function onMouseWheel( event ) {
 
 		event.preventDefault();
@@ -201,6 +212,9 @@ THREE.EditorControls = function ( object, domElement ) {
 
 		scope.zoom( new THREE.Vector3( 0, 0, delta ) );
 
+        if(scope.onMouseWheel){
+            scope.onMouseWheel(event);
+        }
 	}
 
 	function contextmenu( event ) {

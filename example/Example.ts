@@ -25,7 +25,7 @@ export class Example extends SimpleGUI {
     onInit() {
         var self = this;
 
-        this.threeJSView = new ThreeJSView(this.i_width, this.i_height, this.webglOutput, this.outputContainer);
+        this.threeJSView = new ThreeJSView(this.i_width, this.i_height, this.webglOutput, this.appContainer);
         this.giJSView = new GIJSView(this.i_width, this.i_height, this.giOutput);
 
         //var ambient = new THREE.AmbientLight(0x5C5C5C);
@@ -130,10 +130,24 @@ export class Example extends SimpleGUI {
         this.threeJSView.onCameraChange = function (camera) {
             self.giJSView.updateCamera(camera);
             if (self._tracing.value && self.giJSView.dirty) {
-                self.giJSView.toggleTrace(true);
+                //self.giJSView.toggleTrace(true);
             }
         };
         this.render();
+
+        this.threeJSView.controls.onMouseDown = (event) => {
+            this.toggleGI(false);
+        };
+        this.threeJSView.controls.onMouseUp = (event) => {
+            if (this._tracing.value){
+                this.toggleGI(true);
+            }
+        };
+        this.threeJSView.controls.onMouseWheel = (event) => {
+            if (this._tracing.value){
+                this.toggleGI(true);
+            }
+        };
     }
 
     render() {

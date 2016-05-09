@@ -187,11 +187,11 @@ export abstract class SimpleGUI {
     toggleGI(newValue) {
         //return;
         if (newValue) {
-            this.webglOutput.style.display = "none";
+            //this.webglOutput.style.display = "none";
             this.giOutput.style.display = "block";
         } else {
             this.giOutput.style.display = "none";
-            this.webglOutput.style.display = "block";
+            //this.webglOutput.style.display = "block";
         }
     }
 

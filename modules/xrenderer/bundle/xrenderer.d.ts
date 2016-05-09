@@ -1370,6 +1370,8 @@ declare module "core/src/ThreeJSView" {
         renderer: THREE.WebGLRenderer;
         controls: any;
         onCameraChange: Function;
+        onMouseDown: Function;
+        onMouseUp: Function;
         constructor(width: number, height: number, container: HTMLElement, appContainer: HTMLElement);
         animate(): void;
         render(): void;
