@@ -137,14 +137,17 @@ export class Example extends SimpleGUI {
 
         this.threeJSView.controls.onMouseDown = (event) => {
             this.toggleGI(false);
+            if(!this._tracing.value && this._gi.value){
+                this._gi.click();
+            }
         };
         this.threeJSView.controls.onMouseUp = (event) => {
-            if (this._tracing.value){
+            if (this._tracing.value && this._gi.value){
                 this.toggleGI(true);
             }
         };
         this.threeJSView.controls.onMouseWheel = (event) => {
-            if (this._tracing.value){
+            if (this._tracing.value && this._gi.value){
                 this.toggleGI(true);
             }
         };
