@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>XRenderer Example</title>
+    <script src="../libs/uil.js"></script>
+    <script src="../libs/threejs/three.js"></script>
+    <script src="../libs/threejs/controls/EditorControls.js"></script>
+    <script src="../libs/jszip.min.js"></script>
+    <script src="../libs/threejs/loaders/3MFLoader.js"></script>
+    <script src="../node_modules/systemjs/dist/system.src.js"></script>
+    <script src="../modules/xrenderer/bundle/xrenderer.js"></script>
+    <script>
+        System.config({
+            packages: {
+                "./": {
+                    format: 'register',
+                    defaultExtension: 'js'
+                },
+                'xrenderer': {
+                    main:"xrenderer",
+                    format: 'register',
+                    defaultExtension: 'js'
+                }
+            },
+            map: {
+                'xrenderer': "../modules/xrenderer/bundle"
+            }
+        });
+        System.import('ThreeMFExample').then(function (module) {
+            new module.ThreeMFExample();
+        }, console.error.bind(console));
+    </script>
+</head>
+<body>
+</body>
+</html>

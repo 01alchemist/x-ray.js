@@ -7563,8 +7563,14 @@ System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/
                         }
                     }
                     else {
-                        var normals = geometry.attributes["normal"].array;
                         var positions = geometry.attributes["position"].array;
+                        var normals;
+                        if (geometry.attributes["normal"]) {
+                            normals = geometry.attributes["normal"].array;
+                        }
+                        else {
+                            normals = this.computeNormals(positions);
+                        }
                         var triCount = 0;
                         var indexAttribute = geometry.getIndex();
                         if (indexAttribute) {
@@ -7627,6 +7633,9 @@ System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/
                     }
                     var mesh = Mesh_5.Mesh.newMesh(triangles);
                     return mesh;
+                };
+                GIJSView.prototype.computeNormals = function (positions) {
+                    return new Float32Array(positions.length);
                 };
                 GIJSView.prototype.updateCamera = function (camera) {
                     this.camera.p.setFromJson(camera.position);

@@ -133,8 +133,15 @@ export class GIJSView extends GIRenderBase {
             }
 
         } else {
-            var normals:Float32Array = geometry.attributes["normal"].array;
+
             var positions:Float32Array = geometry.attributes["position"].array;
+
+            var normals:Float32Array;
+            if(geometry.attributes["normal"]){
+                normals = geometry.attributes["normal"].array;
+            }else{
+                normals = this.computeNormals(positions);
+            }
             var triCount:number = 0;
             var indexAttribute = geometry.getIndex();
 
@@ -223,7 +230,9 @@ export class GIJSView extends GIRenderBase {
         //mesh.smoothNormals();
         return mesh;
     }
-
+    computeNormals(positions:Float32Array):Float32Array{
+        return new Float32Array(positions.length);
+    }
     updateCamera(camera:THREE.PerspectiveCamera) {
         //console.log(JSON.stringify(this.camera.toJSON()));
         this.camera.p.setFromJson(camera.position);

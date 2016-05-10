@@ -1431,6 +1431,7 @@ declare module "core/src/GIJSView" {
         identityMatrix: THREE.Matrix4;
         private buildSceneObject(src);
         private buildGeometry(geometry, material);
+        computeNormals(positions: Float32Array): Float32Array;
         updateCamera(camera: THREE.PerspectiveCamera): void;
         private static getMaterial(srcMaterial);
         private getLight(src);
