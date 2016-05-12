@@ -1,7 +1,7 @@
 import {SimpleGUI} from "./SimpleGUI";
 //import {ThreeJSView} from "core/src/ThreeJSView";
 //import {GIJSView} from "core/src/GIJSView";
-import {ThreeJSView, GIJSView, MathUtils} from "xrenderer";
+import {ThreeJSView, GIJSView, MathUtils, Color} from "xrenderer";
 import Matrix3 = THREE.Matrix3;
 import {Thread} from "xrenderer";
 /**
@@ -18,8 +18,8 @@ export class Example extends SimpleGUI {
 
         Thread.workerUrl = "../modules/xrenderer/workers/trace-worker-bootstrap.js";
 
-        this.i_width = 2560 / 4;
-        this.i_height = 1440 / 4;
+        this.i_width = 2560 / 2;
+        this.i_height = 1440 / 2;
     }
 
     onInit() {
@@ -27,42 +27,42 @@ export class Example extends SimpleGUI {
 
         this.threeJSView = new ThreeJSView(this.i_width, this.i_height, this.webglOutput, this.appContainer);
         this.giJSView = new GIJSView(this.i_width, this.i_height, this.giOutput);
-
-        //var ambient = new THREE.AmbientLight(0x5C5C5C);
-        //this.threeJSView.scene.add(ambient);
-        //var directionalLight = new THREE.DirectionalLight(0xffeedd, 1);
-        //directionalLight.castShadow = true;
-        //directionalLight.position.set(0, 1, 0);
-        //this.threeJSView.scene.add(directionalLight);
+        this.giJSView.hitSamples = 8;
+        // this.giJSView.cameraSamples = 4;
+        this.giJSView.blockIterations = 4;
+        this.giJSView.bounces = 5;
+        // this.giJSView.scene.color.set(0, 0, 0);
+        this.giJSView.scene.color = Color.hexColor(0xFDDCBA);
+        // var ambient = new THREE.AmbientLight(0x5C5C5C);
+        // this.threeJSView.scene.add(ambient);
+        var directionalLight = new THREE.DirectionalLight(0xffeedd, 1);
+        directionalLight.castShadow = true;
+        directionalLight.position.set(0, 1, 0);
+        this.threeJSView.scene.add(directionalLight);
 
         var color = 0xffeedd;
 
-        var geometry:any = new THREE.SphereGeometry(1, 32, 32);
+        var geometry:any = new THREE.SphereGeometry(5, 32, 32);
         var material:any = new THREE.MeshBasicMaterial({color: 0xffffff});
         var sphere = new THREE.Mesh(geometry, material);
 
         var pointLight1 = new THREE.PointLight(0xffffff, 1, 30);
-        pointLight1.position.set(0, 10, 10);
+        pointLight1.position.set(0, 15, 0);
         pointLight1.add(sphere.clone());
-        this.threeJSView.scene.add(pointLight1);
+        //this.threeJSView.scene.add(pointLight1);
 
         var pointLight2 = new THREE.PointLight(0xffffff, 1, 30);
-        pointLight2.position.set(10, 10, 0);
+        pointLight2.position.set(12, 0, 0);
         pointLight2.add(sphere.clone());
         //this.threeJSView.scene.add(pointLight2);
 
-        var pointLight3 = new THREE.PointLight(0xffffff, 1, 30);
-        pointLight3.position.set(-10, -10, -10);
-        pointLight3.add(sphere.clone());
-        //this.threeJSView.scene.add(pointLight3);
-
         /*var pointLight = new THREE.PointLight(color, 1, 30);
-        pointLight.position.set(5, 5, 0);
-        pointLight.castShadow = true;
-        pointLight.shadow.camera["near"] = 1;
-        pointLight.shadow.camera["far"] = 300;
-        pointLight.shadow.bias = 0.01;
-        this.threeJSView.scene.add(pointLight);*/
+         pointLight.position.set(5, 5, 0);
+         pointLight.castShadow = true;
+         pointLight.shadow.camera["near"] = 1;
+         pointLight.shadow.camera["far"] = 300;
+         pointLight.shadow.bias = 0.01;
+         this.threeJSView.scene.add(pointLight);*/
 
         // texture
         var manager = new THREE.LoadingManager();
@@ -81,18 +81,26 @@ export class Example extends SimpleGUI {
         };
 
         geometry = new THREE.PlaneGeometry(100, 100);
-        material = new THREE.MeshPhongMaterial({color: 0xffffff});
+        material = new THREE.MeshPhongMaterial({color: 0xFDDCBA});
         var mesh = new THREE.Mesh(geometry, material);
         mesh.rotation.set(MathUtils.radians(-90), 0, 0);
-        //mesh.position.set(0, -.5, 0);
+        // mesh.position.set(-0.5, -0.5, -0.5);
         mesh.castShadow = false;
         mesh.receiveShadow = true;
         this.threeJSView.scene.add(mesh);
 
+        var areaLightMesh = mesh.clone();
+        var pointLight3 = new THREE.PointLight(0xffffff, 1, 1000);
+        pointLight3.position.set(0, 100, 0);
+        pointLight3.add(areaLightMesh);
+        this.threeJSView.scene.add(pointLight3);
+
+        self.render();
+
         var loader = new THREE["OBJLoader"](manager);
-        //loader.load('../../models/suzanne.obj', function (object) {
-            loader.load('../models/teapot.obj', function (object) {
-            //loader.load('../../models/stanford-dragon.obj', function (object) {
+        // loader.load('../models/sponza.obj', function (object) {
+        //     loader.load('../models/teapot.obj', function (object) {
+            loader.load('../models/stanford-dragon.obj', function (object) {
             //loader.load('../models/emerald.obj', function (object) {
 
             self.model = object;
@@ -100,16 +108,20 @@ export class Example extends SimpleGUI {
             self.model.receiveShadow = false;
             object.traverse(function (child) {
                 if (child instanceof THREE.Mesh) {
-                    child.material.color = new THREE.Color(0xff0000);
-                    child.material.ior = 1.3;
+                    //child.position.set(0, 7, 0);
+                    // child.rotation.set(MathUtils.radians(35), 0, 0);
+                    // child.scale.set(5, 5, 5);
+                    // child.material.color = new THREE.Color(0xff0000);
+                    child.material.ior = 1.5;
                     //child.material.tint = 0.5;
-                    //child.material.gloss = MathUtils.radians(15);
-                    child.material.transparent = false;
+                    child.material.gloss = MathUtils.radians(15);
+                    child.material.transparent = true;
                     //child.castShadow = true;
                     child.receiveShadow = false;
                 }
             });
             self.threeJSView.scene.add(object);
+            self.render();
             self.giJSView.setThreeJSScene(self.threeJSView.scene, function () {
                 self.giJSView.updateCamera(self.threeJSView.camera);
                 if (self._tracing.value) {
@@ -137,17 +149,17 @@ export class Example extends SimpleGUI {
 
         this.threeJSView.controls.onMouseDown = (event) => {
             this.toggleGI(false);
-            if(!this._tracing.value && this._gi.value){
+            if (!this._tracing.value && this._gi.value) {
                 this._gi.click();
             }
         };
         this.threeJSView.controls.onMouseUp = (event) => {
-            if (this._tracing.value && this._gi.value){
+            if (this._tracing.value && this._gi.value) {
                 this.toggleGI(true);
             }
         };
         this.threeJSView.controls.onMouseWheel = (event) => {
-            if (this._tracing.value && this._gi.value){
+            if (this._tracing.value && this._gi.value) {
                 this.toggleGI(true);
             }
         };

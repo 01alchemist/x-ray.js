@@ -40,6 +40,7 @@ export class Color {
         this.b = memory.readFloat();
         return memory.position;
     }
+
     write(memory:ByteArrayBase|DirectMemory):number {
         memory.writeFloat(this.r);
         memory.writeFloat(this.g);
@@ -115,6 +116,13 @@ export class Color {
         let a = this.mulScalar(1 - pct);
         b = b.mulScalar(pct);
         return a.add(b);
+    }
+
+    set(r:number, g:number, b:number):Color {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+        return this;
     }
 
     clone():Color {

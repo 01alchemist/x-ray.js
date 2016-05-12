@@ -2211,6 +2211,12 @@ System.register("core/src/engine/math/Color", [], function(exports_11, context_1
                     b = b.mulScalar(pct);
                     return a.add(b);
                 };
+                Color.prototype.set = function (r, g, b) {
+                    this.r = r;
+                    this.g = g;
+                    this.b = b;
+                    return this;
+                };
                 Color.prototype.clone = function () {
                     return new Color(this.r, this.g, this.b);
                 };
@@ -3472,7 +3478,7 @@ System.register("core/src/engine/math/Matrix4", ["core/src/engine/math/Vector3",
                     return new Matrix4(m.x00, m.x01, m.x02, m.x03, m.x10, m.x11, m.x12, m.x13, m.x20, m.x21, m.x22, m.x23, m.x30, m.x31, m.x32, m.x33);
                 };
                 Matrix4.fromTHREEJS = function (e) {
-                    return new Matrix4(e[0], e[1], e[2], e[3], e[4], e[5], e[6], e[7], e[8], e[9], e[10], e[11], e[12], e[13], e[14], e[15]);
+                    return new Matrix4(e[0], e[4], e[8], e[12], e[1], e[5], e[9], e[13], e[2], e[6], e[10], e[14], e[3], e[7], e[11], e[15]);
                 };
                 Matrix4.identity = function () {
                     return new Matrix4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
@@ -7425,10 +7431,10 @@ System.register("core/src/GIRenderBase", ["core/src/CanvasDisplay", "core/src/en
         }
     }
 });
-System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/math/Color", "core/src/engine/scene/Camera", "core/src/engine/scene/SharedScene", "core/src/engine/math/Vector3", "core/src/engine/scene/shapes/Sphere", "core/src/engine/scene/materials/LightMaterial", "core/src/ThreeObjects", "core/src/engine/scene/shapes/Mesh", "core/src/engine/scene/shapes/Triangle", "core/src/engine/scene/materials/Material", "core/src/engine/scene/shapes/TransformedShape", "core/src/engine/scene/materials/Attenuation", "core/src/engine/math/Matrix4"], function(exports_57, context_57) {
+System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/math/Color", "core/src/engine/scene/Camera", "core/src/engine/scene/SharedScene", "core/src/engine/scene/shapes/Cube", "core/src/engine/math/Vector3", "core/src/engine/scene/shapes/Sphere", "core/src/engine/scene/materials/LightMaterial", "core/src/ThreeObjects", "core/src/engine/scene/shapes/Mesh", "core/src/engine/scene/shapes/Triangle", "core/src/engine/scene/materials/Material", "core/src/engine/scene/shapes/TransformedShape", "core/src/engine/scene/materials/Attenuation", "core/src/engine/math/Matrix4"], function(exports_57, context_57) {
     "use strict";
     var __moduleName = context_57 && context_57.id;
-    var GIRenderBase_1, Color_10, Camera_2, SharedScene_2, Vector3_14, Sphere_4, LightMaterial_3, ThreeObjects_1, Mesh_5, Triangle_6, Material_19, TransformedShape_4, Attenuation_10, Attenuation_11, Matrix4_5;
+    var GIRenderBase_1, Color_10, Camera_2, SharedScene_2, Cube_4, Vector3_14, Sphere_4, LightMaterial_3, ThreeObjects_1, Mesh_5, Triangle_6, Material_19, TransformedShape_4, Attenuation_10, Attenuation_11, Matrix4_5;
     var GIJSView;
     return {
         setters:[
@@ -7443,6 +7449,9 @@ System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/
             },
             function (SharedScene_2_1) {
                 SharedScene_2 = SharedScene_2_1;
+            },
+            function (Cube_4_1) {
+                Cube_4 = Cube_4_1;
             },
             function (Vector3_14_1) {
                 Vector3_14 = Vector3_14_1;
@@ -7663,9 +7672,24 @@ System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/
                     return material;
                 };
                 GIJSView.prototype.getLight = function (src) {
+                    if (src.children.length > 0) {
+                        var lightGeometry = src.children[0].geometry;
+                        if (lightGeometry instanceof THREE.SphereGeometry) {
+                            var _radius = lightGeometry.parameters.radius;
+                        }
+                        else if (lightGeometry instanceof THREE.PlaneGeometry) {
+                            var width = lightGeometry.parameters.width;
+                            var height = lightGeometry.parameters.height;
+                        }
+                    }
                     var material = new LightMaterial_3.LightMaterial(Color_10.Color.hexColor(src.color.getHex()), src.intensity, new Attenuation_11.LinearAttenuation(src.distance));
-                    var sphere = Sphere_4.Sphere.newSphere(new Vector3_14.Vector3(src.position.x, src.position.y, src.position.z), 1, material);
-                    return sphere;
+                    if (_radius) {
+                        var shape = Sphere_4.Sphere.newSphere(new Vector3_14.Vector3(src.position.x, src.position.y, src.position.z), _radius, material);
+                    }
+                    else {
+                        shape = Cube_4.Cube.newCube(new Vector3_14.Vector3(-width / 2, src.position.y, -height / 2), new Vector3_14.Vector3(width / 2, src.position.y + 1, height / 2), material);
+                    }
+                    return shape;
                 };
                 return GIJSView;
             }(GIRenderBase_1.GIRenderBase));

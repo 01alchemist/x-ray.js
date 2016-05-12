@@ -75,7 +75,9 @@ export class GIJSView extends GIRenderBase {
             }
         }
     }
+
     identityMatrix = new THREE.Matrix4().identity();
+
     private buildSceneObject(src):Shape {
 
         switch (src.type) {
@@ -85,9 +87,9 @@ export class GIJSView extends GIRenderBase {
 
                 var matrixWorld = src.matrixWorld;
 
-                if(matrixWorld.equals(this.identityMatrix)){
+                if (matrixWorld.equals(this.identityMatrix)) {
                     return shape;
-                }else {
+                } else {
                     var mat:Matrix4 = Matrix4.fromTHREEJS(matrixWorld.elements);
                     return TransformedShape.newTransformedShape(shape, mat);
                 }
@@ -137,9 +139,9 @@ export class GIJSView extends GIRenderBase {
             var positions:Float32Array = geometry.attributes["position"].array;
 
             var normals:Float32Array;
-            if(geometry.attributes["normal"]){
+            if (geometry.attributes["normal"]) {
                 normals = geometry.attributes["normal"].array;
-            }else{
+            } else {
                 normals = this.computeNormals(positions);
             }
             var triCount:number = 0;
@@ -230,9 +232,11 @@ export class GIJSView extends GIRenderBase {
         //mesh.smoothNormals();
         return mesh;
     }
-    computeNormals(positions:Float32Array):Float32Array{
+
+    computeNormals(positions:Float32Array):Float32Array {
         return new Float32Array(positions.length);
     }
+
     updateCamera(camera:THREE.PerspectiveCamera) {
         //console.log(JSON.stringify(this.camera.toJSON()));
         this.camera.p.setFromJson(camera.position);
@@ -256,18 +260,37 @@ export class GIJSView extends GIRenderBase {
         //var material:Material = new DiffuseMaterial(Color.hexColor(srcMaterial.color.getHex()));
         var material:Material = new Material(Color.hexColor(srcMaterial.color.getHex()));
         material.ior = srcMaterial.ior ? srcMaterial.ior : 1;
-        material.tint = srcMaterial.tint?srcMaterial.tint:0;
-        material.gloss = srcMaterial.gloss?srcMaterial.gloss:0;
-        material.emittance = srcMaterial.emittance?srcMaterial.emittance:0;
+        material.tint = srcMaterial.tint ? srcMaterial.tint : 0;
+        material.gloss = srcMaterial.gloss ? srcMaterial.gloss : 0;
+        material.emittance = srcMaterial.emittance ? srcMaterial.emittance : 0;
         material.transparent = srcMaterial.transparent;
         material.attenuation = Attenuation.fromJson(srcMaterial.attenuation);
         return material;
     }
 
     private getLight(src:any):Shape {
+        if (src.children.length > 0) {
+            var lightGeometry = src.children[0].geometry;
+            if (lightGeometry instanceof THREE.SphereGeometry) {
+                var _radius = lightGeometry.parameters.radius;
+            } else if (lightGeometry instanceof THREE.PlaneGeometry) {
+                var width = lightGeometry.parameters.width;
+                var height = lightGeometry.parameters.height;
+            }
+            // _radius = lightGeometry.boundingSphere.radius;
+        }
         var material = new LightMaterial(Color.hexColor(src.color.getHex()), src.intensity, new LinearAttenuation(src.distance));
-        var sphere = Sphere.newSphere(new Vector3(src.position.x, src.position.y, src.position.z), 1, material);
-        return sphere;
+        if (_radius) {
+            var shape = Sphere.newSphere(new Vector3(src.position.x, src.position.y, src.position.z), _radius, material);
+        } else {
+            shape = Cube.newCube(
+                // new Vector3(src.position.x - width / 2, src.position.y, src.position.z - height / 2),
+                // new Vector3(src.position.x + width / 2, src.position.y, src.position.z + height / 2),
+                new Vector3(-width / 2, src.position.y, -height / 2),
+                new Vector3(width / 2, src.position.y + 1, height / 2),
+                material);
+        }
+        return shape;
         //var mat:Matrix4 = Matrix4.fromTHREEJS(src.matrix.elements);
         //return TransformedShape.newTransformedShape(sphere, mat);
     }

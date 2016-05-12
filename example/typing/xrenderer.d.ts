@@ -342,6 +342,7 @@ declare module "core/src/engine/math/Color" {
         max(b: Color): Color;
         pow(b: number): Color;
         mix(b: Color, pct: number): Color;
+        set(r: number, g: number, b: number): Color;
         clone(): Color;
     }
 }
@@ -1093,34 +1094,37 @@ declare module "core/src/engine/math/TMatrix4" {
         inverse(): TMatrix4;
     }
 }
-declare module "core/src/engine/scene/Camera" {
-    import { Vector3 } from "core/src/engine/math/Vector3";
-    import { Ray } from "core/src/engine/math/Ray";
-    export class Camera {
-        p: Vector3;
-        u: Vector3;
-        v: Vector3;
-        w: Vector3;
-        m: number;
-        focalDistance: number;
-        apertureRadius: number;
-        constructor(p?: Vector3, u?: Vector3, v?: Vector3, w?: Vector3, m?: number, focalDistance?: number, apertureRadius?: number);
-        static fromJson(camera: Camera): Camera;
-        static lookAt(eye: any, look: any, up: Vector3, fovy: number): Camera;
-        updateFromArray(eye: any, look: any, up: any, fovy: number, focus?: number, aperture?: number): void;
-        updateFromJson(prop: any): void;
-        setFocus(focalPoint: Vector3, apertureRadius: number): void;
-        static debug: boolean;
-        castRay(x: number, y: number, w: number, h: number, u: number, v: number): Ray;
-        toJSON(): {
-            p: Vector3;
-            w: Vector3;
-            u: Vector3;
-            v: Vector3;
-            m: number;
-            focalDistance: number;
-            apertureRadius: number;
+declare module "core/src/engine/renderer/worker/TraceJob" {
+    import { Thread } from "core/src/engine/renderer/worker/Thread";
+    export class TraceJob {
+        param: any;
+        extra: any;
+        static INIT: string;
+        static INITED: string;
+        static TRACE: string;
+        static TRACED: string;
+        static TERMINATE: string;
+        static LOCKED: string;
+        finished: boolean;
+        runCount: number;
+        private id;
+        private _time;
+        private _lifeCount;
+        lifeCount: number;
+        time: number;
+        constructor(param: any, extra?: any);
+        start(thread: Thread, onComplete: Function): void;
+        getTraceParam(): {
+            init_iterations: number;
         };
+    }
+}
+declare module "core/src/engine/renderer/worker/ThreadPool" {
+    import { Thread } from "core/src/engine/renderer/worker/Thread";
+    export class ThreadPool {
+        static maxThreads: number;
+        private static pool;
+        static getThreads(): Thread[];
     }
 }
 declare module "core/src/engine/scene/Scene" {
@@ -1150,14 +1154,6 @@ declare module "core/src/engine/scene/Scene" {
         sample(r: Ray, emission: boolean, samples: number, depth: number): Color;
     }
 }
-declare module "core/src/engine/renderer/worker/ThreadPool" {
-    import { Thread } from "core/src/engine/renderer/worker/Thread";
-    export class ThreadPool {
-        static maxThreads: number;
-        private static pool;
-        static getThreads(): Thread[];
-    }
-}
 declare module "core/src/engine/scene/SharedScene" {
     import { Tree } from "core/src/engine/scene/tree/Tree";
     import { Color } from "core/src/engine/math/Color";
@@ -1171,69 +1167,6 @@ declare module "core/src/engine/scene/SharedScene" {
         constructor(color?: Color, shapes?: Shape[], lights?: Shape[], tree?: Tree | SharedTree, rays?: number);
         getMemory(): DirectMemory;
         static getScene(memory: ByteArrayBase | DirectMemory): SharedScene;
-    }
-}
-declare module "core/src/engine/renderer/worker/TraceWorker" {
-    import { Camera } from "core/src/engine/scene/Camera";
-    import { Scene } from "core/src/engine/scene/Scene";
-    import { RGBA } from "core/src/engine/math/Color";
-    import { Color } from "core/src/engine/math/Color";
-    import { DirectMemory } from "core/src/pointer/src/DirectMemory";
-    export class TraceWorker {
-        static INIT: string;
-        static INITED: string;
-        static TRACE: string;
-        static TRACED: string;
-        static TERMINATE: string;
-        static LOCKED: string;
-        id: number;
-        flags: Uint8Array;
-        pixelMemory: Uint8ClampedArray;
-        sampleMemory: Float32Array;
-        sceneMemory: DirectMemory;
-        camera: Camera;
-        scene: Scene;
-        full_width: number;
-        full_height: number;
-        width: number;
-        height: number;
-        xoffset: number;
-        yoffset: number;
-        samples: Color[];
-        cameraSamples: number;
-        absCameraSamples: number;
-        hitSamples: number;
-        bounces: number;
-        iterations: number;
-        private locked;
-        constructor();
-        onMessageReceived(e: any): void;
-        init(width: number, height: number, xoffset: number, yoffset: number): void;
-        private lock();
-        run(): void;
-        updatePixel(color: Color, si: number): void;
-        checkSamples(): string;
-        drawColor(i: number, rgba: RGBA): void;
-        drawPixelInt(i: number, color: number): void;
-    }
-}
-declare module "core/src/engine/renderer/worker/TraceJob" {
-    import { Thread } from "core/src/engine/renderer/worker/Thread";
-    export class TraceJob {
-        param: any;
-        extra: any;
-        finished: boolean;
-        runCount: number;
-        private id;
-        private _time;
-        private _lifeCount;
-        lifeCount: number;
-        time: number;
-        constructor(param: any, extra?: any);
-        start(thread: Thread, onComplete: Function): void;
-        getTraceParam(): {
-            init_iterations: number;
-        };
     }
 }
 declare module "core/src/engine/renderer/worker/TraceJobManager" {
@@ -1304,6 +1237,36 @@ declare module "core/src/engine/renderer/worker/Thread" {
         terminate(): void;
     }
 }
+declare module "core/src/engine/scene/Camera" {
+    import { Vector3 } from "core/src/engine/math/Vector3";
+    import { Ray } from "core/src/engine/math/Ray";
+    export class Camera {
+        p: Vector3;
+        u: Vector3;
+        v: Vector3;
+        w: Vector3;
+        m: number;
+        focalDistance: number;
+        apertureRadius: number;
+        constructor(p?: Vector3, u?: Vector3, v?: Vector3, w?: Vector3, m?: number, focalDistance?: number, apertureRadius?: number);
+        static fromJson(camera: Camera): Camera;
+        static lookAt(eye: any, look: any, up: Vector3, fovy: number): Camera;
+        updateFromArray(eye: any, look: any, up: any, fovy: number, focus?: number, aperture?: number): void;
+        updateFromJson(prop: any): void;
+        setFocus(focalPoint: Vector3, apertureRadius: number): void;
+        static debug: boolean;
+        castRay(x: number, y: number, w: number, h: number, u: number, v: number): Ray;
+        toJSON(): {
+            p: Vector3;
+            w: Vector3;
+            u: Vector3;
+            v: Vector3;
+            m: number;
+            focalDistance: number;
+            apertureRadius: number;
+        };
+    }
+}
 declare module "core/src/engine/renderer/LiteBucketRenderer" {
     import { Camera } from "core/src/engine/scene/Camera";
     import { TraceJobManager } from "core/src/engine/renderer/worker/TraceJobManager";
@@ -1360,7 +1323,6 @@ declare module "core/src/engine/engine" {
     export * from "core/src/engine/renderer/worker/ThreadPool";
     export * from "core/src/engine/renderer/worker/TraceJobManager";
     export * from "core/src/engine/renderer/worker/TraceJob";
-    export * from "core/src/engine/renderer/worker/TraceWorker";
     export * from "core/src/engine/renderer/LiteBucketRenderer";
     export * from "core/src/engine/renderer/SmartBucketRenderer";
     export * from "core/src/engine/scene/Axis";
@@ -1409,6 +1371,8 @@ declare module "core/src/ThreeJSView" {
         renderer: THREE.WebGLRenderer;
         controls: any;
         onCameraChange: Function;
+        onMouseDown: Function;
+        onMouseUp: Function;
         constructor(width: number, height: number, container: HTMLElement, appContainer: HTMLElement);
         animate(): void;
         render(): void;
@@ -1439,13 +1403,13 @@ declare module "core/src/GIRenderBase" {
     export abstract class GIRenderBase extends CanvasDisplay {
         protected renderer: SmartBucketRenderer;
         protected pixels: Uint8ClampedArray;
-        protected scene: SharedScene;
+        scene: SharedScene;
         protected camera: Camera;
-        protected cameraSamples: number;
-        protected hitSamples: number;
-        protected bounces: number;
-        protected iterations: number;
-        protected blockIterations: number;
+        cameraSamples: number;
+        hitSamples: number;
+        bounces: number;
+        iterations: number;
+        blockIterations: number;
         dirty: boolean;
         constructor(i_width?: number, i_height?: number, container?: HTMLElement);
         updateCameraSamples(newValue: number): void;
@@ -1468,21 +1432,10 @@ declare module "core/src/GIJSView" {
         identityMatrix: THREE.Matrix4;
         private buildSceneObject(src);
         private buildGeometry(geometry, material);
+        computeNormals(positions: Float32Array): Float32Array;
         updateCamera(camera: THREE.PerspectiveCamera): void;
         private static getMaterial(srcMaterial);
         private getLight(src);
-    }
-}
-declare module "core/XRendererType" {
-    export enum XRendererType {
-        BASIC = 0,
-        SMART = 1,
-    }
-}
-declare module "core/XRenderer" {
-    import { XRendererType } from "core/XRendererType";
-    export class XRenderer {
-        constructor(type: XRendererType);
     }
 }
 declare module "core/core" {
@@ -1493,8 +1446,6 @@ declare module "core/core" {
     export * from "core/src/CanvasDisplay";
     export * from "core/src/GIRenderBase";
     export * from "core/src/GIJSView";
-    export * from "core/XRendererType";
-    export * from "core/XRenderer";
 }
 declare module "xrenderer" {
     export * from "core/core";
