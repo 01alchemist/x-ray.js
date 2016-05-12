@@ -22,8 +22,12 @@ export class Thread {
     constructor(name:string, public id:number) {
 
         //console.log("Thread:"+name);
-
-        this.instance = new Worker(Thread.workerUrl);
+        console.log("Checkpoint #4.1");
+        try{
+            this.instance = new Worker(Thread.workerUrl);
+        }catch (e){
+            console.log(e);
+        }
         this.instance.onmessage = this.onMessageReceived.bind(this);
     }
 

@@ -16,7 +16,7 @@ export class Matrix4 {
                 public x10 = 0, public x11 = 0, public x12 = 0, public x13 = 0,
                 public x20 = 0, public x21 = 0, public x22 = 0, public x23 = 0,
                 public x30 = 0, public x31 = 0, public x32 = 0, public x33 = 0) {
-        this.m = new Float32Array(16);
+        //this.m = new Float32Array(16);
     }
 
     directRead(memory:Float32Array, offset:number):number {

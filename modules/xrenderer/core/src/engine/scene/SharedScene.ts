@@ -12,6 +12,7 @@ import {Pointer} from "../../pointer/src/Pointer";
 import {DirectMemory} from "../../pointer/src/DirectMemory";
 import {Box} from "./shapes/Box";
 import {ThreadPool} from "../renderer/worker/ThreadPool";
+import {Texture} from "./materials/Texture";
 /**
  * Created by Nidin Vinayakan on 13/1/2016.
  */
@@ -83,6 +84,7 @@ export class SharedScene extends Scene {
         memory.position += ThreadPool.maxThreads;//thread lock reserve
 
         //write materials first
+        Texture.write(memory);
         Material.write(memory);
 
         //write scene
@@ -108,7 +110,8 @@ export class SharedScene extends Scene {
         memory.position += 3;
         memory.position += ThreadPool.maxThreads;
 
-        var offset:number = Material.restore(memory);
+        var offset:number = Texture.restore(memory);
+        offset = Material.restore(memory);
 
         scene.color.read(memory);
         var numShapes:number = memory.readUnsignedInt();

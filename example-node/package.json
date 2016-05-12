@@ -1,0 +1,26 @@
+{
+  "name": "xrenderer-node-example",
+  "version": "0.0.1",
+  "description": "Node example",
+  "main": "index.js",
+  "scripts": {
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": ""
+  },
+  "homepage": "",
+  "dependencies": {
+    "pngjs": "^2.3.1",
+    "systemjs": "0.19.6",
+    "xdata": "^2.1.15"
+  },
+  "devDependencies": {
+    "typescript": "^1.8.10"
+  }
+}

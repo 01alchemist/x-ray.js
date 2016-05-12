@@ -10,7 +10,7 @@ export abstract class GIRenderBase extends CanvasDisplay {
     protected renderer:SmartBucketRenderer;
     protected pixels:Uint8ClampedArray;
     public scene:SharedScene;
-    protected camera:Camera;
+    public camera:Camera;
     public cameraSamples:number;
     public hitSamples:number;
     public bounces:number;

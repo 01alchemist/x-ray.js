@@ -342,7 +342,6 @@ declare module "core/src/engine/math/Color" {
         max(b: Color): Color;
         pow(b: number): Color;
         mix(b: Color, pct: number): Color;
-        set(r: number, g: number, b: number): Color;
         clone(): Color;
     }
 }
@@ -1433,13 +1432,13 @@ declare module "core/src/GIRenderBase" {
     export abstract class GIRenderBase extends CanvasDisplay {
         protected renderer: SmartBucketRenderer;
         protected pixels: Uint8ClampedArray;
-        scene: SharedScene;
+        protected scene: SharedScene;
         protected camera: Camera;
-        cameraSamples: number;
-        hitSamples: number;
-        bounces: number;
-        iterations: number;
-        blockIterations: number;
+        protected cameraSamples: number;
+        protected hitSamples: number;
+        protected bounces: number;
+        protected iterations: number;
+        protected blockIterations: number;
         dirty: boolean;
         constructor(i_width?: number, i_height?: number, container?: HTMLElement);
         updateCameraSamples(newValue: number): void;

@@ -114,6 +114,7 @@ export class Material {
         memory.writeFloat(this.gloss);
         memory.writeFloat(this.tint);
         memory.writeBoolean(this.transparent);
+        memory.writeUnsignedInt(this.texture);
         return memory.position;
     }
 

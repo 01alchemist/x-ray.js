@@ -3,20 +3,28 @@ import {Vector3} from "../../math/Vector3";
 import {ImageLoader} from "../../data/ImageLoader";
 import {MathUtils} from "../../utils/MathUtils";
 import {RGBA} from "../../math/Color";
+import {ByteArrayBase} from "../../../pointer/src/ByteArrayBase";
+import {DirectMemory} from "../../../pointer/src/DirectMemory";
 /**
  * Created by Nidin Vinayakan on 10-01-2016.
  */
 export class Texture extends ImageLoader {
 
-    static map:Map<string,Texture> = new Map<string, Texture>();
+    static list:Array<Texture> = [];
+    static map:Map<string,number> = new Map<string, number>();
 
-    static getTexture(url):Texture {
-        var texture:Texture = Texture.map.get(url);
+    static getTexture(url:string):Texture {
+        var texture:Texture = Texture.list[Texture.map.get(url)];
         if (texture) {
             return texture;
         } else {
             return new Texture(url);
         }
+    }
+
+    static setTexture(url:string, texture:Texture) {
+        Texture.map.set(url, Texture.list.push(texture) - 1);
+        return texture;
     }
 
     static fromJson(texture:Texture):Texture {
@@ -32,7 +40,7 @@ export class Texture extends ImageLoader {
 
     private static ctx:CanvasRenderingContext2D;
 
-
+    index:number;
     sourceFile:string;
     loaded:boolean;
     width:number;
@@ -58,6 +66,30 @@ export class Texture extends ImageLoader {
         if (url) {
             this.load(url);
         }
+    }
+
+    read(memory:ByteArrayBase|DirectMemory):number {
+        this.width = memory.readUnsignedInt();
+        this.height = memory.readUnsignedInt();
+        this.data = [];
+        for (var i:number = 0; i < this.width * this.height; i++) {
+            var color = new Color();
+            color.read(memory);
+            this.data.push(color);
+        }
+
+        return memory.position;
+    }
+
+    write(memory:ByteArrayBase|DirectMemory):number {
+        memory.writeUnsignedInt(this.width);
+        memory.writeUnsignedInt(this.height);
+
+        for (var i:number = 0; i < this.width * this.height; i++) {
+            this.data[i].write(memory);
+        }
+
+        return memory.position;
     }
 
     sample(u:number, v:number):Color {
@@ -92,10 +124,11 @@ export class Texture extends ImageLoader {
     load(url:string, onLoad?:Function, onProgress?:Function, onError?:Function):HTMLImageElement {
         var self = this;
         this.sourceFile = url;
-        let texture:Texture = Texture.map.get(url);
+        let texture:Texture = Texture.getTexture(url);
 
         if (texture) {
 
+            this.index = texture.index;
             this.data = texture.data;
             this.image = texture.image;
             this.pixels = texture.pixels;
@@ -107,7 +140,7 @@ export class Texture extends ImageLoader {
 
             return this.image;
         }
-        Texture.map.set(url, this);
+        Texture.setTexture(url, this);
         return super.load(url, function (image) {
             Texture.ctx.drawImage(image, 0, 0);
             let pixels:Uint8ClampedArray|number[] = Texture.ctx.getImageData(0, 0, image.width, image.height).data;
@@ -136,5 +169,23 @@ export class Texture extends ImageLoader {
             self.height = image.height;
             self.pixels = pixels;
         }, onProgress, onError);
+    }
+
+    static write(memory:ByteArrayBase|DirectMemory):number {
+        memory.writeUnsignedInt(Texture.list.length);
+        Texture.list.forEach(function (texture:Texture) {
+            texture.write(memory);
+        });
+        return memory.position;
+    }
+
+
+    static restore(memory:ByteArrayBase|DirectMemory):number {
+        var numTextures:number = memory.readUnsignedInt();
+        for (var i = 0; i < numTextures; i++) {
+            new Texture().read(memory);
+        }
+        console.info(numTextures + " Textures restored");
+        return memory.position;
     }
 }

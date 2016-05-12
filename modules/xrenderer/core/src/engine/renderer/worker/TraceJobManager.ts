@@ -70,11 +70,19 @@ export class TraceJobManager {
         this.width = param.width;
         this.height = param.height;
 
-        this.sceneMemory = scene.getMemory();
+        console.log("Checkpoint #1");
+        try{
+            this.sceneMemory = scene.getMemory();
+        }catch(e){
+            console.log(e);
+        }
+        console.log("Checkpoint #2");
         this.flags = new Uint8Array(this.sceneMemory.data.buffer, 0, 3 + ThreadPool.maxThreads);
         TraceJobManager.flags = this.flags;
         this.pixelMemory = new Uint8Array(new SharedArrayBuffer(this.width * this.height * 3));
         this.sampleMemory = new Float32Array(new SharedArrayBuffer(4 * this.width * this.height * 3));
+        console.log("Checkpoint #3");
+
 
         this.traceParameters = {
             pixelBuffer: this.pixelMemory.buffer,
@@ -98,9 +106,11 @@ export class TraceJobManager {
         console.log("Initializing threads...");
         console.time("init");
         this.threads = ThreadPool.getThreads();
+        console.log("Checkpoint #4");
         this.totalThreads = this.threads.length;
         this.lockCount = this.threads.length;
         this.initNext(callback);
+        console.log("Checkpoint #5");
     }
 
     private initNext(callback) {

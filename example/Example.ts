@@ -18,8 +18,8 @@ export class Example extends SimpleGUI {
 
         Thread.workerUrl = "../modules/xrenderer/workers/trace-worker-bootstrap.js";
 
-        this.i_width = 2560 / 2;
-        this.i_height = 1440 / 2;
+        this.i_width = 2560 / 4;
+        this.i_height = 1440 / 4;
     }
 
     onInit() {
@@ -27,12 +27,12 @@ export class Example extends SimpleGUI {
 
         this.threeJSView = new ThreeJSView(this.i_width, this.i_height, this.webglOutput, this.appContainer);
         this.giJSView = new GIJSView(this.i_width, this.i_height, this.giOutput);
-        this.giJSView.hitSamples = 8;
+        // this.giJSView.hitSamples = 8;
         // this.giJSView.cameraSamples = 4;
-        this.giJSView.blockIterations = 4;
+        // this.giJSView.blockIterations = 4;
         this.giJSView.bounces = 5;
-        // this.giJSView.scene.color.set(0, 0, 0);
-        this.giJSView.scene.color = Color.hexColor(0xFDDCBA);
+        this.giJSView.scene.color.set(0, 0, 0);
+        // this.giJSView.scene.color = Color.hexColor(0xFDDCBA);
         // var ambient = new THREE.AmbientLight(0x5C5C5C);
         // this.threeJSView.scene.add(ambient);
         var directionalLight = new THREE.DirectionalLight(0xffeedd, 1);
@@ -42,14 +42,14 @@ export class Example extends SimpleGUI {
 
         var color = 0xffeedd;
 
-        var geometry:any = new THREE.SphereGeometry(5, 32, 32);
+        var geometry:any = new THREE.SphereGeometry(1, 32, 32);
         var material:any = new THREE.MeshBasicMaterial({color: 0xffffff});
         var sphere = new THREE.Mesh(geometry, material);
 
-        var pointLight1 = new THREE.PointLight(0xffffff, 1, 30);
-        pointLight1.position.set(0, 15, 0);
+        var pointLight1 = new THREE.PointLight(0xffffff, 0.1, 30);
+        pointLight1.position.set(10, 15, 0);
         pointLight1.add(sphere.clone());
-        //this.threeJSView.scene.add(pointLight1);
+        this.threeJSView.scene.add(pointLight1);
 
         var pointLight2 = new THREE.PointLight(0xffffff, 1, 30);
         pointLight2.position.set(12, 0, 0);
@@ -81,7 +81,8 @@ export class Example extends SimpleGUI {
         };
 
         geometry = new THREE.PlaneGeometry(100, 100);
-        material = new THREE.MeshPhongMaterial({color: 0xFDDCBA});
+        // material = new THREE.MeshPhongMaterial({color: 0xFDDCBA});
+        material = new THREE.MeshPhongMaterial({color: 0xB9B9B9});
         var mesh = new THREE.Mesh(geometry, material);
         mesh.rotation.set(MathUtils.radians(-90), 0, 0);
         // mesh.position.set(-0.5, -0.5, -0.5);
@@ -89,18 +90,18 @@ export class Example extends SimpleGUI {
         mesh.receiveShadow = true;
         this.threeJSView.scene.add(mesh);
 
-        var areaLightMesh = mesh.clone();
+        /*var areaLightMesh = mesh.clone();
         var pointLight3 = new THREE.PointLight(0xffffff, 1, 1000);
         pointLight3.position.set(0, 100, 0);
         pointLight3.add(areaLightMesh);
-        this.threeJSView.scene.add(pointLight3);
+        this.threeJSView.scene.add(pointLight3);*/
 
         self.render();
 
         var loader = new THREE["OBJLoader"](manager);
         // loader.load('../models/sponza.obj', function (object) {
-        //     loader.load('../models/teapot.obj', function (object) {
-            loader.load('../models/stanford-dragon.obj', function (object) {
+            loader.load('../models/teapot.obj', function (object) {
+            // loader.load('../models/stanford-dragon.obj', function (object) {
             //loader.load('../models/emerald.obj', function (object) {
 
             self.model = object;
@@ -111,11 +112,12 @@ export class Example extends SimpleGUI {
                     //child.position.set(0, 7, 0);
                     // child.rotation.set(MathUtils.radians(35), 0, 0);
                     // child.scale.set(5, 5, 5);
-                    // child.material.color = new THREE.Color(0xff0000);
-                    child.material.ior = 1.5;
+                    child.material.color = new THREE.Color(0xff0000);
+                    child.material.ior = 10;
+                    // child.material.emittance = 0.1;
                     //child.material.tint = 0.5;
-                    child.material.gloss = MathUtils.radians(15);
-                    child.material.transparent = true;
+                    child.material.gloss = MathUtils.radians(1);
+                    child.material.transparent = false;
                     //child.castShadow = true;
                     child.receiveShadow = false;
                 }
