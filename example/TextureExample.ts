@@ -1,13 +1,10 @@
 import {SimpleGUI} from "./SimpleGUI";
-//import {ThreeJSView} from "core/src/ThreeJSView";
-//import {GIJSView} from "core/src/GIJSView";
-import {ThreeJSView, GIJSView, MathUtils, Color} from "xrenderer";
+import {ThreeJSView, GIJSView, MathUtils, Thread} from "xrenderer";
 import Matrix3 = THREE.Matrix3;
-import {Thread} from "xrenderer";
 /**
  * Created by Nidin Vinayakan on 27-02-2016.
  */
-export class Example extends SimpleGUI {
+export class TextureExample extends SimpleGUI {
 
     private threeJSView:ThreeJSView;
     private giJSView:GIJSView;
@@ -66,8 +63,11 @@ export class Example extends SimpleGUI {
 
         // texture
         var manager = new THREE.LoadingManager();
-        manager.onProgress = function (item, loaded, total) {
+        /*manager.onProgress = function (item, loaded, total) {
             console.log(item, loaded, total);
+        };*/
+        manager.onLoad = function () {
+            console.log(arguments);
         };
 
         var onProgress = function (xhr) {
@@ -98,49 +98,36 @@ export class Example extends SimpleGUI {
 
         self.render();
 
-        var loader = new THREE["OBJLoader"](manager);
-        // loader.load('../models/sponza/sponza.obj', function (object) {
-            loader.load('../models/uv-sphere/uv-sphere.obj', function (object) {
-            // loader.load('../models/stanford-dragon.obj', function (object) {
-            //loader.load('../models/emerald.obj', function (object) {
+        //THREE.Loader.Handlers.add( /\.dds$/i, new THREE["DDSLoader"]() );
+        var mtlLoader = new THREE["MTLLoader"](manager);
+        mtlLoader.setBaseUrl( '../models/uv-sphere/' );
+        mtlLoader.setPath( '../models/uv-sphere/' );
+        mtlLoader.load( 'uv-sphere.mtl', function( materials ) {
+            var objLoader = new THREE["OBJLoader"]();
+            objLoader.setMaterials( materials );
+            objLoader.setPath( '../models/uv-sphere/' );
+            materials.preload();
+            objLoader.load( 'uv-sphere.obj', function ( object ) {
+                //object.position.y = - 95;
 
-            self.model = object;
-            self.model.castShadow = true;
-            self.model.receiveShadow = false;
-            object.traverse(function (child) {
-                if (child instanceof THREE.Mesh) {
-                    //child.position.set(0, 7, 0);
-                    // child.rotation.set(MathUtils.radians(35), 0, 0);
-                    // child.scale.set(5, 5, 5);
-                    child.material.color = new THREE.Color(0xFCFAE1);
-                    child.material.ior = 1.5;
-                    // child.material.emittance = 0.1;
-                    //child.material.tint = 0.5;
-                    child.material.gloss = MathUtils.radians(20);
-                    child.material.transparent = false;
-                    //child.castShadow = true;
-                    child.receiveShadow = false;
-                }
-            });
-            self.threeJSView.scene.add(object);
-            self.render();
-            self.giJSView.setThreeJSScene(self.threeJSView.scene, function () {
-                self.giJSView.updateCamera(self.threeJSView.camera);
-                if (self._tracing.value) {
-                    self.giJSView.toggleTrace(true);
-                }
-            });
-            self.render();
-        }, onProgress, onError);
+                self.threeJSView.scene.add(object);
+                self.render();
 
-        /* GI */
+                setTimeout(function(){
+                    self.giJSView.setThreeJSScene(self.threeJSView.scene, function () {
+                        self.giJSView.updateCamera(self.threeJSView.camera);
+                        if (self._tracing.value) {
+                            self.giJSView.toggleTrace(true);
+                        }
+                    });
+                    self.render();
+                },1000);
 
-        /*this.giJSView.loadModel('../models/teapot.obj', function(){
-         //this.giJSView.loadModel('../models/emerald.obj', function(){
-         if(self._tracing.value){
-         self.giJSView.toggleTrace(true);
-         }
-         });*/
+            }, onProgress, onError );
+        });
+
+
+
         this.threeJSView.onCameraChange = function (camera) {
             self.giJSView.updateCamera(camera);
             if (self._tracing.value && self.giJSView.dirty) {

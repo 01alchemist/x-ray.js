@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>XRenderer Example</title>
+    <script src="../libs/uil.js"></script>
+
+    <script src="../three.js/build/three.js"></script>
+    <script src="../three.js/examples/js/controls/EditorControls.js"></script>
+    <script src="../three.js/examples/js/loaders/DDSLoader.js"></script>
+    <script src="../three.js/examples/js/loaders/MTLLoader.js"></script>
+    <script src="../three.js/examples/js/loaders/OBJLoader.js"></script>
+
+    <script src="../node_modules/systemjs/dist/system.src.js"></script>
+    <script src="../modules/xrenderer/bundle/xrenderer.js"></script>
+    <script>
+        System.config({
+            packages: {
+                "./": {
+                    format: 'register',
+                    defaultExtension: 'js'
+                },
+                'xrenderer': {
+                    main:"xrenderer",
+                    format: 'register',
+                    defaultExtension: 'js'
+                }
+            },
+            map: {
+                'xrenderer': "../modules/xrenderer/bundle"
+            }
+        });
+        System.import('TextureExample').then(function (module) {
+            new module.TextureExample();
+        }, console.error.bind(console));
+    </script>
+</head>
+<body>
+</body>
+</html>

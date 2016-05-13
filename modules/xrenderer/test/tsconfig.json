@@ -10,10 +10,5 @@
     "noImplicitAny": false
   },
   "exclude": [
-    "tools",
-    "bundle",
-    "node_modules",
-    "test",
-    "workers"
   ]
 }

@@ -1,26 +1,24 @@
-/*import {Camera} from "../../scene/Camera";
-import {Scene} from "../../scene/Scene";
-import {RGBA} from "../../math/Color";
-import {Color} from "../../math/Color";
-import {Ray} from "../../math/Ray";
-import {Cube} from "../../scene/shapes/Cube";
-import {Vector3} from "../../math/Vector3";
-import {DiffuseMaterial} from "../../scene/materials/DiffuseMaterial";
-import {Sphere} from "../../scene/shapes/Sphere";
-import {LightMaterial} from "../../scene/materials/LightMaterial";
-import {LinearAttenuation} from "../../scene/materials/Attenuation";
-import {SpecularMaterial} from "../../scene/materials/SpecularMaterial";
-import {SharedScene} from "../../scene/SharedScene";
-import {DirectMemory} from "../../../pointer/src/DirectMemory";
-import {ThreadPool} from "./ThreadPool";*/
-
-import {Camera, Scene, RGBA, Color, Ray, Cube, Vector3, Sphere, SharedScene, DirectMemory, ThreadPool, TraceJob} from "xrenderer";
-import {DiffuseMaterial, LightMaterial, LinearAttenuation, SpecularMaterial} from "xrenderer";
+import {Camera} from "../core/src/engine/scene/Camera";
+import {Scene} from "../core/src/engine/scene/Scene";
+import {RGBA} from "../core/src/engine/math/Color";
+import {Color} from "../core/src/engine/math/Color";
+import {Ray} from "../core/src/engine/math/Ray";
+import {Cube} from "../core/src/engine/scene/shapes/Cube";
+import {Vector3} from "../core/src/engine/math/Vector3";
+import {DiffuseMaterial} from "../core/src/engine/scene/materials/DiffuseMaterial";
+import {Sphere} from "../core/src/engine/scene/shapes/Sphere";
+import {LightMaterial} from "../core/src/engine/scene/materials/LightMaterial";
+import {LinearAttenuation} from "../core/src/engine/scene/materials/Attenuation";
+import {SpecularMaterial} from "../core/src/engine/scene/materials/SpecularMaterial";
+import {SharedScene} from "../core/src/engine/scene/SharedScene";
+import {DirectMemory} from "../core/src/pointer/src/DirectMemory";
+import {TraceJob} from "../core/src/engine/renderer/worker/TraceJob";
+import {ThreadPool} from "../core/src/engine/renderer/worker/ThreadPool";
 
 /**
  * Created by Nidin Vinayakan on 10-01-2016.
  */
-export class TraceWorker {
+export class TraceWorkerDebug {
 
     id:number;
     flags:Uint8Array;
@@ -264,4 +262,4 @@ export class TraceWorker {
         this.pixelMemory[i + 2] = blue;
     }
 }
-new TraceWorker();
+new TraceWorkerDebug();

@@ -373,11 +373,16 @@ declare module "core/src/engine/scene/materials/Texture" {
     import { Color } from "core/src/engine/math/Color";
     import { Vector3 } from "core/src/engine/math/Vector3";
     import { ImageLoader } from "core/src/engine/data/ImageLoader";
+    import { ByteArrayBase } from "core/src/pointer/src/ByteArrayBase";
+    import { DirectMemory } from "core/src/pointer/src/DirectMemory";
     export class Texture extends ImageLoader {
-        static map: Map<string, Texture>;
-        static getTexture(url: any): Texture;
+        static list: Array<Texture>;
+        static map: Map<string, number>;
+        static getTexture(url: string): Texture;
+        static setTexture(url: string, texture: Texture): Texture;
         static fromJson(texture: Texture): Texture;
         private static ctx;
+        index: number;
         sourceFile: string;
         loaded: boolean;
         width: number;
@@ -385,11 +390,16 @@ declare module "core/src/engine/scene/materials/Texture" {
         image: HTMLImageElement;
         data: Color[];
         pixels: number[] | Uint8ClampedArray;
-        constructor(url?: string);
+        constructor(arg?: HTMLImageElement | string);
+        read(memory: ByteArrayBase | DirectMemory): number;
+        write(memory: ByteArrayBase | DirectMemory): number;
         sample(u: number, v: number): Color;
         normalSample(u: number, v: number): Vector3;
         bumpSample(u: number, v: number): Vector3;
         load(url: string, onLoad?: Function, onProgress?: Function, onError?: Function): HTMLImageElement;
+        setImage(image: any): void;
+        static write(memory: ByteArrayBase | DirectMemory): number;
+        static restore(memory: ByteArrayBase | DirectMemory): number;
     }
 }
 declare module "core/src/engine/scene/materials/Attenuation" {
@@ -1434,7 +1444,7 @@ declare module "core/src/GIRenderBase" {
         protected renderer: SmartBucketRenderer;
         protected pixels: Uint8ClampedArray;
         scene: SharedScene;
-        protected camera: Camera;
+        camera: Camera;
         cameraSamples: number;
         hitSamples: number;
         bounces: number;

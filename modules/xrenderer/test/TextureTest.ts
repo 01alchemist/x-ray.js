@@ -1,22 +1,22 @@
 import {SimpleGUI} from "./SimpleGUI";
-//import {ThreeJSView} from "core/src/ThreeJSView";
-//import {GIJSView} from "core/src/GIJSView";
-import {ThreeJSView, GIJSView, MathUtils, Color} from "xrenderer";
+// import {ThreeJSView, GIJSView, MathUtils, Thread} from "xrenderer";
 import Matrix3 = THREE.Matrix3;
-import {Thread} from "xrenderer";
+import {ThreeJSView} from "../core/src/ThreeJSView";
+import {GIJSView} from "../core/src/GIJSView";
+import {Thread} from "../core/src/engine/renderer/worker/Thread";
+import {MathUtils} from "../core/src/engine/utils/MathUtils";
 /**
  * Created by Nidin Vinayakan on 27-02-2016.
  */
-export class Example extends SimpleGUI {
+export class TextureTest extends SimpleGUI {
 
     private threeJSView:ThreeJSView;
     private giJSView:GIJSView;
-    private model;
 
     constructor() {
         super();
 
-        Thread.workerUrl = "../modules/xrenderer/workers/trace-worker-bootstrap.js";
+        Thread.workerUrl = "../workers/trace-worker-bootstrap-debug.js";
 
         this.i_width = 2560 / 2;
         this.i_height = 1440 / 2;
@@ -27,6 +27,7 @@ export class Example extends SimpleGUI {
 
         this.threeJSView = new ThreeJSView(this.i_width, this.i_height, this.webglOutput, this.appContainer);
         this.giJSView = new GIJSView(this.i_width, this.i_height, this.giOutput);
+        this.giJSView.iterations = 100;
         this.giJSView.hitSamples = 16;
         // this.giJSView.cameraSamples = 4;
         // this.giJSView.blockIterations = 4;
@@ -52,9 +53,9 @@ export class Example extends SimpleGUI {
         this.threeJSView.scene.add(pointLight1);
 
         var pointLight2 = new THREE.PointLight(0xffffff, 1, 30);
-        pointLight2.position.set(12, 0, 0);
+        pointLight2.position.set(0, -20, 0);
         pointLight2.add(sphere.clone());
-        //this.threeJSView.scene.add(pointLight2);
+        this.threeJSView.scene.add(pointLight2);
 
         /*var pointLight = new THREE.PointLight(color, 1, 30);
          pointLight.position.set(5, 5, 0);
@@ -66,8 +67,11 @@ export class Example extends SimpleGUI {
 
         // texture
         var manager = new THREE.LoadingManager();
-        manager.onProgress = function (item, loaded, total) {
+        /*manager.onProgress = function (item, loaded, total) {
             console.log(item, loaded, total);
+        };*/
+        manager.onLoad = function () {
+            console.log(arguments);
         };
 
         var onProgress = function (xhr) {
@@ -88,7 +92,7 @@ export class Example extends SimpleGUI {
         // mesh.position.set(-0.5, -0.5, -0.5);
         mesh.castShadow = false;
         mesh.receiveShadow = true;
-        this.threeJSView.scene.add(mesh);
+        // this.threeJSView.scene.add(mesh);
 
         /*var areaLightMesh = mesh.clone();
         var pointLight3 = new THREE.PointLight(0xffffff, 1, 1000);
@@ -98,49 +102,36 @@ export class Example extends SimpleGUI {
 
         self.render();
 
-        var loader = new THREE["OBJLoader"](manager);
-        // loader.load('../models/sponza/sponza.obj', function (object) {
-            loader.load('../models/uv-sphere/uv-sphere.obj', function (object) {
-            // loader.load('../models/stanford-dragon.obj', function (object) {
-            //loader.load('../models/emerald.obj', function (object) {
+        //THREE.Loader.Handlers.add( /\.dds$/i, new THREE["DDSLoader"]() );
+        var mtlLoader = new THREE["MTLLoader"](manager);
+        mtlLoader.setBaseUrl( '../../../models/uv-sphere/' );
+        mtlLoader.setPath( '../../../models/uv-sphere/' );
+        mtlLoader.load( 'uv-sphere.mtl', function( materials ) {
+            var objLoader = new THREE["OBJLoader"]();
+            objLoader.setMaterials( materials );
+            objLoader.setPath( '../../../models/uv-sphere/' );
+            materials.preload();
+            objLoader.load( 'uv-sphere.obj', function ( object ) {
+                //object.position.y = - 95;
 
-            self.model = object;
-            self.model.castShadow = true;
-            self.model.receiveShadow = false;
-            object.traverse(function (child) {
-                if (child instanceof THREE.Mesh) {
-                    //child.position.set(0, 7, 0);
-                    // child.rotation.set(MathUtils.radians(35), 0, 0);
-                    // child.scale.set(5, 5, 5);
-                    child.material.color = new THREE.Color(0xFCFAE1);
-                    child.material.ior = 1.5;
-                    // child.material.emittance = 0.1;
-                    //child.material.tint = 0.5;
-                    child.material.gloss = MathUtils.radians(20);
-                    child.material.transparent = false;
-                    //child.castShadow = true;
-                    child.receiveShadow = false;
-                }
-            });
-            self.threeJSView.scene.add(object);
-            self.render();
-            self.giJSView.setThreeJSScene(self.threeJSView.scene, function () {
-                self.giJSView.updateCamera(self.threeJSView.camera);
-                if (self._tracing.value) {
-                    self.giJSView.toggleTrace(true);
-                }
-            });
-            self.render();
-        }, onProgress, onError);
+                self.threeJSView.scene.add(object);
+                self.render();
 
-        /* GI */
+                setTimeout(function(){
+                    self.giJSView.setThreeJSScene(self.threeJSView.scene, function () {
+                        self.giJSView.updateCamera(self.threeJSView.camera);
+                        if (self._tracing.value) {
+                            self.giJSView.toggleTrace(true);
+                        }
+                    });
+                    self.render();
+                },1000);
 
-        /*this.giJSView.loadModel('../models/teapot.obj', function(){
-         //this.giJSView.loadModel('../models/emerald.obj', function(){
-         if(self._tracing.value){
-         self.giJSView.toggleTrace(true);
-         }
-         });*/
+            }, onProgress, onError );
+        });
+
+
+
         this.threeJSView.onCameraChange = function (camera) {
             self.giJSView.updateCamera(camera);
             if (self._tracing.value && self.giJSView.dirty) {

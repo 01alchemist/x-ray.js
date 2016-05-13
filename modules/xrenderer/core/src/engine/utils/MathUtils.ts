@@ -33,7 +33,7 @@ export class MathUtils {
     }
 
     static Modf(f):{int:number,frac:number} {
-        if (f < 1) {
+        /*if (f < 1) {
             if (f < 0) {
                 let n = MathUtils.Modf(-f);
                 return {int: -n.int, frac: -n.frac};
@@ -50,6 +50,9 @@ export class MathUtils {
             x ^= x;
         }
         var int = x;
+        var frac = f - int;*/
+        // return {int: int, frac: frac};
+        var int = Math.floor(f);
         var frac = f - int;
         return {int: int, frac: frac};
     }

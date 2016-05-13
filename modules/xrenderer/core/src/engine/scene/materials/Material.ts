@@ -102,6 +102,10 @@ export class Material {
         this.gloss = memory.readFloat();
         this.tint = memory.readFloat();
         this.transparent = memory.readBoolean();
+        var hasTexture:boolean = memory.readBoolean();
+        if(hasTexture){
+            this.texture = Texture.getTexture(memory.readUTF());
+        }
         return memory.position;
     }
 
@@ -114,7 +118,12 @@ export class Material {
         memory.writeFloat(this.gloss);
         memory.writeFloat(this.tint);
         memory.writeBoolean(this.transparent);
-        memory.writeUnsignedInt(this.texture);
+        if(this.texture){
+            memory.writeBoolean(true);
+            memory.writeUTF(this.texture.sourceFile);
+        }else{
+            memory.writeBoolean(false);
+        }
         return memory.position;
     }
 

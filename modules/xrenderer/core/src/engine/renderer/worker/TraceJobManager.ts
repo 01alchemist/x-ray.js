@@ -42,8 +42,8 @@ export class TraceJobManager {
     get isAllLocked():boolean {
         for (var i:number = 0; i < this.totalThreads; i++) {
             if (this.flags[3 + i] !== 3 && this.flags[3 + i] !== 0) {
-                console.log(this.flags);
-                console.log(this.threads);
+                // console.log(this.flags);
+                // console.log(this.threads);
                 return false;
             }
         }

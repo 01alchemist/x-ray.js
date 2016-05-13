@@ -7,7 +7,7 @@ import {Thread} from "xrenderer";
 /**
  * Created by Nidin Vinayakan on 27-02-2016.
  */
-export class Example extends SimpleGUI {
+export class STLExample extends SimpleGUI {
 
     private threeJSView:ThreeJSView;
     private giJSView:GIJSView;
@@ -91,38 +91,32 @@ export class Example extends SimpleGUI {
         this.threeJSView.scene.add(mesh);
 
         /*var areaLightMesh = mesh.clone();
-        var pointLight3 = new THREE.PointLight(0xffffff, 1, 1000);
-        pointLight3.position.set(0, 100, 0);
-        pointLight3.add(areaLightMesh);
-        this.threeJSView.scene.add(pointLight3);*/
+         var pointLight3 = new THREE.PointLight(0xffffff, 1, 1000);
+         pointLight3.position.set(0, 100, 0);
+         pointLight3.add(areaLightMesh);
+         this.threeJSView.scene.add(pointLight3);*/
 
         self.render();
 
-        var loader = new THREE["OBJLoader"](manager);
-        // loader.load('../models/sponza/sponza.obj', function (object) {
-            loader.load('../models/uv-sphere/uv-sphere.obj', function (object) {
-            // loader.load('../models/stanford-dragon.obj', function (object) {
-            //loader.load('../models/emerald.obj', function (object) {
+        var loader = new THREE["STLLoader"](manager);
+        loader.load('../models/stl/binary/pr2_head_tilt.stl', function (geometry) {
 
-            self.model = object;
-            self.model.castShadow = true;
-            self.model.receiveShadow = false;
-            object.traverse(function (child) {
-                if (child instanceof THREE.Mesh) {
-                    //child.position.set(0, 7, 0);
-                    // child.rotation.set(MathUtils.radians(35), 0, 0);
-                    // child.scale.set(5, 5, 5);
-                    child.material.color = new THREE.Color(0xFCFAE1);
-                    child.material.ior = 1.5;
-                    // child.material.emittance = 0.1;
-                    //child.material.tint = 0.5;
-                    child.material.gloss = MathUtils.radians(20);
-                    child.material.transparent = false;
-                    //child.castShadow = true;
-                    child.receiveShadow = false;
-                }
+            var material = new THREE.MeshPhongMaterial({
+                // ambient: 0x555555,
+                color: 0xAAAAAA,
+                specular: 0x111111,
+                shininess: 200
             });
-            self.threeJSView.scene.add(object);
+            var mesh = new THREE.Mesh(geometry, material);
+
+            mesh.position.set(0, 0, 0);
+            mesh.rotation.set(-Math.PI / 2, 0.3, 0);
+            mesh.scale.set(2, 2, 2);
+
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+
+            self.threeJSView.scene.add(mesh);
             self.render();
             self.giJSView.setThreeJSScene(self.threeJSView.scene, function () {
                 self.giJSView.updateCamera(self.threeJSView.camera);

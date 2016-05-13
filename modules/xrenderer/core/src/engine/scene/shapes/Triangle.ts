@@ -31,16 +31,16 @@ export class Triangle implements Shape {
                 public n1:Vector3 = new Vector3(), public n2:Vector3 = new Vector3(), public n3:Vector3 = new Vector3(),
                 public t1:Vector3 = new Vector3(), public t2:Vector3 = new Vector3(), public t3:Vector3 = new Vector3()) {
         /*this.data = new Float32Array([
-            v1.x, v1.y, v1.z,
-            v2.x, v2.y, v2.z,
-            v3.x, v3.y, v3.z,
-            n1.x, n1.y, n1.z,
-            n2.x, n2.y, n2.z,
-            n3.x, n3.y, n3.z,
-            t1.x, t1.y, t1.z,
-            t2.x, t2.y, t2.z,
-            t3.x, t3.y, t3.z
-        ])*/
+         v1.x, v1.y, v1.z,
+         v2.x, v2.y, v2.z,
+         v3.x, v3.y, v3.z,
+         n1.x, n1.y, n1.z,
+         n2.x, n2.y, n2.z,
+         n3.x, n3.y, n3.z,
+         t1.x, t1.y, t1.z,
+         t2.x, t2.y, t2.z,
+         t3.x, t3.y, t3.z
+         ])*/
     }
 
     directRead(memory:Float32Array, offset:number):number {

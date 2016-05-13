@@ -2340,7 +2340,7 @@ System.register("core/src/engine/scene/materials/Texture", ["core/src/engine/mat
         execute: function() {
             Texture = (function (_super) {
                 __extends(Texture, _super);
-                function Texture(url) {
+                function Texture(arg) {
                     _super.call(this);
                     try {
                         if (importScripts) {
@@ -2353,18 +2353,27 @@ System.register("core/src/engine/scene/materials/Texture", ["core/src/engine/mat
                         var canvas = document.createElement("canvas");
                         Texture.ctx = canvas.getContext("2d");
                     }
-                    if (url) {
-                        this.load(url);
+                    if (arg) {
+                        if (typeof arg === "string") {
+                            this.load(arg);
+                        }
+                        else if (arg instanceof HTMLImageElement) {
+                            this.setImage(arg);
+                        }
                     }
                 }
                 Texture.getTexture = function (url) {
-                    var texture = Texture.map.get(url);
+                    var texture = Texture.list[Texture.map.get(url)];
                     if (texture) {
                         return texture;
                     }
                     else {
                         return new Texture(url);
                     }
+                };
+                Texture.setTexture = function (url, texture) {
+                    Texture.map.set(url, Texture.list.push(texture) - 1);
+                    return texture;
                 };
                 Texture.fromJson = function (texture) {
                     if (texture) {
@@ -2376,6 +2385,25 @@ System.register("core/src/engine/scene/materials/Texture", ["core/src/engine/mat
                     else {
                         return null;
                     }
+                };
+                Texture.prototype.read = function (memory) {
+                    this.width = memory.readUnsignedInt();
+                    this.height = memory.readUnsignedInt();
+                    this.data = [];
+                    for (var i = 0; i < this.width * this.height; i++) {
+                        var color = new Color_1.Color();
+                        color.read(memory);
+                        this.data.push(color);
+                    }
+                    return memory.position;
+                };
+                Texture.prototype.write = function (memory) {
+                    memory.writeUnsignedInt(this.width);
+                    memory.writeUnsignedInt(this.height);
+                    for (var i = 0; i < this.width * this.height; i++) {
+                        this.data[i].write(memory);
+                    }
+                    return memory.position;
                 };
                 Texture.prototype.sample = function (u, v) {
                     u = MathUtils_1.MathUtils.fract(MathUtils_1.MathUtils.fract(u) + 1);
@@ -2406,8 +2434,9 @@ System.register("core/src/engine/scene/materials/Texture", ["core/src/engine/mat
                 Texture.prototype.load = function (url, onLoad, onProgress, onError) {
                     var self = this;
                     this.sourceFile = url;
-                    var texture = Texture.map.get(url);
+                    var texture = Texture.getTexture(url);
                     if (texture) {
+                        this.index = texture.index;
                         this.data = texture.data;
                         this.image = texture.image;
                         this.pixels = texture.pixels;
@@ -2417,33 +2446,52 @@ System.register("core/src/engine/scene/materials/Texture", ["core/src/engine/mat
                         }
                         return this.image;
                     }
-                    Texture.map.set(url, this);
+                    Texture.setTexture(url, this);
                     return _super.prototype.load.call(this, url, function (image) {
-                        Texture.ctx.drawImage(image, 0, 0);
-                        var pixels = Texture.ctx.getImageData(0, 0, image.width, image.height).data;
+                        this.setImage(image);
                         if (onLoad) {
-                            onLoad(pixels);
+                            onLoad(this.pixels);
                         }
-                        self.data = [];
-                        for (var y = 0; y < image.height; y++) {
-                            for (var x = 0; x < image.width; x++) {
-                                var pi = y * (image.width * 4) + (x * 4);
-                                var index = y * image.width + x;
-                                var rgba = {
-                                    r: pixels[pi],
-                                    g: pixels[pi + 1],
-                                    b: pixels[pi + 2],
-                                    a: pixels[pi + 3],
-                                };
-                                self.data[index] = Color_1.Color.newColor(rgba).pow(2.2);
-                            }
-                        }
-                        self.image = image;
-                        self.width = image.width;
-                        self.height = image.height;
-                        self.pixels = pixels;
-                    }, onProgress, onError);
+                    }.bind(this), onProgress, onError);
                 };
+                Texture.prototype.setImage = function (image) {
+                    Texture.ctx.drawImage(image, 0, 0);
+                    var pixels = Texture.ctx.getImageData(0, 0, image.width, image.height).data;
+                    this.data = [];
+                    for (var y = 0; y < image.height; y++) {
+                        for (var x = 0; x < image.width; x++) {
+                            var pi = y * (image.width * 4) + (x * 4);
+                            var index = y * image.width + x;
+                            var rgba = {
+                                r: pixels[pi],
+                                g: pixels[pi + 1],
+                                b: pixels[pi + 2],
+                                a: pixels[pi + 3],
+                            };
+                            this.data[index] = Color_1.Color.newColor(rgba).pow(2.2);
+                        }
+                    }
+                    this.image = image;
+                    this.width = image.width;
+                    this.height = image.height;
+                    this.pixels = pixels;
+                };
+                Texture.write = function (memory) {
+                    memory.writeUnsignedInt(Texture.list.length);
+                    Texture.list.forEach(function (texture) {
+                        texture.write(memory);
+                    });
+                    return memory.position;
+                };
+                Texture.restore = function (memory) {
+                    var numTextures = memory.readUnsignedInt();
+                    for (var i = 0; i < numTextures; i++) {
+                        new Texture().read(memory);
+                    }
+                    console.info(numTextures + " Textures restored");
+                    return memory.position;
+                };
+                Texture.list = [];
                 Texture.map = new Map();
                 return Texture;
             }(ImageLoader_1.ImageLoader));
@@ -2535,15 +2583,18 @@ System.register("core/src/engine/scene/materials/Attenuation", [], function(expo
         }
     }
 });
-System.register("core/src/engine/scene/materials/Material", ["core/src/engine/math/Color", "core/src/engine/scene/materials/Attenuation"], function(exports_16, context_16) {
+System.register("core/src/engine/scene/materials/Material", ["core/src/engine/math/Color", "core/src/engine/scene/materials/Texture", "core/src/engine/scene/materials/Attenuation"], function(exports_16, context_16) {
     "use strict";
     var __moduleName = context_16 && context_16.id;
-    var Color_2, Attenuation_1, Attenuation_2;
+    var Color_2, Texture_1, Attenuation_1, Attenuation_2;
     var MaterialType, Material;
     return {
         setters:[
             function (Color_2_1) {
                 Color_2 = Color_2_1;
+            },
+            function (Texture_1_1) {
+                Texture_1 = Texture_1_1;
             },
             function (Attenuation_1_1) {
                 Attenuation_1 = Attenuation_1_1;
@@ -2613,6 +2664,10 @@ System.register("core/src/engine/scene/materials/Material", ["core/src/engine/ma
                     this.gloss = memory.readFloat();
                     this.tint = memory.readFloat();
                     this.transparent = memory.readBoolean();
+                    var hasTexture = memory.readBoolean();
+                    if (hasTexture) {
+                        (this.texture = new Texture_1.Texture()).read(memory);
+                    }
                     return memory.position;
                 };
                 Material.prototype.write = function (memory) {
@@ -2624,6 +2679,13 @@ System.register("core/src/engine/scene/materials/Material", ["core/src/engine/ma
                     memory.writeFloat(this.gloss);
                     memory.writeFloat(this.tint);
                     memory.writeBoolean(this.transparent);
+                    if (this.texture) {
+                        memory.writeBoolean(true);
+                        this.texture.write(memory);
+                    }
+                    else {
+                        memory.writeBoolean(false);
+                    }
                     return memory.position;
                 };
                 Object.defineProperty(Material, "estimatedMemory", {
@@ -2999,7 +3061,7 @@ System.register("core/src/engine/scene/materials/LightMaterial", ["core/src/engi
 System.register("core/src/engine/scene/materials/MaterialUtils", ["core/src/engine/scene/materials/Material", "core/src/engine/math/Color", "core/src/engine/scene/materials/Texture", "core/src/engine/scene/materials/Attenuation", "core/src/engine/scene/materials/DiffuseMaterial", "core/src/engine/scene/materials/SpecularMaterial", "core/src/engine/scene/materials/ClearMaterial", "core/src/engine/scene/materials/GlossyMaterial", "core/src/engine/scene/materials/LightMaterial"], function(exports_26, context_26) {
     "use strict";
     var __moduleName = context_26 && context_26.id;
-    var Material_11, Material_12, Color_4, Texture_1, Attenuation_7, DiffuseMaterial_1, SpecularMaterial_1, ClearMaterial_1, GlossyMaterial_1, LightMaterial_1;
+    var Material_11, Material_12, Color_4, Texture_2, Attenuation_7, DiffuseMaterial_1, SpecularMaterial_1, ClearMaterial_1, GlossyMaterial_1, LightMaterial_1;
     var MaterialUtils;
     return {
         setters:[
@@ -3010,8 +3072,8 @@ System.register("core/src/engine/scene/materials/MaterialUtils", ["core/src/engi
             function (Color_4_1) {
                 Color_4 = Color_4_1;
             },
-            function (Texture_1_1) {
-                Texture_1 = Texture_1_1;
+            function (Texture_2_1) {
+                Texture_2 = Texture_2_1;
             },
             function (Attenuation_7_1) {
                 Attenuation_7 = Attenuation_7_1;
@@ -3040,7 +3102,7 @@ System.register("core/src/engine/scene/materials/MaterialUtils", ["core/src/engi
                         return null;
                     switch (material.type) {
                         case Material_12.MaterialType.GENERIC:
-                            return new Material_11.Material(Color_4.Color.fromJson(material.color), Texture_1.Texture.fromJson(material.texture), Texture_1.Texture.fromJson(material.normalTexture), Texture_1.Texture.fromJson(material.bumpTexture), material.bumpMultiplier, material.emittance, Attenuation_7.Attenuation.fromJson(material.attenuation), material.index, material.gloss, material.tint, material.transparent);
+                            return new Material_11.Material(Color_4.Color.fromJson(material.color), Texture_2.Texture.fromJson(material.texture), Texture_2.Texture.fromJson(material.normalTexture), Texture_2.Texture.fromJson(material.bumpTexture), material.bumpMultiplier, material.emittance, Attenuation_7.Attenuation.fromJson(material.attenuation), material.index, material.gloss, material.tint, material.transparent);
                         case Material_12.MaterialType.DIFFUSE:
                             return new DiffuseMaterial_1.DiffuseMaterial(Color_4.Color.fromJson(material.color));
                         case Material_12.MaterialType.SPECULAR:
@@ -3394,7 +3456,6 @@ System.register("core/src/engine/math/Matrix4", ["core/src/engine/math/Vector3",
                     this.x31 = x31;
                     this.x32 = x32;
                     this.x33 = x33;
-                    this.m = new Float32Array(16);
                 }
                 Matrix4.prototype.directRead = function (memory, offset) {
                     var m = this;
@@ -6315,10 +6376,10 @@ System.register("core/src/engine/scene/Scene", ["core/src/engine/math/Color", "c
         }
     }
 });
-System.register("core/src/engine/scene/SharedScene", ["core/src/engine/math/Color", "core/src/engine/scene/Scene", "core/src/engine/scene/materials/Material", "core/src/engine/scene/shapes/Shape", "core/src/engine/scene/tree/SharedTree", "core/src/pointer/src/Pointer", "core/src/engine/scene/shapes/Box", "core/src/engine/renderer/worker/ThreadPool"], function(exports_45, context_45) {
+System.register("core/src/engine/scene/SharedScene", ["core/src/engine/math/Color", "core/src/engine/scene/Scene", "core/src/engine/scene/materials/Material", "core/src/engine/scene/shapes/Shape", "core/src/engine/scene/tree/SharedTree", "core/src/pointer/src/Pointer", "core/src/engine/scene/shapes/Box", "core/src/engine/renderer/worker/ThreadPool", "core/src/engine/scene/materials/Texture"], function(exports_45, context_45) {
     "use strict";
     var __moduleName = context_45 && context_45.id;
-    var Color_8, Scene_1, Material_16, Shape_7, SharedTree_2, Pointer_2, Box_9, ThreadPool_1;
+    var Color_8, Scene_1, Material_16, Shape_7, SharedTree_2, Pointer_2, Box_9, ThreadPool_1, Texture_3;
     var SharedScene;
     return {
         setters:[
@@ -6345,6 +6406,9 @@ System.register("core/src/engine/scene/SharedScene", ["core/src/engine/math/Colo
             },
             function (ThreadPool_1_1) {
                 ThreadPool_1 = ThreadPool_1_1;
+            },
+            function (Texture_3_1) {
+                Texture_3 = Texture_3_1;
             }],
         execute: function() {
             SharedScene = (function (_super) {
@@ -6366,6 +6430,7 @@ System.register("core/src/engine/scene/SharedScene", ["core/src/engine/math/Colo
                     memory.writeByte(0);
                     memory.writeByte(0);
                     memory.position += ThreadPool_1.ThreadPool.maxThreads;
+                    Texture_3.Texture.write(memory);
                     Material_16.Material.write(memory);
                     this.color.write(memory);
                     memory.writeUnsignedInt(this.shapes.length);
@@ -6383,7 +6448,8 @@ System.register("core/src/engine/scene/SharedScene", ["core/src/engine/math/Colo
                     memory.position = 0;
                     memory.position += 3;
                     memory.position += ThreadPool_1.ThreadPool.maxThreads;
-                    var offset = Material_16.Material.restore(memory);
+                    var offset = Texture_3.Texture.restore(memory);
+                    offset = Material_16.Material.restore(memory);
                     scene.color.read(memory);
                     var numShapes = memory.readUnsignedInt();
                     var shapes = [];
@@ -6467,11 +6533,19 @@ System.register("core/src/engine/renderer/worker/TraceJobManager", ["core/src/en
                     console.log("configure");
                     this.width = param.width;
                     this.height = param.height;
-                    this.sceneMemory = scene.getMemory();
+                    console.log("Checkpoint #1");
+                    try {
+                        this.sceneMemory = scene.getMemory();
+                    }
+                    catch (e) {
+                        console.log(e);
+                    }
+                    console.log("Checkpoint #2");
                     this.flags = new Uint8Array(this.sceneMemory.data.buffer, 0, 3 + ThreadPool_2.ThreadPool.maxThreads);
                     TraceJobManager.flags = this.flags;
                     this.pixelMemory = new Uint8Array(new SharedArrayBuffer(this.width * this.height * 3));
                     this.sampleMemory = new Float32Array(new SharedArrayBuffer(4 * this.width * this.height * 3));
+                    console.log("Checkpoint #3");
                     this.traceParameters = {
                         pixelBuffer: this.pixelMemory.buffer,
                         sampleBuffer: this.sampleMemory.buffer,
@@ -6492,9 +6566,11 @@ System.register("core/src/engine/renderer/worker/TraceJobManager", ["core/src/en
                     console.log("Initializing threads...");
                     console.time("init");
                     this.threads = ThreadPool_2.ThreadPool.getThreads();
+                    console.log("Checkpoint #4");
                     this.totalThreads = this.threads.length;
                     this.lockCount = this.threads.length;
                     this.initNext(callback);
+                    console.log("Checkpoint #5");
                 };
                 TraceJobManager.prototype.initNext = function (callback) {
                     var self = this;
@@ -6703,7 +6779,13 @@ System.register("core/src/engine/renderer/worker/Thread", ["core/src/engine/rend
             Thread = (function () {
                 function Thread(name, id) {
                     this.id = id;
-                    this.instance = new Worker(Thread.workerUrl);
+                    console.log("Checkpoint #4.1");
+                    try {
+                        this.instance = new Worker(Thread.workerUrl);
+                    }
+                    catch (e) {
+                        console.log(e);
+                    }
                     this.instance.onmessage = this.onMessageReceived.bind(this);
                 }
                 Object.defineProperty(Thread.prototype, "isTracing", {
@@ -7165,8 +7247,8 @@ System.register("core/src/engine/engine", ["core/src/engine/data/DataCache", "co
             function (SpecularMaterial_2_1) {
                 exportStar_2(SpecularMaterial_2_1);
             },
-            function (Texture_2_1) {
-                exportStar_2(Texture_2_1);
+            function (Texture_4_1) {
+                exportStar_2(Texture_4_1);
             },
             function (TransparentMaterial_1_1) {
                 exportStar_2(TransparentMaterial_1_1);
@@ -7356,25 +7438,137 @@ System.register("core/src/CanvasDisplay", [], function(exports_55, context_55) {
         }
     }
 });
-System.register("core/src/GIRenderBase", ["core/src/CanvasDisplay", "core/src/engine/renderer/SmartBucketRenderer"], function(exports_56, context_56) {
+System.register("core/src/HeadlessRenderBase", ["core/src/engine/math/Color", "core/src/engine/scene/Camera", "core/src/engine/scene/SharedScene", "core/src/engine/math/Vector3", "core/src/engine/renderer/SmartBucketRenderer"], function(exports_56, context_56) {
     "use strict";
     var __moduleName = context_56 && context_56.id;
-    var CanvasDisplay_1, SmartBucketRenderer_2;
+    var Color_10, Camera_2, SharedScene_2, Vector3_14, SmartBucketRenderer_2;
+    var HeadlessRenderBase;
+    return {
+        setters:[
+            function (Color_10_1) {
+                Color_10 = Color_10_1;
+            },
+            function (Camera_2_1) {
+                Camera_2 = Camera_2_1;
+            },
+            function (SharedScene_2_1) {
+                SharedScene_2 = SharedScene_2_1;
+            },
+            function (Vector3_14_1) {
+                Vector3_14 = Vector3_14_1;
+            },
+            function (SmartBucketRenderer_2_1) {
+                SmartBucketRenderer_2 = SmartBucketRenderer_2_1;
+            }],
+        execute: function() {
+            HeadlessRenderBase = (function () {
+                function HeadlessRenderBase(i_width, i_height, outmemory) {
+                    this.i_width = i_width;
+                    this.i_height = i_height;
+                    this.outmemory = outmemory;
+                    this.data = new Uint8Array(i_width * i_height * 4);
+                    this.scene = new SharedScene_2.SharedScene(Color_10.Color.hexColor(0x262626));
+                    this.camera = Camera_2.Camera.lookAt(new Vector3_14.Vector3(0, 0, 0), new Vector3_14.Vector3(0, 0, 0), new Vector3_14.Vector3(0, 1, 0), 45);
+                    this.cameraSamples = -1;
+                    this.hitSamples = 1;
+                    this.bounces = 4;
+                    this.iterations = 1000000;
+                    this.blockIterations = 1;
+                    this.renderer = new SmartBucketRenderer_2.SmartBucketRenderer();
+                }
+                HeadlessRenderBase.prototype.updateCameraSamples = function (newValue) {
+                    if (this.cameraSamples != newValue) {
+                        this.cameraSamples = newValue;
+                        this.renderer.updateCameraSamples(newValue);
+                    }
+                };
+                HeadlessRenderBase.prototype.updateHitSamples = function (newValue) {
+                    if (this.hitSamples != newValue) {
+                        this.hitSamples = newValue;
+                        this.renderer.updateHitSamples(newValue);
+                    }
+                };
+                HeadlessRenderBase.prototype.updateCamera = function (newValue) {
+                    this.camera.updateFromArray(newValue.eye, newValue.lookAt, newValue.up, newValue.fov, newValue.focus, newValue.aperture);
+                    this.renderer.updateCamera(this.camera.toJSON());
+                };
+                HeadlessRenderBase.prototype.updateCameraMatrix = function (matrix) {
+                    this.camera.u.setFromArray(matrix, 0);
+                    this.camera.v.setFromArray(matrix, 4);
+                    this.camera.w.setFromArray(matrix, 8);
+                    this.renderer.updateCamera(this.camera.toJSON());
+                };
+                HeadlessRenderBase.prototype.toggleTrace = function (newValue) {
+                    if (this.renderer.initialized) {
+                        console.log("toggleTrace:" + newValue);
+                        if (newValue) {
+                            var cam = this.camera.toJSON();
+                            this.dirty = false;
+                            this.renderer.updateCamera(cam);
+                        }
+                        else {
+                            this.renderer.traceManager.stop();
+                        }
+                    }
+                };
+                HeadlessRenderBase.prototype.render = function (onInit, onUpdate) {
+                    console.info("+ Render settings");
+                    console.info("      Resolution          :   " + this.i_width + "x" + this.i_height);
+                    console.info("      CameraSamples       :   " + this.cameraSamples);
+                    console.info("      HitSamples          :   " + this.hitSamples);
+                    console.info("      Bounces             :   " + this.bounces);
+                    console.info("      Iterations          :   " + this.iterations);
+                    console.info("      Block-Iterations    :   " + this.blockIterations);
+                    var self = this;
+                    this.pixels = this.renderer.render(this.scene, this.camera, this.i_width, this.i_height, this.cameraSamples, this.hitSamples, this.bounces, this.iterations, this.blockIterations, _onUpdate, onInit);
+                    function _onUpdate(rect) {
+                        if (onUpdate) {
+                            onUpdate(rect, self.pixels);
+                        }
+                    }
+                };
+                HeadlessRenderBase.prototype.setResolution = function (width, height) {
+                    this.i_width = width;
+                    this.i_height = height;
+                    this.data = new Uint8Array(width * height * 4);
+                };
+                HeadlessRenderBase.prototype.updatePixels = function (pixels) {
+                    for (var y = 0; y < this.i_height; y++) {
+                        for (var x = 0; x < this.i_width; x++) {
+                            var i = y * (this.i_width * 4) + (x * 4);
+                            var pi = y * (this.i_width * 3) + (x * 3);
+                            this.data[i] = pixels[pi];
+                            this.data[i + 1] = pixels[pi + 1];
+                            this.data[i + 2] = pixels[pi + 2];
+                            this.data[i + 3] = 255;
+                        }
+                    }
+                };
+                return HeadlessRenderBase;
+            }());
+            exports_56("HeadlessRenderBase", HeadlessRenderBase);
+        }
+    }
+});
+System.register("core/src/GIRenderBase", ["core/src/CanvasDisplay", "core/src/engine/renderer/SmartBucketRenderer"], function(exports_57, context_57) {
+    "use strict";
+    var __moduleName = context_57 && context_57.id;
+    var CanvasDisplay_1, SmartBucketRenderer_3;
     var GIRenderBase;
     return {
         setters:[
             function (CanvasDisplay_1_1) {
                 CanvasDisplay_1 = CanvasDisplay_1_1;
             },
-            function (SmartBucketRenderer_2_1) {
-                SmartBucketRenderer_2 = SmartBucketRenderer_2_1;
+            function (SmartBucketRenderer_3_1) {
+                SmartBucketRenderer_3 = SmartBucketRenderer_3_1;
             }],
         execute: function() {
             GIRenderBase = (function (_super) {
                 __extends(GIRenderBase, _super);
                 function GIRenderBase(i_width, i_height, container) {
                     _super.call(this, i_width, i_height, container);
-                    this.renderer = new SmartBucketRenderer_2.SmartBucketRenderer();
+                    this.renderer = new SmartBucketRenderer_3.SmartBucketRenderer();
                 }
                 GIRenderBase.prototype.updateCameraSamples = function (newValue) {
                     if (this.cameraSamples != newValue) {
@@ -7427,34 +7621,34 @@ System.register("core/src/GIRenderBase", ["core/src/CanvasDisplay", "core/src/en
                 };
                 return GIRenderBase;
             }(CanvasDisplay_1.CanvasDisplay));
-            exports_56("GIRenderBase", GIRenderBase);
+            exports_57("GIRenderBase", GIRenderBase);
         }
     }
 });
-System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/math/Color", "core/src/engine/scene/Camera", "core/src/engine/scene/SharedScene", "core/src/engine/scene/shapes/Cube", "core/src/engine/math/Vector3", "core/src/engine/scene/shapes/Sphere", "core/src/engine/scene/materials/LightMaterial", "core/src/ThreeObjects", "core/src/engine/scene/shapes/Mesh", "core/src/engine/scene/shapes/Triangle", "core/src/engine/scene/materials/Material", "core/src/engine/scene/shapes/TransformedShape", "core/src/engine/scene/materials/Attenuation", "core/src/engine/math/Matrix4"], function(exports_57, context_57) {
+System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/math/Color", "core/src/engine/scene/Camera", "core/src/engine/scene/SharedScene", "core/src/engine/scene/shapes/Cube", "core/src/engine/math/Vector3", "core/src/engine/scene/shapes/Sphere", "core/src/engine/scene/materials/LightMaterial", "core/src/ThreeObjects", "core/src/engine/scene/shapes/Mesh", "core/src/engine/scene/shapes/Triangle", "core/src/engine/scene/materials/Material", "core/src/engine/scene/shapes/TransformedShape", "core/src/engine/scene/materials/Attenuation", "core/src/engine/math/Matrix4", "core/src/engine/scene/materials/Texture"], function(exports_58, context_58) {
     "use strict";
-    var __moduleName = context_57 && context_57.id;
-    var GIRenderBase_1, Color_10, Camera_2, SharedScene_2, Cube_4, Vector3_14, Sphere_4, LightMaterial_3, ThreeObjects_1, Mesh_5, Triangle_6, Material_19, TransformedShape_4, Attenuation_10, Attenuation_11, Matrix4_5;
+    var __moduleName = context_58 && context_58.id;
+    var GIRenderBase_1, Color_11, Camera_3, SharedScene_3, Cube_4, Vector3_15, Sphere_4, LightMaterial_3, ThreeObjects_1, Mesh_5, Triangle_6, Material_19, TransformedShape_4, Attenuation_10, Attenuation_11, Matrix4_5, Texture_5;
     var GIJSView;
     return {
         setters:[
             function (GIRenderBase_1_1) {
                 GIRenderBase_1 = GIRenderBase_1_1;
             },
-            function (Color_10_1) {
-                Color_10 = Color_10_1;
+            function (Color_11_1) {
+                Color_11 = Color_11_1;
             },
-            function (Camera_2_1) {
-                Camera_2 = Camera_2_1;
+            function (Camera_3_1) {
+                Camera_3 = Camera_3_1;
             },
-            function (SharedScene_2_1) {
-                SharedScene_2 = SharedScene_2_1;
+            function (SharedScene_3_1) {
+                SharedScene_3 = SharedScene_3_1;
             },
             function (Cube_4_1) {
                 Cube_4 = Cube_4_1;
             },
-            function (Vector3_14_1) {
-                Vector3_14 = Vector3_14_1;
+            function (Vector3_15_1) {
+                Vector3_15 = Vector3_15_1;
             },
             function (Sphere_4_1) {
                 Sphere_4 = Sphere_4_1;
@@ -7483,6 +7677,9 @@ System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/
             },
             function (Matrix4_5_1) {
                 Matrix4_5 = Matrix4_5_1;
+            },
+            function (Texture_5_1) {
+                Texture_5 = Texture_5_1;
             }],
         execute: function() {
             GIJSView = (function (_super) {
@@ -7493,8 +7690,8 @@ System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/
                     this.height = height;
                     this.container = container;
                     this.identityMatrix = new THREE.Matrix4().identity();
-                    this.scene = new SharedScene_2.SharedScene(Color_10.Color.hexColor(0x262626));
-                    this.camera = Camera_2.Camera.lookAt(new Vector3_14.Vector3(0, 0, 0), new Vector3_14.Vector3(0, 0, 0), new Vector3_14.Vector3(0, 1, 0), 45);
+                    this.scene = new SharedScene_3.SharedScene(Color_11.Color.hexColor(0x262626));
+                    this.camera = Camera_3.Camera.lookAt(new Vector3_15.Vector3(0, 0, 0), new Vector3_15.Vector3(0, 0, 0), new Vector3_15.Vector3(0, 1, 0), 45);
                     this.cameraSamples = -1;
                     this.hitSamples = 1;
                     this.bounces = 4;
@@ -7514,7 +7711,7 @@ System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/
                             this.scene.add(obj);
                         }
                         if (obj) {
-                            if (!(obj.getMaterial(new Vector3_14.Vector3()) instanceof LightMaterial_3.LightMaterial) && child.children.length > 0) {
+                            if (!(obj.getMaterial(new Vector3_15.Vector3()) instanceof LightMaterial_3.LightMaterial) && child.children.length > 0) {
                                 this.loadChildren(child);
                             }
                         }
@@ -7556,12 +7753,12 @@ System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/
                                 var face = faces[i];
                                 var triangle = new Triangle_6.Triangle();
                                 triangle.material = material;
-                                triangle.v1 = new Vector3_14.Vector3(vertices[face.a].x, vertices[face.a].y, vertices[face.a].z);
-                                triangle.v2 = new Vector3_14.Vector3(vertices[face.b].x, vertices[face.b].y, vertices[face.b].z);
-                                triangle.v3 = new Vector3_14.Vector3(vertices[face.c].x, vertices[face.c].y, vertices[face.c].z);
-                                triangle.n1 = new Vector3_14.Vector3();
-                                triangle.n2 = new Vector3_14.Vector3();
-                                triangle.n3 = new Vector3_14.Vector3();
+                                triangle.v1 = new Vector3_15.Vector3(vertices[face.a].x, vertices[face.a].y, vertices[face.a].z);
+                                triangle.v2 = new Vector3_15.Vector3(vertices[face.b].x, vertices[face.b].y, vertices[face.b].z);
+                                triangle.v3 = new Vector3_15.Vector3(vertices[face.c].x, vertices[face.c].y, vertices[face.c].z);
+                                triangle.n1 = new Vector3_15.Vector3();
+                                triangle.n2 = new Vector3_15.Vector3();
+                                triangle.n3 = new Vector3_15.Vector3();
                                 triangle.updateBox();
                                 triangle.fixNormals();
                                 triangles.push(triangle);
@@ -7613,12 +7810,12 @@ System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/
                                 var cz = (c * 3) + 2;
                                 var triangle = new Triangle_6.Triangle();
                                 triangle.material = material;
-                                triangle.v1 = new Vector3_14.Vector3(positions[ax], positions[ay], positions[az]);
-                                triangle.v2 = new Vector3_14.Vector3(positions[bx], positions[by], positions[bz]);
-                                triangle.v3 = new Vector3_14.Vector3(positions[cx], positions[cy], positions[cz]);
-                                triangle.n1 = new Vector3_14.Vector3(normals[ax], normals[ay], normals[az]);
-                                triangle.n2 = new Vector3_14.Vector3(normals[bx], normals[by], normals[bz]);
-                                triangle.n3 = new Vector3_14.Vector3(normals[cx], normals[cy], normals[cz]);
+                                triangle.v1 = new Vector3_15.Vector3(positions[ax], positions[ay], positions[az]);
+                                triangle.v2 = new Vector3_15.Vector3(positions[bx], positions[by], positions[bz]);
+                                triangle.v3 = new Vector3_15.Vector3(positions[cx], positions[cy], positions[cz]);
+                                triangle.n1 = new Vector3_15.Vector3(normals[ax], normals[ay], normals[az]);
+                                triangle.n2 = new Vector3_15.Vector3(normals[bx], normals[by], normals[bz]);
+                                triangle.n3 = new Vector3_15.Vector3(normals[cx], normals[cy], normals[cz]);
                                 triangle.fixNormals();
                                 triangle.updateBox();
                                 triangles.push(triangle);
@@ -7628,12 +7825,12 @@ System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/
                             for (var i = 0; i < positions.length; i = i + 9) {
                                 var triangle = new Triangle_6.Triangle();
                                 triangle.material = material;
-                                triangle.v1 = new Vector3_14.Vector3(positions[i], positions[i + 1], positions[i + 2]);
-                                triangle.v2 = new Vector3_14.Vector3(positions[i + 3], positions[i + 4], positions[i + 5]);
-                                triangle.v3 = new Vector3_14.Vector3(positions[i + 6], positions[i + 7], positions[i + 8]);
-                                triangle.n1 = new Vector3_14.Vector3(normals[i], normals[i + 1], normals[i + 2]);
-                                triangle.n2 = new Vector3_14.Vector3(normals[i + 3], normals[i + 4], normals[i + 5]);
-                                triangle.n3 = new Vector3_14.Vector3(normals[i + 6], normals[i + 7], normals[i + 8]);
+                                triangle.v1 = new Vector3_15.Vector3(positions[i], positions[i + 1], positions[i + 2]);
+                                triangle.v2 = new Vector3_15.Vector3(positions[i + 3], positions[i + 4], positions[i + 5]);
+                                triangle.v3 = new Vector3_15.Vector3(positions[i + 6], positions[i + 7], positions[i + 8]);
+                                triangle.n1 = new Vector3_15.Vector3(normals[i], normals[i + 1], normals[i + 2]);
+                                triangle.n2 = new Vector3_15.Vector3(normals[i + 3], normals[i + 4], normals[i + 5]);
+                                triangle.n3 = new Vector3_15.Vector3(normals[i + 6], normals[i + 7], normals[i + 8]);
                                 triangle.fixNormals();
                                 triangle.updateBox();
                                 triangles.push(triangle);
@@ -7662,13 +7859,16 @@ System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/
                     }
                 };
                 GIJSView.getMaterial = function (srcMaterial) {
-                    var material = new Material_19.Material(Color_10.Color.hexColor(srcMaterial.color.getHex()));
+                    var material = new Material_19.Material(Color_11.Color.hexColor(srcMaterial.color.getHex()));
                     material.ior = srcMaterial.ior ? srcMaterial.ior : 1;
                     material.tint = srcMaterial.tint ? srcMaterial.tint : 0;
                     material.gloss = srcMaterial.gloss ? srcMaterial.gloss : 0;
                     material.emittance = srcMaterial.emittance ? srcMaterial.emittance : 0;
                     material.transparent = srcMaterial.transparent;
                     material.attenuation = Attenuation_10.Attenuation.fromJson(srcMaterial.attenuation);
+                    if (srcMaterial.map) {
+                        material.texture = new Texture_5.Texture(srcMaterial.map.img);
+                    }
                     return material;
                 };
                 GIJSView.prototype.getLight = function (src) {
@@ -7682,30 +7882,30 @@ System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/
                             var height = lightGeometry.parameters.height;
                         }
                     }
-                    var material = new LightMaterial_3.LightMaterial(Color_10.Color.hexColor(src.color.getHex()), src.intensity, new Attenuation_11.LinearAttenuation(src.distance));
+                    var material = new LightMaterial_3.LightMaterial(Color_11.Color.hexColor(src.color.getHex()), src.intensity, new Attenuation_11.LinearAttenuation(src.distance));
                     if (_radius) {
-                        var shape = Sphere_4.Sphere.newSphere(new Vector3_14.Vector3(src.position.x, src.position.y, src.position.z), _radius, material);
+                        var shape = Sphere_4.Sphere.newSphere(new Vector3_15.Vector3(src.position.x, src.position.y, src.position.z), _radius, material);
                     }
                     else {
-                        shape = Cube_4.Cube.newCube(new Vector3_14.Vector3(-width / 2, src.position.y, -height / 2), new Vector3_14.Vector3(width / 2, src.position.y + 1, height / 2), material);
+                        shape = Cube_4.Cube.newCube(new Vector3_15.Vector3(-width / 2, src.position.y, -height / 2), new Vector3_15.Vector3(width / 2, src.position.y + 1, height / 2), material);
                     }
                     return shape;
                 };
                 return GIJSView;
             }(GIRenderBase_1.GIRenderBase));
-            exports_57("GIJSView", GIJSView);
+            exports_58("GIJSView", GIJSView);
         }
     }
 });
-System.register("core/core", ["core/src/pointer/pointer", "core/src/engine/engine", "core/src/ThreeObjects", "core/src/ThreeJSView", "core/src/CanvasDisplay", "core/src/GIRenderBase", "core/src/GIJSView"], function(exports_58, context_58) {
+System.register("core/core", ["core/src/pointer/pointer", "core/src/engine/engine", "core/src/ThreeObjects", "core/src/ThreeJSView", "core/src/CanvasDisplay", "core/src/HeadlessRenderBase", "core/src/GIRenderBase", "core/src/GIJSView"], function(exports_59, context_59) {
     "use strict";
-    var __moduleName = context_58 && context_58.id;
+    var __moduleName = context_59 && context_59.id;
     function exportStar_3(m) {
         var exports = {};
         for(var n in m) {
             if (n !== "default") exports[n] = m[n];
         }
-        exports_58(exports);
+        exports_59(exports);
     }
     return {
         setters:[
@@ -7724,6 +7924,9 @@ System.register("core/core", ["core/src/pointer/pointer", "core/src/engine/engin
             function (CanvasDisplay_2_1) {
                 exportStar_3(CanvasDisplay_2_1);
             },
+            function (HeadlessRenderBase_1_1) {
+                exportStar_3(HeadlessRenderBase_1_1);
+            },
             function (GIRenderBase_2_1) {
                 exportStar_3(GIRenderBase_2_1);
             },
@@ -7734,15 +7937,15 @@ System.register("core/core", ["core/src/pointer/pointer", "core/src/engine/engin
         }
     }
 });
-System.register("xrenderer", ["core/core"], function(exports_59, context_59) {
+System.register("xrenderer", ["core/core"], function(exports_60, context_60) {
     "use strict";
-    var __moduleName = context_59 && context_59.id;
+    var __moduleName = context_60 && context_60.id;
     function exportStar_4(m) {
         var exports = {};
         for(var n in m) {
             if (n !== "default") exports[n] = m[n];
         }
-        exports_59(exports);
+        exports_60(exports);
     }
     return {
         setters:[
@@ -7753,9 +7956,9 @@ System.register("xrenderer", ["core/core"], function(exports_59, context_59) {
         }
     }
 });
-System.register("core/src/three/GIThree", [], function(exports_60, context_60) {
+System.register("core/src/three/GIThree", [], function(exports_61, context_61) {
     "use strict";
-    var __moduleName = context_60 && context_60.id;
+    var __moduleName = context_61 && context_61.id;
     var GIThree;
     return {
         setters:[],
@@ -7767,13 +7970,13 @@ System.register("core/src/three/GIThree", [], function(exports_60, context_60) {
                 }
                 return GIThree;
             }());
-            exports_60("GIThree", GIThree);
+            exports_61("GIThree", GIThree);
         }
     }
 });
-System.register("core/src/utils/NetworkUtils", [], function(exports_61, context_61) {
+System.register("core/src/utils/NetworkUtils", [], function(exports_62, context_62) {
     "use strict";
-    var __moduleName = context_61 && context_61.id;
+    var __moduleName = context_62 && context_62.id;
     var NetworkUtils;
     return {
         setters:[],
@@ -7783,7 +7986,7 @@ System.register("core/src/utils/NetworkUtils", [], function(exports_61, context_
                 }
                 return NetworkUtils;
             }());
-            exports_61("NetworkUtils", NetworkUtils);
+            exports_62("NetworkUtils", NetworkUtils);
         }
     }
 });

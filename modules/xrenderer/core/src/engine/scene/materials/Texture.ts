@@ -23,7 +23,8 @@ export class Texture extends ImageLoader {
     }
 
     static setTexture(url:string, texture:Texture) {
-        Texture.map.set(url, Texture.list.push(texture) - 1);
+        texture.index = Texture.list.push(texture) - 1;
+        Texture.map.set(url, texture.index);
         return texture;
     }
 
@@ -49,7 +50,7 @@ export class Texture extends ImageLoader {
     data:Color[];
     pixels:number[]|Uint8ClampedArray;
 
-    constructor(url?:string) {
+    constructor(arg?:HTMLImageElement|string) {
         super();
         try {
             if (importScripts) {
@@ -63,12 +64,17 @@ export class Texture extends ImageLoader {
             var canvas = document.createElement("canvas");
             Texture.ctx = canvas.getContext("2d");
         }
-        if (url) {
-            this.load(url);
+        if (arg) {
+            if (typeof arg === "string") {
+                this.load(arg);
+            } else if (arg instanceof HTMLImageElement) {
+                this.setImage(arg);
+            }
         }
     }
 
     read(memory:ByteArrayBase|DirectMemory):number {
+        this.sourceFile = memory.readUTF();
         this.width = memory.readUnsignedInt();
         this.height = memory.readUnsignedInt();
         this.data = [];
@@ -77,11 +83,12 @@ export class Texture extends ImageLoader {
             color.read(memory);
             this.data.push(color);
         }
-
+        Texture.setTexture(this.sourceFile, this);
         return memory.position;
     }
 
     write(memory:ByteArrayBase|DirectMemory):number {
+        memory.writeUTF(this.sourceFile);
         memory.writeUnsignedInt(this.width);
         memory.writeUnsignedInt(this.height);
 
@@ -92,17 +99,42 @@ export class Texture extends ImageLoader {
         return memory.position;
     }
 
+    bilinearSample(u:number, v:number):Color {
+        let w = this.width - 1;
+        let h = this.height - 1;
+        let Xx = MathUtils.Modf(u * w);
+        let Yy = MathUtils.Modf(v * h);
+
+        let X = Xx.int;
+        let x = Xx.frac;
+
+        let Y = Yy.int;
+        let y = Yy.frac;
+
+        let x0 = X;
+        let y0 = Y;
+        let x1 = x0 + 1;
+        let y1 = y0 + 1;
+        let c00 = this.data[y0 * this.width + x0];
+        let c01 = this.data[y1 * this.width + x0];
+        let c10 = this.data[y0 * this.width + x1];
+        let c11 = this.data[y1 * this.width + x1];
+        let c = new Color();
+        c = c.add(c00.mulScalar((1 - x) * (1 - y)));
+        c = c.add(c10.mulScalar(x * (1 - y)));
+        c = c.add(c01.mulScalar((1 - x) * y));
+        c = c.add(c11.mulScalar(x * y));
+        return c
+    }
+
     sample(u:number, v:number):Color {
         u = MathUtils.fract(MathUtils.fract(u) + 1);
         v = MathUtils.fract(MathUtils.fract(v) + 1);
-        v = 1 - v;
-        let x = Math.round(u * this.width);
-        let y = Math.round(v * this.height);
-        return this.data[y * this.width + x];
+        return this.bilinearSample(u, 1 - v);
     }
 
     normalSample(u:number, v:number):Vector3 {
-        let c:Color = this.sample(u, v).pow(1 / 2.2);
+        let c:Color = this.sample(u, v);
         return new Vector3(c.r * 2 - 1, c.g * 2 - 1, c.b * 2 - 1).normalize();
     }
 
@@ -122,7 +154,6 @@ export class Texture extends ImageLoader {
     }
 
     load(url:string, onLoad?:Function, onProgress?:Function, onError?:Function):HTMLImageElement {
-        var self = this;
         this.sourceFile = url;
         let texture:Texture = Texture.getTexture(url);
 
@@ -140,35 +171,41 @@ export class Texture extends ImageLoader {
 
             return this.image;
         }
-        Texture.setTexture(url, this);
         return super.load(url, function (image) {
-            Texture.ctx.drawImage(image, 0, 0);
-            let pixels:Uint8ClampedArray|number[] = Texture.ctx.getImageData(0, 0, image.width, image.height).data;
-            if (onLoad) {
-                onLoad(pixels);
-            }
-
-            self.data = [];
-
-            for (var y:number = 0; y < image.height; y++) {
-                for (var x:number = 0; x < image.width; x++) {
-                    var pi:number = y * (image.width * 4) + (x * 4);
-                    var index:number = y * image.width + x;
-                    var rgba:RGBA = {
-                        r: pixels[pi],
-                        g: pixels[pi + 1],
-                        b: pixels[pi + 2],
-                        a: pixels[pi + 3],
-                    };
-                    self.data[index] = Color.newColor(rgba).pow(2.2);
+                this.setImage(image);
+                if (onLoad) {
+                    onLoad(this.pixels);
                 }
-            }
+            }.bind(this),
+            onProgress, onError
+        );
+    }
 
-            self.image = image;
-            self.width = image.width;
-            self.height = image.height;
-            self.pixels = pixels;
-        }, onProgress, onError);
+    setImage(image) {
+        Texture.setTexture(image.currentSrc, this);
+        Texture.ctx.drawImage(image, 0, 0);
+        let pixels:Uint8ClampedArray|number[] = Texture.ctx.getImageData(0, 0, image.width, image.height).data;
+
+        this.data = [];
+
+        for (var y:number = 0; y < image.height; y++) {
+            for (var x:number = 0; x < image.width; x++) {
+                var pi:number = y * (image.width * 4) + (x * 4);
+                var index:number = y * image.width + x;
+                var rgba:RGBA = {
+                    r: pixels[pi],
+                    g: pixels[pi + 1],
+                    b: pixels[pi + 2],
+                    a: pixels[pi + 3],
+                };
+                this.data[index] = new Color(rgba.r / 255, rgba.g / 255, rgba.b / 255);
+            }
+        }
+
+        this.image = image;
+        this.width = image.width;
+        this.height = image.height;
+        this.pixels = pixels;
     }
 
     static write(memory:ByteArrayBase|DirectMemory):number {

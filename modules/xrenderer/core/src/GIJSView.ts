@@ -22,6 +22,7 @@ import {LinearAttenuation} from "./engine/scene/materials/Attenuation";
 import {TMatrix4} from "./engine/math/TMatrix4";
 import {MathUtils} from "./engine/utils/MathUtils";
 import {Matrix4} from "./engine/math/Matrix4";
+import {Texture} from "./engine/scene/materials/Texture";
 
 /**
  * Created by Nidin Vinayakan on 27-02-2016.
@@ -137,6 +138,7 @@ export class GIJSView extends GIRenderBase {
         } else {
 
             var positions:Float32Array = geometry.attributes["position"].array;
+            var uv:Float32Array = geometry.attributes["uv"].array;
 
             var normals:Float32Array;
             if (geometry.attributes["normal"]) {
@@ -150,7 +152,7 @@ export class GIJSView extends GIRenderBase {
             if (indexAttribute) {
 
                 var indices = indexAttribute.array;
-
+                var uvIndex:number = 0;
                 for (var i = 0; i < indices.length; i = i + 3) {
 
                     triCount++;
@@ -163,7 +165,7 @@ export class GIJSView extends GIRenderBase {
                     b = indices[i + 1];
                     c = indices[i + 2];
 
-                    if (triCount % 2 !== 0) {
+                    /*if (triCount % 2 !== 0) {
                         a = indices[i];
                         b = indices[i + 1];
                         c = indices[i + 2];
@@ -171,7 +173,7 @@ export class GIJSView extends GIRenderBase {
                         c = indices[i];
                         b = indices[i + 1];
                         a = indices[i + 2];
-                    }
+                    }*/
 
                     //[....,ax,ay,az, bx,by,bz, cx,xy,xz,....]
                     var ax = a * 3;
@@ -186,32 +188,39 @@ export class GIJSView extends GIRenderBase {
                     var cy = (c * 3) + 1;
                     var cz = (c * 3) + 2;
 
+                    var au = a * 2;
+                    var av = (a * 2) + 1;
+
+                    var bu = b * 2;
+                    var bv = (b * 2) + 1;
+
+                    var cu = c * 2;
+                    var cv = (c * 2) + 1;
+
                     var triangle = new Triangle();
                     triangle.material = material;
                     triangle.v1 = new Vector3(positions[ax], positions[ay], positions[az]);
                     triangle.v2 = new Vector3(positions[bx], positions[by], positions[bz]);
                     triangle.v3 = new Vector3(positions[cx], positions[cy], positions[cz]);
 
-                    /*if (triCount % 2 !== 0) {
-                     triangle.n3 = new Vector3(normals[ax], normals[ay], normals[az]);
-                     triangle.n2 = new Vector3(normals[bx], normals[by], normals[bz]);
-                     triangle.n1 = new Vector3(normals[cx], normals[cy], normals[cz]);
-                     } else {
-                     triangle.n1 = new Vector3(normals[ax], normals[ay], normals[az]);
-                     triangle.n2 = new Vector3(normals[bx], normals[by], normals[bz]);
-                     triangle.n3 = new Vector3(normals[cx], normals[cy], normals[cz]);
-                     }*/
-
                     triangle.n1 = new Vector3(normals[ax], normals[ay], normals[az]);
                     triangle.n2 = new Vector3(normals[bx], normals[by], normals[bz]);
                     triangle.n3 = new Vector3(normals[cx], normals[cy], normals[cz]);
 
+                    if(uv){
+                        triangle.t1 = new Vector3(uv[au], uv[av], 0);
+                        triangle.t2 = new Vector3(uv[bu], uv[bv], 0);
+                        triangle.t3 = new Vector3(uv[cu], uv[cv], 0);
+                    }
+
                     triangle.fixNormals();
                     triangle.updateBox();
                     triangles.push(triangle);
+                    uvIndex += 2;
                 }
 
             } else {
+                uvIndex = 0;
                 for (var i = 0; i < positions.length; i = i + 9) {
                     var triangle = new Triangle();
                     triangle.material = material;
@@ -221,9 +230,17 @@ export class GIJSView extends GIRenderBase {
                     triangle.n1 = new Vector3(normals[i], normals[i + 1], normals[i + 2]);
                     triangle.n2 = new Vector3(normals[i + 3], normals[i + 4], normals[i + 5]);
                     triangle.n3 = new Vector3(normals[i + 6], normals[i + 7], normals[i + 8]);
+
+                    if(uv){
+                        triangle.t1 = new Vector3(uv[uvIndex], uv[uvIndex + 1], 0);
+                        triangle.t2 = new Vector3(uv[uvIndex + 2], uv[uvIndex + 3], 0);
+                        triangle.t3 = new Vector3(uv[uvIndex + 4], uv[uvIndex + 5], 0);
+                    }
+
                     triangle.fixNormals();
                     triangle.updateBox();
                     triangles.push(triangle);
+                    uvIndex += 6;
                 }
             }
         }
@@ -265,6 +282,10 @@ export class GIJSView extends GIRenderBase {
         material.emittance = srcMaterial.emittance ? srcMaterial.emittance : 0;
         material.transparent = srcMaterial.transparent;
         material.attenuation = Attenuation.fromJson(srcMaterial.attenuation);
+        if (srcMaterial.map) {
+            material.texture = new Texture(srcMaterial.map.image);
+            material.texture.sourceFile = srcMaterial.map.image.currentSrc;
+        }
         return material;
     }
 
