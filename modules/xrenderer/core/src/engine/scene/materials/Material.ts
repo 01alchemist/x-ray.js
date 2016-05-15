@@ -106,6 +106,14 @@ export class Material {
         if(hasTexture){
             this.texture = Texture.getTexture(memory.readUTF());
         }
+        var hasNormalTexture:boolean = memory.readBoolean();
+        if(hasNormalTexture){
+            this.normalTexture = Texture.getTexture(memory.readUTF());
+        }
+        /*var hasBumpTexture:boolean = memory.readBoolean();
+        if(hasBumpTexture){
+            this.bumpTexture = Texture.getTexture(memory.readUTF());
+        }*/
         return memory.position;
     }
 
@@ -124,6 +132,18 @@ export class Material {
         }else{
             memory.writeBoolean(false);
         }
+        if(this.normalTexture){
+            memory.writeBoolean(true);
+            memory.writeUTF(this.normalTexture.sourceFile);
+        }else{
+            memory.writeBoolean(false);
+        }
+        /*if(this.bumpTexture){
+            memory.writeBoolean(true);
+            memory.writeUTF(this.bumpTexture.sourceFile);
+        }else{
+            memory.writeBoolean(false);
+        }*/
         return memory.position;
     }
 

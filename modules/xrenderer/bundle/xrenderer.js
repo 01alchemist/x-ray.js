@@ -2182,6 +2182,12 @@ System.register("core/src/engine/math/Color", [], function(exports_11, context_1
                     _c[2] = Math.max(0, Math.min(255, a.b * 255));
                     return { r: _c[0], g: _c[1], b: _c[2], a: 255 };
                 };
+                Color.prototype.isBlack = function () {
+                    return this.r === 0 && this.g === 0 && this.b === 0;
+                };
+                Color.prototype.isWhite = function () {
+                    return this.r === 1 && this.g === 1 && this.b === 1;
+                };
                 Color.prototype.add = function (b) {
                     return new Color(this.r + b.r, this.g + b.g, this.b + b.b);
                 };
@@ -2245,18 +2251,12 @@ System.register("core/src/engine/math/Constants", [], function(exports_12, conte
         }
     }
 });
-System.register("core/src/engine/utils/MathUtils", ["core/src/engine/math/Constants"], function(exports_13, context_13) {
+System.register("core/src/engine/utils/MathUtils", [], function(exports_13, context_13) {
     "use strict";
     var __moduleName = context_13 && context_13.id;
-    var Constants_1, Constants_2, Constants_3;
     var MathUtils;
     return {
-        setters:[
-            function (Constants_1_1) {
-                Constants_1 = Constants_1_1;
-                Constants_2 = Constants_1_1;
-                Constants_3 = Constants_1_1;
-            }],
+        setters:[],
         execute: function() {
             MathUtils = (function () {
                 function MathUtils() {
@@ -2286,20 +2286,7 @@ System.register("core/src/engine/utils/MathUtils", ["core/src/engine/math/Consta
                     return n.frac;
                 };
                 MathUtils.Modf = function (f) {
-                    if (f < 1) {
-                        if (f < 0) {
-                            var n = MathUtils.Modf(-f);
-                            return { int: -n.int, frac: -n.frac };
-                        }
-                        return { int: 0, frac: f };
-                    }
-                    var x = f;
-                    var e = (x >> Constants_1.shift) & Constants_2.mask - Constants_3.bias;
-                    if (e < 64 - 12) {
-                        x &= 1 << (64 - 12 - e) - 1;
-                        x ^= x;
-                    }
-                    var int = x;
+                    var int = Math.floor(f);
                     var frac = f - int;
                     return { int: int, frac: frac };
                 };
@@ -2351,6 +2338,8 @@ System.register("core/src/engine/scene/materials/Texture", ["core/src/engine/mat
                     }
                     if (!Texture.ctx) {
                         var canvas = document.createElement("canvas");
+                        canvas.width = 4096;
+                        canvas.height = 4096;
                         Texture.ctx = canvas.getContext("2d");
                     }
                     if (arg) {
@@ -2372,7 +2361,8 @@ System.register("core/src/engine/scene/materials/Texture", ["core/src/engine/mat
                     }
                 };
                 Texture.setTexture = function (url, texture) {
-                    Texture.map.set(url, Texture.list.push(texture) - 1);
+                    texture.index = Texture.list.push(texture) - 1;
+                    Texture.map.set(url, texture.index);
                     return texture;
                 };
                 Texture.fromJson = function (texture) {
@@ -2387,6 +2377,7 @@ System.register("core/src/engine/scene/materials/Texture", ["core/src/engine/mat
                     }
                 };
                 Texture.prototype.read = function (memory) {
+                    this.sourceFile = memory.readUTF();
                     this.width = memory.readUnsignedInt();
                     this.height = memory.readUnsignedInt();
                     this.data = [];
@@ -2395,9 +2386,11 @@ System.register("core/src/engine/scene/materials/Texture", ["core/src/engine/mat
                         color.read(memory);
                         this.data.push(color);
                     }
+                    Texture.setTexture(this.sourceFile, this);
                     return memory.position;
                 };
                 Texture.prototype.write = function (memory) {
+                    memory.writeUTF(this.sourceFile);
                     memory.writeUnsignedInt(this.width);
                     memory.writeUnsignedInt(this.height);
                     for (var i = 0; i < this.width * this.height; i++) {
@@ -2405,16 +2398,39 @@ System.register("core/src/engine/scene/materials/Texture", ["core/src/engine/mat
                     }
                     return memory.position;
                 };
+                Texture.prototype.bilinearSample = function (u, v) {
+                    var w = this.width - 1;
+                    var h = this.height - 1;
+                    var Xx = MathUtils_1.MathUtils.Modf(u * w);
+                    var Yy = MathUtils_1.MathUtils.Modf(v * h);
+                    var X = Xx.int;
+                    var x = Xx.frac;
+                    var Y = Yy.int;
+                    var y = Yy.frac;
+                    var x0 = X;
+                    var y0 = Y;
+                    var x1 = x0 + 1;
+                    var y1 = y0 + 1;
+                    var c00 = this.data[y0 * this.width + x0];
+                    var c01 = this.data[y1 * this.width + x0];
+                    var c10 = this.data[y0 * this.width + x1];
+                    var c11 = this.data[y1 * this.width + x1];
+                    var c = new Color_1.Color();
+                    c = c.add(c00.mulScalar((1 - x) * (1 - y)));
+                    c = c.add(c10.mulScalar(x * (1 - y)));
+                    c = c.add(c01.mulScalar((1 - x) * y));
+                    c = c.add(c11.mulScalar(x * y));
+                    if (c.isBlack()) {
+                    }
+                    return c;
+                };
                 Texture.prototype.sample = function (u, v) {
                     u = MathUtils_1.MathUtils.fract(MathUtils_1.MathUtils.fract(u) + 1);
                     v = MathUtils_1.MathUtils.fract(MathUtils_1.MathUtils.fract(v) + 1);
-                    v = 1 - v;
-                    var x = Math.round(u * this.width);
-                    var y = Math.round(v * this.height);
-                    return this.data[y * this.width + x];
+                    return this.bilinearSample(u, 1 - v);
                 };
                 Texture.prototype.normalSample = function (u, v) {
-                    var c = this.sample(u, v).pow(1 / 2.2);
+                    var c = this.sample(u, v);
                     return new Vector3_1.Vector3(c.r * 2 - 1, c.g * 2 - 1, c.b * 2 - 1).normalize();
                 };
                 Texture.prototype.bumpSample = function (u, v) {
@@ -2432,7 +2448,6 @@ System.register("core/src/engine/scene/materials/Texture", ["core/src/engine/mat
                     return new Vector3_1.Vector3(cx.r, cy.r, 0);
                 };
                 Texture.prototype.load = function (url, onLoad, onProgress, onError) {
-                    var self = this;
                     this.sourceFile = url;
                     var texture = Texture.getTexture(url);
                     if (texture) {
@@ -2446,7 +2461,6 @@ System.register("core/src/engine/scene/materials/Texture", ["core/src/engine/mat
                         }
                         return this.image;
                     }
-                    Texture.setTexture(url, this);
                     return _super.prototype.load.call(this, url, function (image) {
                         this.setImage(image);
                         if (onLoad) {
@@ -2455,25 +2469,30 @@ System.register("core/src/engine/scene/materials/Texture", ["core/src/engine/mat
                     }.bind(this), onProgress, onError);
                 };
                 Texture.prototype.setImage = function (image) {
+                    this.sourceFile = image.currentSrc;
+                    Texture.setTexture(this.sourceFile, this);
                     Texture.ctx.drawImage(image, 0, 0);
                     var pixels = Texture.ctx.getImageData(0, 0, image.width, image.height).data;
+                    this.setImageData(image.width, image.height, pixels);
+                    this.image = image;
+                };
+                Texture.prototype.setImageData = function (width, height, pixels) {
                     this.data = [];
-                    for (var y = 0; y < image.height; y++) {
-                        for (var x = 0; x < image.width; x++) {
-                            var pi = y * (image.width * 4) + (x * 4);
-                            var index = y * image.width + x;
+                    for (var y = 0; y < height; y++) {
+                        for (var x = 0; x < width; x++) {
+                            var pi = y * (width * 4) + (x * 4);
+                            var index = y * width + x;
                             var rgba = {
                                 r: pixels[pi],
                                 g: pixels[pi + 1],
                                 b: pixels[pi + 2],
                                 a: pixels[pi + 3],
                             };
-                            this.data[index] = Color_1.Color.newColor(rgba).pow(2.2);
+                            this.data[index] = new Color_1.Color(rgba.r / 255, rgba.g / 255, rgba.b / 255);
                         }
                     }
-                    this.image = image;
-                    this.width = image.width;
-                    this.height = image.height;
+                    this.width = width;
+                    this.height = height;
                     this.pixels = pixels;
                 };
                 Texture.write = function (memory) {
@@ -2486,7 +2505,8 @@ System.register("core/src/engine/scene/materials/Texture", ["core/src/engine/mat
                 Texture.restore = function (memory) {
                     var numTextures = memory.readUnsignedInt();
                     for (var i = 0; i < numTextures; i++) {
-                        new Texture().read(memory);
+                        var tex = new Texture();
+                        tex.read(memory);
                     }
                     console.info(numTextures + " Textures restored");
                     return memory.position;
@@ -2666,7 +2686,7 @@ System.register("core/src/engine/scene/materials/Material", ["core/src/engine/ma
                     this.transparent = memory.readBoolean();
                     var hasTexture = memory.readBoolean();
                     if (hasTexture) {
-                        (this.texture = new Texture_1.Texture()).read(memory);
+                        this.texture = Texture_1.Texture.getTexture(memory.readUTF());
                     }
                     return memory.position;
                 };
@@ -2681,7 +2701,7 @@ System.register("core/src/engine/scene/materials/Material", ["core/src/engine/ma
                     memory.writeBoolean(this.transparent);
                     if (this.texture) {
                         memory.writeBoolean(true);
-                        this.texture.write(memory);
+                        memory.writeUTF(this.texture.sourceFile);
                     }
                     else {
                         memory.writeBoolean(false);
@@ -2753,15 +2773,15 @@ System.register("core/src/engine/scene/Axis", [], function(exports_17, context_1
 System.register("core/src/engine/math/Ray", ["core/src/engine/math/Vector3", "core/src/engine/math/Constants"], function(exports_18, context_18) {
     "use strict";
     var __moduleName = context_18 && context_18.id;
-    var Vector3_2, Constants_4;
+    var Vector3_2, Constants_1;
     var Ray;
     return {
         setters:[
             function (Vector3_2_1) {
                 Vector3_2 = Vector3_2_1;
             },
-            function (Constants_4_1) {
-                Constants_4 = Constants_4_1;
+            function (Constants_1_1) {
+                Constants_1 = Constants_1_1;
             }],
         execute: function() {
             Ray = (function () {
@@ -2801,7 +2821,7 @@ System.register("core/src/engine/math/Ray", ["core/src/engine/math/Vector3", "co
                     return new Ray(this.origin, d);
                 };
                 Ray.prototype.coneBounce = function (theta, u, v) {
-                    if (theta < Constants_4.EPS) {
+                    if (theta < Constants_1.EPS) {
                         return this;
                     }
                     theta = theta * (1 - (2 * Math.acos(u) / Math.PI));
@@ -2875,12 +2895,12 @@ System.register("core/src/engine/math/HitInfo", [], function(exports_19, context
 System.register("core/src/engine/math/Hit", ["core/src/engine/math/Constants", "core/src/engine/math/HitInfo", "core/src/engine/math/Ray"], function(exports_20, context_20) {
     "use strict";
     var __moduleName = context_20 && context_20.id;
-    var Constants_5, HitInfo_1, Ray_1;
+    var Constants_2, HitInfo_1, Ray_1;
     var Hit, NoHit;
     return {
         setters:[
-            function (Constants_5_1) {
-                Constants_5 = Constants_5_1;
+            function (Constants_2_1) {
+                Constants_2 = Constants_2_1;
             },
             function (HitInfo_1_1) {
                 HitInfo_1 = HitInfo_1_1;
@@ -2896,7 +2916,7 @@ System.register("core/src/engine/math/Hit", ["core/src/engine/math/Constants", "
                     this.info = info;
                 }
                 Hit.prototype.ok = function () {
-                    return this.T < Constants_5.INF;
+                    return this.T < Constants_2.INF;
                 };
                 Hit.prototype.getInfo = function (ray) {
                     if (this.info) {
@@ -2919,7 +2939,7 @@ System.register("core/src/engine/math/Hit", ["core/src/engine/math/Constants", "
                 return Hit;
             }());
             exports_20("Hit", Hit);
-            exports_20("NoHit", NoHit = new Hit(null, Constants_5.INF));
+            exports_20("NoHit", NoHit = new Hit(null, Constants_2.INF));
         }
     }
 });
@@ -3125,7 +3145,7 @@ System.register("core/src/engine/scene/materials/MaterialUtils", ["core/src/engi
 System.register("core/src/engine/scene/shapes/Cube", ["core/src/engine/math/Vector3", "core/src/engine/scene/materials/Material", "core/src/engine/scene/shapes/Box", "core/src/engine/math/Constants", "core/src/engine/math/Hit", "core/src/engine/scene/shapes/Shape", "core/src/engine/scene/materials/MaterialUtils"], function(exports_27, context_27) {
     "use strict";
     var __moduleName = context_27 && context_27.id;
-    var Vector3_3, Material_13, Box_1, Constants_6, Hit_1, Hit_2, Shape_1, MaterialUtils_1;
+    var Vector3_3, Material_13, Box_1, Constants_3, Hit_1, Hit_2, Shape_1, MaterialUtils_1;
     var Cube;
     return {
         setters:[
@@ -3138,8 +3158,8 @@ System.register("core/src/engine/scene/shapes/Cube", ["core/src/engine/math/Vect
             function (Box_1_1) {
                 Box_1 = Box_1_1;
             },
-            function (Constants_6_1) {
-                Constants_6 = Constants_6_1;
+            function (Constants_3_1) {
+                Constants_3 = Constants_3_1;
             },
             function (Hit_1_1) {
                 Hit_1 = Hit_1_1;
@@ -3230,22 +3250,22 @@ System.register("core/src/engine/scene/shapes/Cube", ["core/src/engine/math/Vect
                     return this.material;
                 };
                 Cube.prototype.getNormal = function (p) {
-                    if (p.x < this.min.x + Constants_6.EPS) {
+                    if (p.x < this.min.x + Constants_3.EPS) {
                         return new Vector3_3.Vector3(-1, 0, 0);
                     }
-                    else if (p.x > this.max.x - Constants_6.EPS) {
+                    else if (p.x > this.max.x - Constants_3.EPS) {
                         return new Vector3_3.Vector3(1, 0, 0);
                     }
-                    else if (p.y < this.min.y + Constants_6.EPS) {
+                    else if (p.y < this.min.y + Constants_3.EPS) {
                         return new Vector3_3.Vector3(0, -1, 0);
                     }
-                    else if (p.y > this.max.y - Constants_6.EPS) {
+                    else if (p.y > this.max.y - Constants_3.EPS) {
                         return new Vector3_3.Vector3(0, 1, 0);
                     }
-                    else if (p.z < this.min.z + Constants_6.EPS) {
+                    else if (p.z < this.min.z + Constants_3.EPS) {
                         return new Vector3_3.Vector3(0, 0, -1);
                     }
-                    else if (p.z > this.max.z - Constants_6.EPS) {
+                    else if (p.z > this.max.z - Constants_3.EPS) {
                         return new Vector3_3.Vector3(0, 0, 1);
                     }
                     return new Vector3_3.Vector3(0, 1, 0);
@@ -4092,7 +4112,7 @@ System.register("core/src/engine/scene/shapes/Box", ["core/src/engine/math/Vecto
 System.register("core/src/engine/scene/shapes/Triangle", ["core/src/engine/scene/materials/Material", "core/src/engine/scene/shapes/Box", "core/src/engine/math/Vector3", "core/src/engine/math/Hit", "core/src/engine/math/Constants", "core/src/engine/math/Matrix4", "core/src/engine/scene/shapes/Shape", "core/src/engine/scene/materials/MaterialUtils", "core/src/pointer/src/ByteArrayBase"], function(exports_33, context_33) {
     "use strict";
     var __moduleName = context_33 && context_33.id;
-    var Material_15, Box_4, Vector3_7, Hit_5, Constants_7, Hit_6, Matrix4_2, Shape_4, MaterialUtils_3, ByteArrayBase_2;
+    var Material_15, Box_4, Vector3_7, Hit_5, Constants_4, Hit_6, Matrix4_2, Shape_4, MaterialUtils_3, ByteArrayBase_2;
     var Triangle;
     return {
         setters:[
@@ -4109,8 +4129,8 @@ System.register("core/src/engine/scene/shapes/Triangle", ["core/src/engine/scene
                 Hit_5 = Hit_5_1;
                 Hit_6 = Hit_5_1;
             },
-            function (Constants_7_1) {
-                Constants_7 = Constants_7_1;
+            function (Constants_4_1) {
+                Constants_4 = Constants_4_1;
             },
             function (Matrix4_2_1) {
                 Matrix4_2 = Matrix4_2_1;
@@ -4317,7 +4337,7 @@ System.register("core/src/engine/scene/shapes/Triangle", ["core/src/engine/scene
                     var e2 = this.v3.sub(this.v1);
                     var p = r.direction.cross(e2);
                     var det = e1.dot(p);
-                    if (det > -Constants_7.EPS && det < Constants_7.EPS) {
+                    if (det > -Constants_4.EPS && det < Constants_4.EPS) {
                         return Hit_6.NoHit;
                     }
                     var inv = 1 / det;
@@ -4332,7 +4352,7 @@ System.register("core/src/engine/scene/shapes/Triangle", ["core/src/engine/scene
                         return Hit_6.NoHit;
                     }
                     var d = e2.dot(q) * inv;
-                    if (d < Constants_7.EPS) {
+                    if (d < Constants_4.EPS) {
                         return Hit_6.NoHit;
                     }
                     return new Hit_5.Hit(this, d);
@@ -6505,8 +6525,6 @@ System.register("core/src/engine/renderer/worker/TraceJobManager", ["core/src/en
                     get: function () {
                         for (var i = 0; i < this.totalThreads; i++) {
                             if (this.flags[3 + i] !== 3 && this.flags[3 + i] !== 0) {
-                                console.log(this.flags);
-                                console.log(this.threads);
                                 return false;
                             }
                         }
@@ -7172,8 +7190,8 @@ System.register("core/src/engine/engine", ["core/src/engine/data/DataCache", "co
             function (Color_9_1) {
                 exportStar_2(Color_9_1);
             },
-            function (Constants_8_1) {
-                exportStar_2(Constants_8_1);
+            function (Constants_5_1) {
+                exportStar_2(Constants_5_1);
             },
             function (Hit_11_1) {
                 exportStar_2(Hit_11_1);
@@ -7770,6 +7788,7 @@ System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/
                     }
                     else {
                         var positions = geometry.attributes["position"].array;
+                        var uv = geometry.attributes["uv"].array;
                         var normals;
                         if (geometry.attributes["normal"]) {
                             normals = geometry.attributes["normal"].array;
@@ -7781,6 +7800,7 @@ System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/
                         var indexAttribute = geometry.getIndex();
                         if (indexAttribute) {
                             var indices = indexAttribute.array;
+                            var uvIndex = 0;
                             for (var i = 0; i < indices.length; i = i + 3) {
                                 triCount++;
                                 var a;
@@ -7789,16 +7809,6 @@ System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/
                                 a = indices[i];
                                 b = indices[i + 1];
                                 c = indices[i + 2];
-                                if (triCount % 2 !== 0) {
-                                    a = indices[i];
-                                    b = indices[i + 1];
-                                    c = indices[i + 2];
-                                }
-                                else {
-                                    c = indices[i];
-                                    b = indices[i + 1];
-                                    a = indices[i + 2];
-                                }
                                 var ax = a * 3;
                                 var ay = (a * 3) + 1;
                                 var az = (a * 3) + 2;
@@ -7808,6 +7818,12 @@ System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/
                                 var cx = c * 3;
                                 var cy = (c * 3) + 1;
                                 var cz = (c * 3) + 2;
+                                var au = a * 2;
+                                var av = (a * 2) + 1;
+                                var bu = b * 2;
+                                var bv = (b * 2) + 1;
+                                var cu = c * 2;
+                                var cv = (c * 2) + 1;
                                 var triangle = new Triangle_6.Triangle();
                                 triangle.material = material;
                                 triangle.v1 = new Vector3_15.Vector3(positions[ax], positions[ay], positions[az]);
@@ -7816,12 +7832,19 @@ System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/
                                 triangle.n1 = new Vector3_15.Vector3(normals[ax], normals[ay], normals[az]);
                                 triangle.n2 = new Vector3_15.Vector3(normals[bx], normals[by], normals[bz]);
                                 triangle.n3 = new Vector3_15.Vector3(normals[cx], normals[cy], normals[cz]);
+                                if (uv) {
+                                    triangle.t1 = new Vector3_15.Vector3(uv[au], uv[av], 0);
+                                    triangle.t2 = new Vector3_15.Vector3(uv[bu], uv[bv], 0);
+                                    triangle.t3 = new Vector3_15.Vector3(uv[cu], uv[cv], 0);
+                                }
                                 triangle.fixNormals();
                                 triangle.updateBox();
                                 triangles.push(triangle);
+                                uvIndex += 2;
                             }
                         }
                         else {
+                            uvIndex = 0;
                             for (var i = 0; i < positions.length; i = i + 9) {
                                 var triangle = new Triangle_6.Triangle();
                                 triangle.material = material;
@@ -7831,13 +7854,20 @@ System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/
                                 triangle.n1 = new Vector3_15.Vector3(normals[i], normals[i + 1], normals[i + 2]);
                                 triangle.n2 = new Vector3_15.Vector3(normals[i + 3], normals[i + 4], normals[i + 5]);
                                 triangle.n3 = new Vector3_15.Vector3(normals[i + 6], normals[i + 7], normals[i + 8]);
+                                if (uv) {
+                                    triangle.t1 = new Vector3_15.Vector3(uv[uvIndex], uv[uvIndex + 1], 0);
+                                    triangle.t2 = new Vector3_15.Vector3(uv[uvIndex + 2], uv[uvIndex + 3], 0);
+                                    triangle.t3 = new Vector3_15.Vector3(uv[uvIndex + 4], uv[uvIndex + 5], 0);
+                                }
                                 triangle.fixNormals();
                                 triangle.updateBox();
                                 triangles.push(triangle);
+                                uvIndex += 6;
                             }
                         }
                     }
                     var mesh = Mesh_5.Mesh.newMesh(triangles);
+                    mesh.smoothNormals();
                     return mesh;
                 };
                 GIJSView.prototype.computeNormals = function (positions) {
@@ -7867,7 +7897,15 @@ System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/
                     material.transparent = srcMaterial.transparent;
                     material.attenuation = Attenuation_10.Attenuation.fromJson(srcMaterial.attenuation);
                     if (srcMaterial.map) {
-                        material.texture = new Texture_5.Texture(srcMaterial.map.img);
+                        if (srcMaterial.map.image && srcMaterial.map.image.length == 0) {
+                            var image = srcMaterial.map.mipmaps[0];
+                            material.texture = new Texture_5.Texture();
+                            material.texture.setImageData(image.width, image.height, image.data);
+                            material.texture.sourceFile = srcMaterial.map.uuid;
+                        }
+                        else if (srcMaterial.map.image) {
+                            material.texture = new Texture_5.Texture(srcMaterial.map.image);
+                        }
                     }
                     return material;
                 };

@@ -84,7 +84,7 @@ export class GIJSView extends GIRenderBase {
         switch (src.type) {
             case ThreeObjects.Mesh:
                 var material = GIJSView.getMaterial(src.material);
-                var shape:Shape = this.buildGeometry(src.geometry, material);
+                var shape:Shape = this.buildGeometry(src.geometry, material, src.smooth);
 
                 var matrixWorld = src.matrixWorld;
 
@@ -103,7 +103,7 @@ export class GIJSView extends GIRenderBase {
         return null;
     }
 
-    private buildGeometry(geometry:THREE.BufferGeometry|any, material:Material):Shape {
+    private buildGeometry(geometry:THREE.BufferGeometry|any, material:Material, smooth:boolean=false):Shape {
 
         if (geometry["_bufferGeometry"]) {
             geometry = geometry["_bufferGeometry"];
@@ -246,7 +246,9 @@ export class GIJSView extends GIRenderBase {
         }
 
         var mesh:Mesh = Mesh.newMesh(triangles);
-        //mesh.smoothNormals();
+        if(smooth){
+            mesh.smoothNormals();
+        }
         return mesh;
     }
 
@@ -283,9 +285,35 @@ export class GIJSView extends GIRenderBase {
         material.transparent = srcMaterial.transparent;
         material.attenuation = Attenuation.fromJson(srcMaterial.attenuation);
         if (srcMaterial.map) {
-            material.texture = new Texture(srcMaterial.map.image);
-            material.texture.sourceFile = srcMaterial.map.image.currentSrc;
+            if(srcMaterial.map.image && srcMaterial.map.image.length == 0){
+                var image = srcMaterial.map.mipmaps[0];
+                material.texture = new Texture();
+                material.texture.setImageData(image.width, image.height, image.data);
+                material.texture.sourceFile = srcMaterial.map.uuid;
+            }else if(srcMaterial.map.image){
+                material.texture = new Texture(srcMaterial.map.image);
+            }
         }
+        if (srcMaterial.normalMap) {
+            if(srcMaterial.normalMap.image && srcMaterial.normalMap.image.length == 0){
+                var image = srcMaterial.normalMap.mipmaps[0];
+                material.normalTexture = new Texture();
+                material.normalTexture.setImageData(image.width, image.height, image.data);
+                material.normalTexture.sourceFile = srcMaterial.normalMap.uuid;
+            }else if(srcMaterial.normalMap.image){
+                material.normalTexture = new Texture(srcMaterial.normalMap.image);
+            }
+        }
+        /*if (srcMaterial.bumpMap) {
+            if(srcMaterial.bumpMap.image && srcMaterial.bumpMap.image.length == 0){
+                var image = srcMaterial.bumpMap.mipmaps[0];
+                material.bumpTexture = new Texture();
+                material.bumpTexture.setImageData(image.width, image.height, image.data);
+                material.bumpTexture.sourceFile = srcMaterial.bumpMap.uuid;
+            }else if(srcMaterial.bumpMap.image){
+                material.bumpTexture = new Texture(srcMaterial.bumpMap.image);
+            }
+        }*/
         return material;
     }
 

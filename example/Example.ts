@@ -100,7 +100,7 @@ export class Example extends SimpleGUI {
 
         var loader = new THREE["OBJLoader"](manager);
         // loader.load('../models/sponza/sponza.obj', function (object) {
-            loader.load('../models/uv-sphere/uv-sphere.obj', function (object) {
+            loader.load('../models/nike/nike-air-max-low-poly.obj', function (object) {
             // loader.load('../models/stanford-dragon.obj', function (object) {
             //loader.load('../models/emerald.obj', function (object) {
 

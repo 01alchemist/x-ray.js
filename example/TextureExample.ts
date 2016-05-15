@@ -98,16 +98,16 @@ export class TextureExample extends SimpleGUI {
 
         self.render();
 
-        //THREE.Loader.Handlers.add( /\.dds$/i, new THREE["DDSLoader"]() );
+        THREE.Loader.Handlers.add( /\.dds$/i, new THREE["DDSLoader"]() );
         var mtlLoader = new THREE["MTLLoader"](manager);
-        mtlLoader.setBaseUrl( '../models/uv-sphere/' );
-        mtlLoader.setPath( '../models/uv-sphere/' );
-        mtlLoader.load( 'uv-sphere.mtl', function( materials ) {
+        mtlLoader.setBaseUrl( '../three.js/examples/obj/male02/' );
+        mtlLoader.setPath( '../three.js/examples/obj/male02/' );
+        mtlLoader.load( 'male02_dds.mtl', function( materials ) {
             var objLoader = new THREE["OBJLoader"]();
             objLoader.setMaterials( materials );
-            objLoader.setPath( '../models/uv-sphere/' );
+            objLoader.setPath( '../three.js/examples/obj/male02/' );
             materials.preload();
-            objLoader.load( 'uv-sphere.obj', function ( object ) {
+            objLoader.load( 'male02.obj', function ( object ) {
                 //object.position.y = - 95;
 
                 self.threeJSView.scene.add(object);
@@ -121,7 +121,7 @@ export class TextureExample extends SimpleGUI {
                         }
                     });
                     self.render();
-                },1000);
+                },5000);
 
             }, onProgress, onError );
         });

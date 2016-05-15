@@ -20,7 +20,7 @@ export class Pointer{
         if(Pointer.initialized){
             return;
         }
-        var maxMemory:number = 64 * 1024 * 1024;//64MB
+        var maxMemory:number = 128 * 1024 * 1024;//128MB
         Pointer.heap = new Uint8Array(new SharedArrayBuffer(maxMemory));
         //Pointer.memory = new ByteArrayBase(Pointer.heap.buffer);
         Pointer.memory = new DirectMemory(Pointer.heap.buffer);

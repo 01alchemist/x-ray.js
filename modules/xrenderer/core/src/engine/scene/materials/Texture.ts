@@ -62,6 +62,8 @@ export class Texture extends ImageLoader {
         }
         if (!Texture.ctx) {
             var canvas = document.createElement("canvas");
+            canvas.width = 4096;
+            canvas.height = 4096;
             Texture.ctx = canvas.getContext("2d");
         }
         if (arg) {
@@ -124,7 +126,12 @@ export class Texture extends ImageLoader {
         c = c.add(c10.mulScalar(x * (1 - y)));
         c = c.add(c01.mulScalar((1 - x) * y));
         c = c.add(c11.mulScalar(x * y));
-        return c
+
+        if (c.isBlack()) {
+            //console.log(c00, c01, c10, c11);
+        }
+
+        return c;
     }
 
     sample(u:number, v:number):Color {
@@ -182,16 +189,23 @@ export class Texture extends ImageLoader {
     }
 
     setImage(image) {
-        Texture.setTexture(image.currentSrc, this);
+        this.sourceFile = image.currentSrc;
+        Texture.setTexture(this.sourceFile, this);
         Texture.ctx.drawImage(image, 0, 0);
-        let pixels:Uint8ClampedArray|number[] = Texture.ctx.getImageData(0, 0, image.width, image.height).data;
+        let pixels:Uint8Array|number[] = Texture.ctx.getImageData(0, 0, image.width, image.height).data;
 
+        this.setImageData(image.width, image.height, pixels);
+
+        this.image = image;
+    }
+
+    setImageData(width:number, height:number, pixels:Uint8Array|number[]) {
         this.data = [];
 
-        for (var y:number = 0; y < image.height; y++) {
-            for (var x:number = 0; x < image.width; x++) {
-                var pi:number = y * (image.width * 4) + (x * 4);
-                var index:number = y * image.width + x;
+        for (var y:number = 0; y < height; y++) {
+            for (var x:number = 0; x < width; x++) {
+                var pi:number = y * (width * 4) + (x * 4);
+                var index:number = y * width + x;
                 var rgba:RGBA = {
                     r: pixels[pi],
                     g: pixels[pi + 1],
@@ -202,9 +216,8 @@ export class Texture extends ImageLoader {
             }
         }
 
-        this.image = image;
-        this.width = image.width;
-        this.height = image.height;
+        this.width = width;
+        this.height = height;
         this.pixels = pixels;
     }
 
@@ -216,11 +229,12 @@ export class Texture extends ImageLoader {
         return memory.position;
     }
 
-
     static restore(memory:ByteArrayBase|DirectMemory):number {
         var numTextures:number = memory.readUnsignedInt();
         for (var i = 0; i < numTextures; i++) {
-            new Texture().read(memory);
+            var tex = new Texture();
+            tex.read(memory);
+            //tex.validate();
         }
         console.info(numTextures + " Textures restored");
         return memory.position;

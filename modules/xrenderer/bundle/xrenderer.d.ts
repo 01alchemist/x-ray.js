@@ -333,6 +333,8 @@ declare module "core/src/engine/math/Color" {
         static hexColor(hex: number): Color;
         static newColor(c: RGBA): Color;
         RGBA(): RGBA;
+        isBlack(): boolean;
+        isWhite(): boolean;
         add(b: Color): Color;
         sub(b: Color): Color;
         mul(b: Color): Color;
@@ -393,11 +395,13 @@ declare module "core/src/engine/scene/materials/Texture" {
         constructor(arg?: HTMLImageElement | string);
         read(memory: ByteArrayBase | DirectMemory): number;
         write(memory: ByteArrayBase | DirectMemory): number;
+        bilinearSample(u: number, v: number): Color;
         sample(u: number, v: number): Color;
         normalSample(u: number, v: number): Vector3;
         bumpSample(u: number, v: number): Vector3;
         load(url: string, onLoad?: Function, onProgress?: Function, onError?: Function): HTMLImageElement;
         setImage(image: any): void;
+        setImageData(width: number, height: number, pixels: Uint8Array | number[]): void;
         static write(memory: ByteArrayBase | DirectMemory): number;
         static restore(memory: ByteArrayBase | DirectMemory): number;
     }

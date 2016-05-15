@@ -5,6 +5,7 @@ import {ThreeJSView} from "../core/src/ThreeJSView";
 import {GIJSView} from "../core/src/GIJSView";
 import {Thread} from "../core/src/engine/renderer/worker/Thread";
 import {MathUtils} from "../core/src/engine/utils/MathUtils";
+import {Color} from "../core/src/engine/math/Color";
 /**
  * Created by Nidin Vinayakan on 27-02-2016.
  */
@@ -18,8 +19,8 @@ export class TextureTest extends SimpleGUI {
 
         Thread.workerUrl = "../workers/trace-worker-bootstrap-debug.js";
 
-        this.i_width = 2560 / 2;
-        this.i_height = 1440 / 2;
+        this.i_width = 2560 / 4;
+        this.i_height = 1440 / 4;
     }
 
     onInit() {
@@ -27,8 +28,8 @@ export class TextureTest extends SimpleGUI {
 
         this.threeJSView = new ThreeJSView(this.i_width, this.i_height, this.webglOutput, this.appContainer);
         this.giJSView = new GIJSView(this.i_width, this.i_height, this.giOutput);
-        this.giJSView.iterations = 100;
-        this.giJSView.hitSamples = 16;
+        this.giJSView.iterations = 1000;
+        this.giJSView.hitSamples = 1;
         // this.giJSView.cameraSamples = 4;
         // this.giJSView.blockIterations = 4;
         this.giJSView.bounces = 3;
@@ -48,12 +49,12 @@ export class TextureTest extends SimpleGUI {
         var sphere = new THREE.Mesh(geometry, material);
 
         var pointLight1 = new THREE.PointLight(0xffffff, 1, 30);
-        pointLight1.position.set(0, 20, 0);
+        pointLight1.position.set(-10, 20, 10);
         pointLight1.add(sphere.clone());
         this.threeJSView.scene.add(pointLight1);
 
         var pointLight2 = new THREE.PointLight(0xffffff, 1, 30);
-        pointLight2.position.set(0, -20, 0);
+        pointLight2.position.set(0, 20, 10);
         pointLight2.add(sphere.clone());
         this.threeJSView.scene.add(pointLight2);
 
@@ -92,7 +93,7 @@ export class TextureTest extends SimpleGUI {
         // mesh.position.set(-0.5, -0.5, -0.5);
         mesh.castShadow = false;
         mesh.receiveShadow = true;
-        // this.threeJSView.scene.add(mesh);
+        this.threeJSView.scene.add(mesh);
 
         /*var areaLightMesh = mesh.clone();
         var pointLight3 = new THREE.PointLight(0xffffff, 1, 1000);
@@ -104,16 +105,17 @@ export class TextureTest extends SimpleGUI {
 
         //THREE.Loader.Handlers.add( /\.dds$/i, new THREE["DDSLoader"]() );
         var mtlLoader = new THREE["MTLLoader"](manager);
-        mtlLoader.setBaseUrl( '../../../models/uv-sphere/' );
-        mtlLoader.setPath( '../../../models/uv-sphere/' );
-        mtlLoader.load( 'uv-sphere.mtl', function( materials ) {
+        mtlLoader.setBaseUrl( '../../../models/bagchair/' );
+        mtlLoader.setPath( '../../../models/bagchair/' );
+        mtlLoader.load( 'bag-chair.mtl', function( materials ) {
             var objLoader = new THREE["OBJLoader"]();
-            objLoader.setMaterials( materials );
-            objLoader.setPath( '../../../models/uv-sphere/' );
+            objLoader.setMaterials( materials ) ;
+            objLoader.setPath( '../../../models/bagchair/' );
             materials.preload();
-            objLoader.load( 'uv-sphere.obj', function ( object ) {
-                //object.position.y = - 95;
-
+            objLoader.load( 'bag-chair.obj', function ( object ) {
+                // object.position.y = -95;
+                object.scale.set(2,2,2);
+                object.smooth = true;
                 self.threeJSView.scene.add(object);
                 self.render();
 
@@ -125,7 +127,7 @@ export class TextureTest extends SimpleGUI {
                         }
                     });
                     self.render();
-                },1000);
+                },5000);
 
             }, onProgress, onError );
         });

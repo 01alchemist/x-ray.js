@@ -80,6 +80,14 @@ export class Color {
         return {r: _c[0], g: _c[1], b: _c[2], a: 255};
     }
 
+    isBlack():boolean {
+        return this.r === 0 &&  this.g === 0 &&  this.b === 0;
+    }
+
+    isWhite():boolean {
+        return this.r === 1 &&  this.g === 1 &&  this.b === 1;
+    }
+
     add(b:Color):Color {
         return new Color(this.r + b.r, this.g + b.g, this.b + b.b);
     }
