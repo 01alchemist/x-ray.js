@@ -19,8 +19,8 @@ export class TextureTest extends SimpleGUI {
 
         Thread.workerUrl = "../workers/trace-worker-bootstrap-debug.js";
 
-        this.i_width = 2560 / 4;
-        this.i_height = 1440 / 4;
+        this.i_width = 2560 / 2;
+        this.i_height = 1440 / 2;
     }
 
     onInit() {
@@ -28,11 +28,11 @@ export class TextureTest extends SimpleGUI {
 
         this.threeJSView = new ThreeJSView(this.i_width, this.i_height, this.webglOutput, this.appContainer);
         this.giJSView = new GIJSView(this.i_width, this.i_height, this.giOutput);
-        this.giJSView.iterations = 1000;
+        this.giJSView.iterations = 10000000;
         this.giJSView.hitSamples = 1;
         // this.giJSView.cameraSamples = 4;
-        // this.giJSView.blockIterations = 4;
-        this.giJSView.bounces = 3;
+        this.giJSView.blockIterations = 1;
+        this.giJSView.bounces = 4;
         this.giJSView.scene.color.set(0, 0, 0);
         // this.giJSView.scene.color = Color.hexColor(0xFDDCBA);
         // var ambient = new THREE.AmbientLight(0x5C5C5C);
@@ -49,12 +49,12 @@ export class TextureTest extends SimpleGUI {
         var sphere = new THREE.Mesh(geometry, material);
 
         var pointLight1 = new THREE.PointLight(0xffffff, 1, 30);
-        pointLight1.position.set(-10, 20, 10);
+        pointLight1.position.set(-10, 5, 10);
         pointLight1.add(sphere.clone());
         this.threeJSView.scene.add(pointLight1);
 
         var pointLight2 = new THREE.PointLight(0xffffff, 1, 30);
-        pointLight2.position.set(0, 20, 10);
+        pointLight2.position.set(10, 5, 10);
         pointLight2.add(sphere.clone());
         this.threeJSView.scene.add(pointLight2);
 
@@ -88,6 +88,8 @@ export class TextureTest extends SimpleGUI {
         geometry = new THREE.PlaneGeometry(100, 100);
         // material = new THREE.MeshPhongMaterial({color: 0xFDDCBA});
         material = new THREE.MeshPhongMaterial({color: 0xB9B9B9});
+        material.ior = 1.5;
+        material.gloss = MathUtils.radians(0);
         var mesh = new THREE.Mesh(geometry, material);
         mesh.rotation.set(MathUtils.radians(-90), 0, 0);
         // mesh.position.set(-0.5, -0.5, -0.5);
