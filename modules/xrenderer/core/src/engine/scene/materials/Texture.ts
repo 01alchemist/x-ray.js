@@ -117,10 +117,15 @@ export class Texture extends ImageLoader {
         let y0 = Y;
         let x1 = x0 + 1;
         let y1 = y0 + 1;
-        let c00 = this.data[y0 * this.width + x0];
-        let c01 = this.data[y1 * this.width + x0];
-        let c10 = this.data[y0 * this.width + x1];
-        let c11 = this.data[y1 * this.width + x1];
+        let i00:number = y0 * this.width + x0;
+        let i01:number = y1 * this.width + x0;
+        let i10:number = y0 * this.width + x1;
+        let i11:number = y1 * this.width + x1;
+
+        let c00 = this.data[i00 >= this.data.length?this.data.length-1:i00];
+        let c01 = this.data[i01 >= this.data.length?this.data.length-1:i01];
+        let c10 = this.data[i10 >= this.data.length?this.data.length-1:i10];
+        let c11 = this.data[i11 >= this.data.length?this.data.length-1:i11];
         let c = new Color();
         c = c.add(c00.mulScalar((1 - x) * (1 - y)));
         c = c.add(c10.mulScalar(x * (1 - y)));

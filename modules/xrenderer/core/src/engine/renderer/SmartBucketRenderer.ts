@@ -54,7 +54,7 @@ export class SmartBucketRenderer {
     }
 
     render(scene:SharedScene, camera:Camera, width:number, height:number, cameraSamples:number, hitSamples:number,
-           bounces:number, iterations:number = 1, blockIterations:number = 1, onUpdate:Function, onInit?:Function):Uint8ClampedArray {
+           bounces:number, iterations:number = 1, blockIterations:number = 1, onUpdate:Function, updateIndicator:Function, onInit?:Function):Uint8ClampedArray {
         if (!this.traceManager) {
             this.traceManager = new TraceJobManager();
         }
@@ -89,6 +89,7 @@ export class SmartBucketRenderer {
         }
 
         this.traceManager.updatePixels = onUpdate;
+        this.traceManager.updateIndicator = updateIndicator;
         this.traceManager.init(onInit);
         return this.traceManager.pixels;
     }

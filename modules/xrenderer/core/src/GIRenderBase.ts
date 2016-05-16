@@ -79,10 +79,13 @@ export abstract class GIRenderBase extends CanvasDisplay {
         this.pixels = this.renderer.render(
             this.scene, this.camera, this.i_width, this.i_height, this.cameraSamples, this.hitSamples,
             this.bounces, this.iterations, this.blockIterations,
-            onUpdate, onInit
+            onUpdate, updateIndicator, onInit
         );
         function onUpdate(rect) {
             self.updatePixelsRect(rect, self.pixels);
+        }
+        function updateIndicator(rect) {
+            self.updateIndicator(rect);
         }
     }
 

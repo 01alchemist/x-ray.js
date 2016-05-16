@@ -9,7 +9,7 @@ import {Color} from "../core/src/engine/math/Color";
 /**
  * Created by Nidin Vinayakan on 27-02-2016.
  */
-export class TextureTest extends SimpleGUI {
+export class FBXTest extends SimpleGUI {
 
     private threeJSView:ThreeJSView;
     private giJSView:GIJSView;
@@ -19,8 +19,8 @@ export class TextureTest extends SimpleGUI {
 
         Thread.workerUrl = "../workers/trace-worker-bootstrap-debug.js";
 
-        this.i_width = 2560 / 2;
-        this.i_height = 1440 / 2;
+        this.i_width = 2560 / 4;
+        this.i_height = 1440 / 4;
     }
 
     onInit() {
@@ -32,7 +32,7 @@ export class TextureTest extends SimpleGUI {
         this.giJSView.hitSamples = 1;
         // this.giJSView.cameraSamples = 4;
         this.giJSView.blockIterations = 1;
-        this.giJSView.bounces = 5;
+        this.giJSView.bounces = 0;
         this.giJSView.scene.color.set(0, 0, 0);
         // this.giJSView.scene.color = Color.hexColor(0xFDDCBA);
         // var ambient = new THREE.AmbientLight(0x5C5C5C);
@@ -105,36 +105,21 @@ export class TextureTest extends SimpleGUI {
 
         self.render();
 
-        //THREE.Loader.Handlers.add( /\.dds$/i, new THREE["DDSLoader"]() );
-        var mtlLoader = new THREE["MTLLoader"](manager);
-        mtlLoader.setBaseUrl( '../../../models/bagchair/' );
-        mtlLoader.setPath( '../../../models/bagchair/' );
-        mtlLoader.load( 'bag-chair.mtl', function( materials ) {
-            var objLoader = new THREE["OBJLoader"]();
-            objLoader.setMaterials( materials ) ;
-            objLoader.setPath( '../../../models/bagchair/' );
-            materials.preload();
-            objLoader.load( 'bag-chair.obj', function ( object ) {
-                // object.position.y = -95;
-                object.scale.set(2,2,2);
-                object.smooth = true;
-                self.threeJSView.scene.add(object);
+        var objectLoader = new THREE["FBXLoader"]();
+        objectLoader.load("../../../models/porsche-cayman-vray-fbx/porsche-cayman-vray.fbx", function ( obj ) {
+            self.threeJSView.scene.add(obj);
+            self.render();
+
+            setTimeout(function(){
+                self.giJSView.setThreeJSScene(self.threeJSView.scene, function () {
+                    self.giJSView.updateCamera(self.threeJSView.camera);
+                    if (self._tracing.value) {
+                        self.giJSView.toggleTrace(true);
+                    }
+                });
                 self.render();
-
-                setTimeout(function(){
-                    self.giJSView.setThreeJSScene(self.threeJSView.scene, function () {
-                        self.giJSView.updateCamera(self.threeJSView.camera);
-                        if (self._tracing.value) {
-                            self.giJSView.toggleTrace(true);
-                        }
-                    });
-                    self.render();
-                },5000);
-
-            }, onProgress, onError );
-        });
-
-
+            },5000);
+        } );
 
         this.threeJSView.onCameraChange = function (camera) {
             self.giJSView.updateCamera(camera);

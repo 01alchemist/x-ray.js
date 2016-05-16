@@ -1,7 +1,8 @@
+import {Color} from "./engine/math/Color";
 /**
  * Created by Nidin Vinayakan on 11-01-2016.
  */
-export abstract class CanvasDisplay{
+export abstract class CanvasDisplay {
 
     canvas:HTMLCanvasElement;
     ctx:CanvasRenderingContext2D;
@@ -19,12 +20,12 @@ export abstract class CanvasDisplay{
         this.canvas.width = this.i_width;
         this.canvas.height = this.i_height;
 
-        if(container){
+        if (container) {
             this.attachDom(container);
         }
     }
 
-    attachDom(dom:HTMLElement){
+    attachDom(dom:HTMLElement) {
         this.container = dom;
 
         this.container.appendChild(this.canvas);
@@ -39,11 +40,11 @@ export abstract class CanvasDisplay{
 
     onWindowResize() {
         /*if (this.container) {
-            this.setResolution(this.container.offsetWidth, this.container.offsetHeight);
-        }*/
+         this.setResolution(this.container.offsetWidth, this.container.offsetHeight);
+         }*/
     }
 
-    setResolution(width:number,height:number):void {
+    setResolution(width:number, height:number):void {
         this.i_width = width;
         this.i_height = height;
         this.canvas.width = width;
@@ -77,6 +78,43 @@ export abstract class CanvasDisplay{
                 this.data[i] = pixels[pi];
                 this.data[i + 1] = pixels[pi + 1];
                 this.data[i + 2] = pixels[pi + 2];
+                this.data[i + 3] = 255;
+            }
+        }
+        this.ctx.putImageData(this.imageData, 0, 0);
+    }
+
+    updateIndicator(rect):void {
+
+        var color:Color = Color.random();
+
+        //top-left
+        this.fillRect({x: rect.xoffset, y: rect.yoffset, width: 4, height: 1}, color);
+        this.fillRect({x: rect.xoffset, y: rect.yoffset + 1, width: 1, height: 3}, color);
+
+        //top-right
+        this.fillRect({x: rect.xoffset + rect.width - 4, y: rect.yoffset, width: 4, height: 1}, color);
+        this.fillRect({x: rect.xoffset + rect.width - 1, y: rect.yoffset + 1, width: 1, height: 3}, color);
+
+        //bottom-left
+        this.fillRect({x: rect.xoffset, y: rect.yoffset + rect.height - 4, width: 1, height: 4}, color);
+        this.fillRect({x: rect.xoffset + 1, y: rect.yoffset  + rect.height - 1, width: 3, height: 1}, color);
+
+        //bottom-right
+        this.fillRect({x: rect.xoffset + rect.width - 4, y: rect.yoffset + rect.height - 1, width: 4, height: 1}, color);
+        this.fillRect({x: rect.xoffset + rect.width - 1, y: rect.yoffset + rect.height - 4, width: 1, height: 3}, color);
+
+        this.ctx.putImageData(this.imageData, 0, 0);
+    }
+
+    fillRect(rect, color:Color) {
+        for (var y = rect.y; y < rect.y + rect.height; y++) {
+            for (var x = rect.x; x < rect.x + rect.width; x++) {
+
+                var i:number = y * (this.i_width * 4) + (x * 4);
+                this.data[i] = color.r * 255;
+                this.data[i + 1] = color.g * 255;
+                this.data[i + 2] = color.b * 255;
                 this.data[i + 3] = 255;
             }
         }

@@ -81,11 +81,11 @@ export class Color {
     }
 
     isBlack():boolean {
-        return this.r === 0 &&  this.g === 0 &&  this.b === 0;
+        return this.r === 0 && this.g === 0 && this.b === 0;
     }
 
     isWhite():boolean {
-        return this.r === 1 &&  this.g === 1 &&  this.b === 1;
+        return this.r === 1 && this.g === 1 && this.b === 1;
     }
 
     add(b:Color):Color {
@@ -139,5 +139,24 @@ export class Color {
             this.g,
             this.b
         );
+    }
+
+    static brightColors = [
+        Color.hexColor(0xFF00FF),
+        Color.hexColor(0x84FF00),
+        Color.hexColor(0xFF0084),
+        Color.hexColor(0x00FFFF),
+        Color.hexColor(0x00FF84),
+        Color.hexColor(0xDD40FF),
+        Color.hexColor(0xFFFF00)
+    ];
+
+    static random():Color {
+        return new Color(Math.random(), Math.random(), Math.random());
+    }
+
+    static randomBrightColor():Color {
+        var i:number = Math.round(Math.random() * Color.brightColors.length);
+        return Color.brightColors[i];
     }
 }

@@ -13,6 +13,7 @@ export class TraceJobManager {
     deferredQueue:TraceJob[];
     iterations:number = 0;
     updatePixels:Function;
+    updateIndicator:Function;
 
     static flags:Uint8Array;
 
@@ -284,6 +285,11 @@ export class TraceJobManager {
 
             var job = self.queue.shift();
             self.deferredQueue.push(job);
+
+            if(this.updateIndicator){
+                this.updateIndicator(job.param);
+            }
+
             job.start(thread, function (_job, _thread) {
                 if (!self._await) {
                     self.processQueue.call(self, _job, _thread);

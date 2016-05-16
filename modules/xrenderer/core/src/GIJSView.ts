@@ -138,7 +138,9 @@ export class GIJSView extends GIRenderBase {
         } else {
 
             var positions:Float32Array = geometry.attributes["position"].array;
-            var uv:Float32Array = geometry.attributes["uv"].array;
+            if(geometry.attributes["uv"]){
+                var uv:Float32Array = geometry.attributes["uv"].array;
+            }
 
             var normals:Float32Array;
             if (geometry.attributes["normal"]) {
@@ -277,6 +279,11 @@ export class GIJSView extends GIRenderBase {
 
     private static getMaterial(srcMaterial:any):Material {
         //var material:Material = new DiffuseMaterial(Color.hexColor(srcMaterial.color.getHex()));
+
+        if(srcMaterial instanceof THREE.MultiMaterial){
+            srcMaterial = srcMaterial.materials[0];
+        }
+
         var material:Material = new Material(Color.hexColor(srcMaterial.color.getHex()));
         material.ior = srcMaterial.ior ? srcMaterial.ior : 1;
         material.tint = srcMaterial.tint ? srcMaterial.tint : 0;
