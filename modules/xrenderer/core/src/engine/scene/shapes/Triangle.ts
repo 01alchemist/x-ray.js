@@ -30,19 +30,56 @@ export class Triangle implements Shape {
                 public v1:Vector3 = new Vector3(), public v2:Vector3 = new Vector3(), public v3:Vector3 = new Vector3(),
                 public n1:Vector3 = new Vector3(), public n2:Vector3 = new Vector3(), public n3:Vector3 = new Vector3(),
                 public t1:Vector3 = new Vector3(), public t2:Vector3 = new Vector3(), public t3:Vector3 = new Vector3()) {
-        /*this.data = new Float32Array([
-         v1.x, v1.y, v1.z,
-         v2.x, v2.y, v2.z,
-         v3.x, v3.y, v3.z,
-         n1.x, n1.y, n1.z,
-         n2.x, n2.y, n2.z,
-         n3.x, n3.y, n3.z,
-         t1.x, t1.y, t1.z,
-         t2.x, t2.y, t2.z,
-         t3.x, t3.y, t3.z
-         ])*/
+        this.data = new Float32Array([
+            v1.x, v1.y, v1.z, 0,
+            v2.x, v2.y, v2.z, 0,
+            v3.x, v3.y, v3.z, 0,
+            n1.x, n1.y, n1.z, 0,
+            n2.x, n2.y, n2.z, 0,
+            n3.x, n3.y, n3.z, 0,
+            t1.x, t1.y, t1.z, 0,
+            t2.x, t2.y, t2.z, 0,
+            t3.x, t3.y, t3.z, 0
+        ])
     }
-
+    update() {
+        this.data[0] = this.v1.x;
+        this.data[1] = this.v1.y;
+        this.data[2] = this.v1.z;
+        this.data[3] = 0;
+        this.data[4] = this.v2.x;
+        this.data[5] = this.v2.y;
+        this.data[6] = this.v2.z;
+        this.data[7] = 0;
+        this.data[8] = this.v3.x;
+        this.data[9] = this.v3.y;
+        this.data[10] = this.v3.z;
+        this.data[11] = 0;
+        this.data[12] = this.n1.x;
+        this.data[13] = this.n1.y;
+        this.data[14] = this.n1.z;
+        this.data[15] = 0;
+        this.data[16] = this.n2.x;
+        this.data[17] = this.n2.y;
+        this.data[18] = this.n2.z;
+        this.data[19] = 0;
+        this.data[20] = this.n3.x;
+        this.data[21] = this.n3.y;
+        this.data[22] = this.n3.z;
+        this.data[23] = 0;
+        this.data[24] = this.t1.x;
+        this.data[25] = this.t1.y;
+        this.data[26] = this.t1.z;
+        this.data[27] = 0;
+        this.data[28] = this.t2.x;
+        this.data[29] = this.t2.y;
+        this.data[30] = this.t2.z;
+        this.data[31] = 0;
+        this.data[32] = this.t3.x;
+        this.data[33] = this.t3.y;
+        this.data[34] = this.t3.z;
+        this.data[35] = 0;
+    }
     directRead(memory:Float32Array, offset:number):number {
         offset++;//type
         var materialIndex:number = memory[offset++];
@@ -142,6 +179,7 @@ export class Triangle implements Shape {
         }
 
         this.updateBox();
+        this.update();
 
         return memory.position;
     }
@@ -225,7 +263,7 @@ export class Triangle implements Shape {
     }
 
     intersect(r:Ray):Hit {
-
+        this.update();
         //Möller–Trumbore intersection algorithm
 
         //Find vectors for two edges sharing V1
@@ -236,19 +274,28 @@ export class Triangle implements Shape {
         //var e2y:number = this.v3.y - this.v1.y;
         //var e2z:number = this.v3.z - this.v1.z;
 
+        var _v1 = SIMD.Float32x4.load(this.data, 0);
+        var _v2 = SIMD.Float32x4.load(this.data, 4);
+        var _v3 = SIMD.Float32x4.load(this.data, 8);
+
         //Edge1
-        var e1:Vector3 = this.v2.sub(this.v1);
+        // var e1:Vector3 = this.v2.sub(this.v1);
+        var _e1 = SIMD.Float32x4.sub(_v2, _v1);
+
         //Edge2
-        var e2:Vector3 = this.v3.sub(this.v1);
+        //var e2:Vector3 = this.v3.sub(this.v1);
+        var _e2 = SIMD.Float32x4.sub(_v3, _v1);
 
         //Begin calculating determinant - also used to calculate u parameter
-        var p:Vector3 = r.direction.cross(e2);
+        //var p:Vector3 = r.direction.cross(e2);
+        var _p = r.direction.SIMD_cross(_e2);
         //var px:number = r.direction.y * e2z - r.direction.z * e2y;
         //var py:number = r.direction.z * e2x - r.direction.x * e2z;
         //var pz:number = r.direction.x * e2y - r.direction.y * e2x;
         //if determinant is near zero, ray lies in plane of triangle
         //var det:number = e1x * px + e1y * py + e1z * pz;
-        var det:number = e1.dot(p);
+        // var det:number = e1.dot(p);
+        var det:number = Vector3.SIMD.dot(_e1, _p);
         //NOT CULLING
         if (det > -EPS && det < EPS) {
             return NoHit;
@@ -256,14 +303,16 @@ export class Triangle implements Shape {
         var inv:number = 1 / det;
 
         //calculate distance from V1 to ray origin
-        var t:Vector3 = r.origin.sub(this.v1);
+        // var t:Vector3 = r.origin.sub(this.v1);
+        var _t = r.origin.SIMD_sub(_v1);
         //var tx:number = r.origin.x - this.v1.x;
         //var ty:number = r.origin.y - this.v1.y;
         //var tz:number = r.origin.z - this.v1.z;
 
         //Calculate u parameter and test bound
         //var u:number = (tx * px + ty * py + tz * pz) * inv;
-        var u:number = t.dot(p) * inv;
+        //var u:number = t.dot(p) * inv;
+        var u:number = Vector3.SIMD.dot(_t, _p) * inv;
         //The intersection lies outside of the triangle
         if (u < 0 || u > 1) {
             return NoHit;
@@ -273,18 +322,21 @@ export class Triangle implements Shape {
         //var qx:number = ty * e1z - tz * e1y;
         //var qy:number = tz * e1x - tx * e1z;
         //var qz:number = tx * e1y - ty * e1x;
-        var q:Vector3 = t.cross(e1);
+        //var q:Vector3 = t.cross(e1);
+        var _q = Vector3.SIMD.cross(_t, _e1);
 
         //Calculate V parameter and test bound
         //var v:number = (r.direction.x * qx + r.direction.y * qy + r.direction.z * qz) * inv;
-        var v:number = r.direction.dot(q) * inv;
+        //var v:number = r.direction.dot(q) * inv;
+        var v:number = r.direction.SIMD_dot(_q) * inv;
         //The intersection lies outside of the triangle
         if (v < 0 || u + v > 1) {
             return NoHit;
         }
 
         //var d:number = (e2x * qx + e2y * qy + e2z * qz) * inv;
-        var d:number = e2.dot(q) * inv;
+        // var d:number = e2.dot(q) * inv;
+        var d:number = Vector3.SIMD.dot(_e2, _q) * inv;
         if (d < EPS) {
             return NoHit
         }

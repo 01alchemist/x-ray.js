@@ -7,31 +7,59 @@ import {DirectMemory} from "../../pointer/src/DirectMemory";
 export class Vector3 {
 
     static SIZE:number = 3;
-    static NullVector:Vector3 = new Vector3(DirectMemory.MIN_FLOAT32_VALUE,DirectMemory.MIN_FLOAT32_VALUE,DirectMemory.MIN_FLOAT32_VALUE);
+    static NullVector:Vector3 = new Vector3(DirectMemory.MIN_FLOAT32_VALUE, DirectMemory.MIN_FLOAT32_VALUE, DirectMemory.MIN_FLOAT32_VALUE);
     memorySize:number = Vector3.SIZE;
 
-    constructor(public x:number = 0, public y:number = 0, public z:number = 0) {
+    static SIMD = {
+        dot: function (a, b) {
+            var lvMult = SIMD.Float32x4.mul(a, b);
+            var lvTemp = SIMD.Float32x4.shuffle(lvMult, lvMult, 1, 0, 0, 0);
+            var lvTemp2 = SIMD.Float32x4.shuffle(lvMult, lvMult, 2, 0, 0, 0);
+            var lvSum = SIMD.Float32x4.add(lvMult, SIMD.Float32x4.add(lvTemp, lvTemp2));
+            return SIMD.Float32x4.extractLane(SIMD.Float32x4.shuffle(lvSum, lvSum, 0, 0, 0, 0), 0);
+        },
+        cross: function (a, b) {
+            var result = SIMD.Float32x4.sub(
+                SIMD.Float32x4.mul(b, SIMD.Float32x4.shuffle(a, a, 3, 0, 2, 1)),
+                SIMD.Float32x4.mul(a, SIMD.Float32x4.shuffle(b, b, 3, 0, 2, 1))
+            );
+            return SIMD.Float32x4.shuffle(result, result, 3, 0, 2, 1);
+        }
+    };
 
+    public data:Float32Array;
+
+    constructor(public x:number = 0, public y:number = 0, public z:number = 0) {
+        this.data = new Float32Array(4);
+        this.update();
+    }
+
+    update() {
+        this.data[0] = this.x;
+        this.data[1] = this.y;
+        this.data[2] = this.z;
     }
 
     static fromJson(v:Vector3):Vector3 {
-        if(v){
+        if (v) {
             return new Vector3(v.x, v.y, v.z);
-        }else{
+        } else {
             return null;
         }
     }
 
-    setFromArray(a, offset:number=0){
+    setFromArray(a, offset:number = 0) {
         this.x = a[offset];
-        this.y = a[offset+1];
-        this.z = a[offset+2];
+        this.y = a[offset + 1];
+        this.z = a[offset + 2];
+        this.update();
     }
 
     setFromJson(a):void {
         this.x = a.x;
         this.y = a.y;
         this.z = a.z;
+        this.update();
     }
 
     length() {
@@ -42,11 +70,22 @@ export class Vector3 {
         return this.x * b.x + this.y * b.y + this.z * b.z
     }
 
+    SIMD_dot(_b) {
+        var _a = SIMD.Float32x4.load(this.data, 0);
+        return Vector3.SIMD.dot(_a, _b);
+    }
+
     cross(b:Vector3):Vector3 {
         let x = this.y * b.z - this.z * b.y;
         let y = this.z * b.x - this.x * b.z;
         let z = this.x * b.y - this.y * b.x;
         return new Vector3(x, y, z);
+    }
+
+    SIMD_cross(_b) {
+        this.update();
+        var _a = SIMD.Float32x4.load(this.data, 0);
+        return Vector3.SIMD.cross(_a, _b);
     }
 
     normalize():Vector3 {
@@ -60,6 +99,11 @@ export class Vector3 {
 
     sub(b:Vector3):Vector3 {
         return new Vector3(this.x - b.x, this.y - b.y, this.z - b.z);
+    }
+
+    SIMD_sub(_b) {
+        var _a = SIMD.Float32x4.load(this.data, 0);
+        return SIMD.Float32x4.sub(_a, _b);
     }
 
     mul(b:Vector3):Vector3 {
