@@ -251,6 +251,7 @@ export class Triangle implements Shape {
         t.t3 = t3;
         t.material = material;
         t.updateBox();
+        t.update();
         t.fixNormals();
         return t;
     }
