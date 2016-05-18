@@ -291,7 +291,8 @@ export class GIJSView extends GIRenderBase {
         material.emittance = srcMaterial.emittance ? srcMaterial.emittance : 0;
         material.transparent = srcMaterial.transparent;
         material.attenuation = Attenuation.fromJson(srcMaterial.attenuation);
-        if (srcMaterial.map) {
+
+        /*if (srcMaterial.map) {
             if(srcMaterial.map.image && srcMaterial.map.image.length == 0){
                 var image = srcMaterial.map.mipmaps[0];
                 material.texture = new Texture();
@@ -310,7 +311,7 @@ export class GIJSView extends GIRenderBase {
             }else if(srcMaterial.normalMap.image){
                 material.normalTexture = new Texture(srcMaterial.normalMap.image);
             }
-        }
+        }*/
         /*if (srcMaterial.bumpMap) {
             if(srcMaterial.bumpMap.image && srcMaterial.bumpMap.image.length == 0){
                 var image = srcMaterial.bumpMap.mipmaps[0];

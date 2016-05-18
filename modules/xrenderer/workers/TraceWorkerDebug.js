@@ -34,7 +34,6 @@ System.register(["../core/src/engine/scene/Camera", "../core/src/engine/math/Col
                     var data = e.data;
                     switch (data.command) {
                         case TraceJob_1.TraceJob.INIT:
-                            postMessage(TraceJob_1.TraceJob.INITED);
                             this.id = e.data.id;
                             this.pixelMemory = new Uint8ClampedArray(e.data.pixelBuffer);
                             this.sampleMemory = new Float32Array(e.data.sampleBuffer);
@@ -51,6 +50,7 @@ System.register(["../core/src/engine/scene/Camera", "../core/src/engine/math/Col
                             this.cameraSamples = e.data.cameraSamples;
                             this.hitSamples = e.data.hitSamples;
                             this.bounces = e.data.bounces;
+                            postMessage(TraceJob_1.TraceJob.INITED);
                             break;
                         case TraceJob_1.TraceJob.TRACE:
                             if (this.flags[3 + this.id] === 2) {

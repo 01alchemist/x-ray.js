@@ -19,11 +19,24 @@ export class Vector3 {
             return SIMD.Float32x4.extractLane(SIMD.Float32x4.shuffle(lvSum, lvSum, 0, 0, 0, 0), 0);
         },
         cross: function (a, b) {
-            var result = SIMD.Float32x4.sub(
+
+            var lvTemp1 = SIMD.Float32x4.shuffle(a, a, 1, 2, 0, 0);
+            var lvTemp2 = SIMD.Float32x4.shuffle(b, b, 2, 0, 1, 0);
+
+            var lvMult = SIMD.Float32x4.mul( lvTemp1, lvTemp2 ); // (y1*z2), (z1*x2), (x1*y2), (x1*x2)
+
+            lvTemp1 = SIMD.Float32x4.shuffle( a, a, 2, 0, 1, 0 );
+            lvTemp2 = SIMD.Float32x4.shuffle( b, b, 1, 2, 0, 0 );
+
+            var lvMult2 = SIMD.Float32x4.mul( lvTemp1, lvTemp2 ); // (z1*y2), (x1*z2), (y1*x2), (x1*x2)
+
+            return SIMD.Float32x4.sub(lvMult, lvMult2);
+
+            /*var result = SIMD.Float32x4.sub(
                 SIMD.Float32x4.mul(b, SIMD.Float32x4.shuffle(a, a, 3, 0, 2, 1)),
                 SIMD.Float32x4.mul(a, SIMD.Float32x4.shuffle(b, b, 3, 0, 2, 1))
             );
-            return SIMD.Float32x4.shuffle(result, result, 3, 0, 2, 1);
+            return SIMD.Float32x4.shuffle(result, result, 3, 0, 2, 1);*/
         }
     };
 
@@ -38,6 +51,12 @@ export class Vector3 {
         this.data[0] = this.x;
         this.data[1] = this.y;
         this.data[2] = this.z;
+    }
+
+    sync() {
+        this.x = this.data[0];
+        this.y = this.data[1];
+        this.z = this.data[2];
     }
 
     static fromJson(v:Vector3):Vector3 {

@@ -263,28 +263,18 @@ export class Triangle implements Shape {
         return [this.v1, this.v2, this.v3];
     }
 
-    intersect(r:Ray):Hit {
+    intersectSIMD(r:Ray):Hit {
         this.update();
         //Möller–Trumbore intersection algorithm
-
-        //Find vectors for two edges sharing V1
-        //var e1x:number = this.v2.x - this.v1.x;
-        //var e1y:number = this.v2.y - this.v1.y;
-        //var e1z:number = this.v2.z - this.v1.z;
-        //var e2x:number = this.v3.x - this.v1.x;
-        //var e2y:number = this.v3.y - this.v1.y;
-        //var e2z:number = this.v3.z - this.v1.z;
 
         var _v1 = SIMD.Float32x4.load(this.data, 0);
         var _v2 = SIMD.Float32x4.load(this.data, 4);
         var _v3 = SIMD.Float32x4.load(this.data, 8);
 
         //Edge1
-        // var e1:Vector3 = this.v2.sub(this.v1);
         var _e1 = SIMD.Float32x4.sub(_v2, _v1);
 
         //Edge2
-        //var e2:Vector3 = this.v3.sub(this.v1);
         var _e2 = SIMD.Float32x4.sub(_v3, _v1);
 
         //Begin calculating determinant - also used to calculate u parameter
@@ -338,6 +328,54 @@ export class Triangle implements Shape {
         //var d:number = (e2x * qx + e2y * qy + e2z * qz) * inv;
         // var d:number = e2.dot(q) * inv;
         var d:number = Vector3.SIMD.dot(_e2, _q) * inv;
+        if (d < EPS) {
+            return NoHit
+        }
+
+        //ray intersection
+        return new Hit(this, d);
+    }
+
+    intersect(r:Ray):Hit {
+        return this.intersectSIMD(r);
+        //Möller–Trumbore intersection algorithm
+
+        //Edge1
+        var e1:Vector3 = this.v2.sub(this.v1);
+
+        //Edge2
+        var e2:Vector3 = this.v3.sub(this.v1);
+
+        //Begin calculating determinant - also used to calculate u parameter
+        var p:Vector3 = r.direction.cross(e2);
+        var det:number = e1.dot(p);
+        //NOT CULLING
+        if (det > -EPS && det < EPS) {
+            return NoHit;
+        }
+        var inv:number = 1 / det;
+
+        //calculate distance from V1 to ray origin
+        var t:Vector3 = r.origin.sub(this.v1);
+
+        //Calculate u parameter and test bound
+        var u:number = t.dot(p) * inv;
+        //The intersection lies outside of the triangle
+        if (u < 0 || u > 1) {
+            return NoHit;
+        }
+
+        //Prepare to test v parameter
+        var q:Vector3 = t.cross(e1);
+
+        //Calculate V parameter and test bound
+        var v:number = r.direction.dot(q) * inv;
+        //The intersection lies outside of the triangle
+        if (v < 0 || u + v > 1) {
+            return NoHit;
+        }
+
+        var d:number = e2.dot(q) * inv;
         if (d < EPS) {
             return NoHit
         }

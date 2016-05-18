@@ -19,8 +19,8 @@ export class TextureTest extends SimpleGUI {
 
         Thread.workerUrl = "../workers/trace-worker-bootstrap-debug.js";
 
-        this.i_width = 2560 / 2;
-        this.i_height = 1440 / 2;
+        this.i_width = 2560 / 4;
+        this.i_height = 1440 / 4;
     }
 
     onInit() {
@@ -69,8 +69,8 @@ export class TextureTest extends SimpleGUI {
         // texture
         var manager = new THREE.LoadingManager();
         /*manager.onProgress = function (item, loaded, total) {
-            console.log(item, loaded, total);
-        };*/
+         console.log(item, loaded, total);
+         };*/
         manager.onLoad = function () {
             console.log(arguments);
         };
@@ -98,30 +98,30 @@ export class TextureTest extends SimpleGUI {
         this.threeJSView.scene.add(mesh);
 
         /*var areaLightMesh = mesh.clone();
-        var pointLight3 = new THREE.PointLight(0xffffff, 1, 1000);
-        pointLight3.position.set(0, 100, 0);
-        pointLight3.add(areaLightMesh);
-        this.threeJSView.scene.add(pointLight3);*/
+         var pointLight3 = new THREE.PointLight(0xffffff, 1, 1000);
+         pointLight3.position.set(0, 100, 0);
+         pointLight3.add(areaLightMesh);
+         this.threeJSView.scene.add(pointLight3);*/
 
         self.render();
 
         //THREE.Loader.Handlers.add( /\.dds$/i, new THREE["DDSLoader"]() );
         var mtlLoader = new THREE["MTLLoader"](manager);
-        mtlLoader.setBaseUrl( '../../../models/bagchair/' );
-        mtlLoader.setPath( '../../../models/bagchair/' );
-        mtlLoader.load( 'bag-chair.mtl', function( materials ) {
+        mtlLoader.setBaseUrl('../../../models/bag_chair/');
+        mtlLoader.setPath('../../../models/bag_chair/');
+        mtlLoader.load('bag_chair.mtl', function (materials) {
             var objLoader = new THREE["OBJLoader"]();
-            objLoader.setMaterials( materials ) ;
-            objLoader.setPath( '../../../models/bagchair/' );
+            objLoader.setMaterials(materials);
+            objLoader.setPath('../../../models/bag_chair/');
             materials.preload();
-            objLoader.load( 'bag-chair.obj', function ( object ) {
+            objLoader.load('bag_chair.obj', function (object) {
                 // object.position.y = -95;
-                object.scale.set(2,2,2);
+                object.scale.set(0.3, 0.3, 0.3);
                 object.smooth = true;
                 self.threeJSView.scene.add(object);
                 self.render();
 
-                setTimeout(function(){
+                setTimeout(function () {
                     self.giJSView.setThreeJSScene(self.threeJSView.scene, function () {
                         self.giJSView.updateCamera(self.threeJSView.camera);
                         if (self._tracing.value) {
@@ -129,11 +129,10 @@ export class TextureTest extends SimpleGUI {
                         }
                     });
                     self.render();
-                },5000);
+                }, 5000);
 
-            }, onProgress, onError );
+            }, onProgress, onError);
         });
-
 
 
         this.threeJSView.onCameraChange = function (camera) {
