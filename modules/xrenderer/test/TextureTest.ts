@@ -19,8 +19,8 @@ export class TextureTest extends SimpleGUI {
 
         Thread.workerUrl = "../workers/trace-worker-bootstrap-debug.js";
 
-        this.i_width = 2560 / 2;
-        this.i_height = 1440 / 2;
+        this.i_width = 2560 / 4;
+        this.i_height = 1440 / 4;
     }
 
     onInit() {
@@ -107,16 +107,16 @@ export class TextureTest extends SimpleGUI {
 
         //THREE.Loader.Handlers.add( /\.dds$/i, new THREE["DDSLoader"]() );
         var mtlLoader = new THREE["MTLLoader"](manager);
-        mtlLoader.setBaseUrl( '../../../models/bagchair/' );
-        mtlLoader.setPath( '../../../models/bagchair/' );
-        mtlLoader.load( 'bag-chair.mtl', function( materials ) {
+        mtlLoader.setBaseUrl( '../../../models/bag_chair/' );
+        mtlLoader.setPath( '../../../models/bag_chair/' );
+        mtlLoader.load( 'bag_chair.mtl', function( materials ) {
             var objLoader = new THREE["OBJLoader"]();
             objLoader.setMaterials( materials ) ;
-            objLoader.setPath( '../../../models/bagchair/' );
+            objLoader.setPath( '../../../models/bag_chair/' );
             materials.preload();
-            objLoader.load( 'bag-chair.obj', function ( object ) {
+            objLoader.load( 'bag_chair.obj', function ( object ) {
                 // object.position.y = -95;
-                object.scale.set(2,2,2);
+                object.scale.set(0.3,0.3,0.3);
                 object.smooth = true;
                 self.threeJSView.scene.add(object);
                 self.render();

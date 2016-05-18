@@ -346,6 +346,9 @@ declare module "core/src/engine/math/Color" {
         mix(b: Color, pct: number): Color;
         set(r: number, g: number, b: number): Color;
         clone(): Color;
+        static brightColors: Color[];
+        static random(): Color;
+        static randomBrightColor(): Color;
     }
 }
 declare module "core/src/engine/math/Constants" {
@@ -1192,6 +1195,7 @@ declare module "core/src/engine/renderer/worker/TraceJobManager" {
         deferredQueue: TraceJob[];
         iterations: number;
         updatePixels: Function;
+        updateIndicator: Function;
         static flags: Uint8Array;
         private width;
         private height;
@@ -1311,7 +1315,7 @@ declare module "core/src/engine/renderer/SmartBucketRenderer" {
         updateCameraSamples(newValue: number): void;
         updateHitSamples(newValue: number): void;
         updateCamera(newValue: any): void;
-        render(scene: SharedScene, camera: Camera, width: number, height: number, cameraSamples: number, hitSamples: number, bounces: number, iterations: number, blockIterations: number, onUpdate: Function, onInit?: Function): Uint8ClampedArray;
+        render(scene: SharedScene, camera: Camera, width: number, height: number, cameraSamples: number, hitSamples: number, bounces: number, iterations: number, blockIterations: number, onUpdate: Function, updateIndicator: Function, onInit?: Function): Uint8ClampedArray;
     }
 }
 declare module "core/src/engine/scene/materials/TransparentMaterial" {
@@ -1393,6 +1397,7 @@ declare module "core/src/ThreeJSView" {
     }
 }
 declare module "core/src/CanvasDisplay" {
+    import { Color } from "core/src/engine/math/Color";
     export abstract class CanvasDisplay {
         i_width: number;
         i_height: number;
@@ -1407,6 +1412,8 @@ declare module "core/src/CanvasDisplay" {
         setResolution(width: number, height: number): void;
         updatePixels(pixels: Uint8ClampedArray): void;
         updatePixelsRect(rect: any, pixels: Uint8ClampedArray): void;
+        updateIndicator(rect: any): void;
+        fillRect(rect: any, color: Color): void;
     }
 }
 declare module "core/src/HeadlessRenderBase" {
@@ -1475,7 +1482,7 @@ declare module "core/src/GIJSView" {
         private loadChildren(parent);
         identityMatrix: THREE.Matrix4;
         private buildSceneObject(src);
-        private buildGeometry(geometry, material);
+        private buildGeometry(geometry, material, smooth?);
         computeNormals(positions: Float32Array): Float32Array;
         updateCamera(camera: THREE.PerspectiveCamera): void;
         private static getMaterial(srcMaterial);

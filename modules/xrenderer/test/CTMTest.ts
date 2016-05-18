@@ -32,7 +32,7 @@ export class CTMTest extends SimpleGUI {
         this.giJSView.hitSamples = 1;
         this.giJSView.cameraSamples = -1;
         this.giJSView.blockIterations = 1;
-        this.giJSView.bounces = 5;
+        this.giJSView.bounces = 3;
         this.giJSView.scene.color.set(0, 0, 0);
 
         //var ambient = new THREE.AmbientLight(0x5C5C5C);
@@ -95,6 +95,7 @@ export class CTMTest extends SimpleGUI {
         mesh.castShadow = false;
         mesh.receiveShadow = true;
         this.threeJSView.scene.add(mesh);
+
         material = new THREE.MeshPhongMaterial({color: 0x0000ff});
         var red = new THREE.Mesh(geometry, material);
         red.rotation.set(0, MathUtils.radians(90),0);

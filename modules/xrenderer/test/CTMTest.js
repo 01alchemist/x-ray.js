@@ -43,7 +43,7 @@ System.register(["./SimpleGUI", "../core/src/ThreeJSView", "../core/src/GIJSView
                     this.giJSView.hitSamples = 1;
                     this.giJSView.cameraSamples = -1;
                     this.giJSView.blockIterations = 1;
-                    this.giJSView.bounces = 5;
+                    this.giJSView.bounces = 3;
                     this.giJSView.scene.color.set(0, 0, 0);
                     var directionalLight = new THREE.DirectionalLight(0xffeedd, 1);
                     directionalLight.castShadow = true;

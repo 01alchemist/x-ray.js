@@ -2226,7 +2226,23 @@ System.register("core/src/engine/math/Color", [], function(exports_11, context_1
                 Color.prototype.clone = function () {
                     return new Color(this.r, this.g, this.b);
                 };
+                Color.random = function () {
+                    return new Color(Math.random(), Math.random(), Math.random());
+                };
+                Color.randomBrightColor = function () {
+                    var i = Math.round(Math.random() * Color.brightColors.length);
+                    return Color.brightColors[i];
+                };
                 Color.SIZE = 3;
+                Color.brightColors = [
+                    Color.hexColor(0xFF00FF),
+                    Color.hexColor(0x84FF00),
+                    Color.hexColor(0xFF0084),
+                    Color.hexColor(0x00FFFF),
+                    Color.hexColor(0x00FF84),
+                    Color.hexColor(0xDD40FF),
+                    Color.hexColor(0xFFFF00)
+                ];
                 return Color;
             }());
             exports_11("Color", Color);
@@ -2411,10 +2427,14 @@ System.register("core/src/engine/scene/materials/Texture", ["core/src/engine/mat
                     var y0 = Y;
                     var x1 = x0 + 1;
                     var y1 = y0 + 1;
-                    var c00 = this.data[y0 * this.width + x0];
-                    var c01 = this.data[y1 * this.width + x0];
-                    var c10 = this.data[y0 * this.width + x1];
-                    var c11 = this.data[y1 * this.width + x1];
+                    var i00 = y0 * this.width + x0;
+                    var i01 = y1 * this.width + x0;
+                    var i10 = y0 * this.width + x1;
+                    var i11 = y1 * this.width + x1;
+                    var c00 = this.data[i00 >= this.data.length ? this.data.length - 1 : i00];
+                    var c01 = this.data[i01 >= this.data.length ? this.data.length - 1 : i01];
+                    var c10 = this.data[i10 >= this.data.length ? this.data.length - 1 : i10];
+                    var c11 = this.data[i11 >= this.data.length ? this.data.length - 1 : i11];
                     var c = new Color_1.Color();
                     c = c.add(c00.mulScalar((1 - x) * (1 - y)));
                     c = c.add(c10.mulScalar(x * (1 - y)));
@@ -2688,6 +2708,10 @@ System.register("core/src/engine/scene/materials/Material", ["core/src/engine/ma
                     if (hasTexture) {
                         this.texture = Texture_1.Texture.getTexture(memory.readUTF());
                     }
+                    var hasNormalTexture = memory.readBoolean();
+                    if (hasNormalTexture) {
+                        this.normalTexture = Texture_1.Texture.getTexture(memory.readUTF());
+                    }
                     return memory.position;
                 };
                 Material.prototype.write = function (memory) {
@@ -2702,6 +2726,13 @@ System.register("core/src/engine/scene/materials/Material", ["core/src/engine/ma
                     if (this.texture) {
                         memory.writeBoolean(true);
                         memory.writeUTF(this.texture.sourceFile);
+                    }
+                    else {
+                        memory.writeBoolean(false);
+                    }
+                    if (this.normalTexture) {
+                        memory.writeBoolean(true);
+                        memory.writeUTF(this.normalTexture.sourceFile);
                     }
                     else {
                         memory.writeBoolean(false);
@@ -6744,6 +6775,9 @@ System.register("core/src/engine/renderer/worker/TraceJobManager", ["core/src/en
                     if (this.queue.length > 0) {
                         var job = self.queue.shift();
                         self.deferredQueue.push(job);
+                        if (this.updateIndicator) {
+                            this.updateIndicator(job.param);
+                        }
                         job.start(thread, function (_job, _thread) {
                             if (!self._await) {
                                 self.processQueue.call(self, _job, _thread);
@@ -7062,7 +7096,7 @@ System.register("core/src/engine/renderer/SmartBucketRenderer", ["core/src/engin
         execute: function() {
             SmartBucketRenderer = (function () {
                 function SmartBucketRenderer() {
-                    this.bucketSize = 64;
+                    this.bucketSize = 64 / 2;
                     this.traceManager = new TraceJobManager_3.TraceJobManager();
                 }
                 Object.defineProperty(SmartBucketRenderer.prototype, "initialized", {
@@ -7097,7 +7131,7 @@ System.register("core/src/engine/renderer/SmartBucketRenderer", ["core/src/engin
                     });
                     this.traceManager.restart();
                 };
-                SmartBucketRenderer.prototype.render = function (scene, camera, width, height, cameraSamples, hitSamples, bounces, iterations, blockIterations, onUpdate, onInit) {
+                SmartBucketRenderer.prototype.render = function (scene, camera, width, height, cameraSamples, hitSamples, bounces, iterations, blockIterations, onUpdate, updateIndicator, onInit) {
                     if (iterations === void 0) { iterations = 1; }
                     if (blockIterations === void 0) { blockIterations = 1; }
                     if (!this.traceManager) {
@@ -7127,6 +7161,7 @@ System.register("core/src/engine/renderer/SmartBucketRenderer", ["core/src/engin
                         }
                     }
                     this.traceManager.updatePixels = onUpdate;
+                    this.traceManager.updateIndicator = updateIndicator;
                     this.traceManager.init(onInit);
                     return this.traceManager.pixels;
                 };
@@ -7382,12 +7417,16 @@ System.register("core/src/ThreeJSView", [], function(exports_54, context_54) {
         }
     }
 });
-System.register("core/src/CanvasDisplay", [], function(exports_55, context_55) {
+System.register("core/src/CanvasDisplay", ["core/src/engine/math/Color"], function(exports_55, context_55) {
     "use strict";
     var __moduleName = context_55 && context_55.id;
+    var Color_10;
     var CanvasDisplay;
     return {
-        setters:[],
+        setters:[
+            function (Color_10_1) {
+                Color_10 = Color_10_1;
+            }],
         execute: function() {
             CanvasDisplay = (function () {
                 function CanvasDisplay(i_width, i_height, container) {
@@ -7450,6 +7489,30 @@ System.register("core/src/CanvasDisplay", [], function(exports_55, context_55) {
                     }
                     this.ctx.putImageData(this.imageData, 0, 0);
                 };
+                CanvasDisplay.prototype.updateIndicator = function (rect) {
+                    var color = Color_10.Color.random();
+                    this.fillRect({ x: rect.xoffset, y: rect.yoffset, width: 4, height: 1 }, color);
+                    this.fillRect({ x: rect.xoffset, y: rect.yoffset + 1, width: 1, height: 3 }, color);
+                    this.fillRect({ x: rect.xoffset + rect.width - 4, y: rect.yoffset, width: 4, height: 1 }, color);
+                    this.fillRect({ x: rect.xoffset + rect.width - 1, y: rect.yoffset + 1, width: 1, height: 3 }, color);
+                    this.fillRect({ x: rect.xoffset, y: rect.yoffset + rect.height - 4, width: 1, height: 4 }, color);
+                    this.fillRect({ x: rect.xoffset + 1, y: rect.yoffset + rect.height - 1, width: 3, height: 1 }, color);
+                    this.fillRect({ x: rect.xoffset + rect.width - 4, y: rect.yoffset + rect.height - 1, width: 4, height: 1 }, color);
+                    this.fillRect({ x: rect.xoffset + rect.width - 1, y: rect.yoffset + rect.height - 4, width: 1, height: 3 }, color);
+                    this.ctx.putImageData(this.imageData, 0, 0);
+                };
+                CanvasDisplay.prototype.fillRect = function (rect, color) {
+                    for (var y = rect.y; y < rect.y + rect.height; y++) {
+                        for (var x = rect.x; x < rect.x + rect.width; x++) {
+                            var i = y * (this.i_width * 4) + (x * 4);
+                            this.data[i] = color.r * 255;
+                            this.data[i + 1] = color.g * 255;
+                            this.data[i + 2] = color.b * 255;
+                            this.data[i + 3] = 255;
+                        }
+                    }
+                    this.ctx.putImageData(this.imageData, 0, 0);
+                };
                 return CanvasDisplay;
             }());
             exports_55("CanvasDisplay", CanvasDisplay);
@@ -7459,12 +7522,12 @@ System.register("core/src/CanvasDisplay", [], function(exports_55, context_55) {
 System.register("core/src/HeadlessRenderBase", ["core/src/engine/math/Color", "core/src/engine/scene/Camera", "core/src/engine/scene/SharedScene", "core/src/engine/math/Vector3", "core/src/engine/renderer/SmartBucketRenderer"], function(exports_56, context_56) {
     "use strict";
     var __moduleName = context_56 && context_56.id;
-    var Color_10, Camera_2, SharedScene_2, Vector3_14, SmartBucketRenderer_2;
+    var Color_11, Camera_2, SharedScene_2, Vector3_14, SmartBucketRenderer_2;
     var HeadlessRenderBase;
     return {
         setters:[
-            function (Color_10_1) {
-                Color_10 = Color_10_1;
+            function (Color_11_1) {
+                Color_11 = Color_11_1;
             },
             function (Camera_2_1) {
                 Camera_2 = Camera_2_1;
@@ -7485,7 +7548,7 @@ System.register("core/src/HeadlessRenderBase", ["core/src/engine/math/Color", "c
                     this.i_height = i_height;
                     this.outmemory = outmemory;
                     this.data = new Uint8Array(i_width * i_height * 4);
-                    this.scene = new SharedScene_2.SharedScene(Color_10.Color.hexColor(0x262626));
+                    this.scene = new SharedScene_2.SharedScene(Color_11.Color.hexColor(0x262626));
                     this.camera = Camera_2.Camera.lookAt(new Vector3_14.Vector3(0, 0, 0), new Vector3_14.Vector3(0, 0, 0), new Vector3_14.Vector3(0, 1, 0), 45);
                     this.cameraSamples = -1;
                     this.hitSamples = 1;
@@ -7632,9 +7695,12 @@ System.register("core/src/GIRenderBase", ["core/src/CanvasDisplay", "core/src/en
                     console.info("      Iterations          :   " + this.iterations);
                     console.info("      Block-Iterations    :   " + this.blockIterations);
                     var self = this;
-                    this.pixels = this.renderer.render(this.scene, this.camera, this.i_width, this.i_height, this.cameraSamples, this.hitSamples, this.bounces, this.iterations, this.blockIterations, onUpdate, onInit);
+                    this.pixels = this.renderer.render(this.scene, this.camera, this.i_width, this.i_height, this.cameraSamples, this.hitSamples, this.bounces, this.iterations, this.blockIterations, onUpdate, updateIndicator, onInit);
                     function onUpdate(rect) {
                         self.updatePixelsRect(rect, self.pixels);
+                    }
+                    function updateIndicator(rect) {
+                        self.updateIndicator(rect);
                     }
                 };
                 return GIRenderBase;
@@ -7643,18 +7709,18 @@ System.register("core/src/GIRenderBase", ["core/src/CanvasDisplay", "core/src/en
         }
     }
 });
-System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/math/Color", "core/src/engine/scene/Camera", "core/src/engine/scene/SharedScene", "core/src/engine/scene/shapes/Cube", "core/src/engine/math/Vector3", "core/src/engine/scene/shapes/Sphere", "core/src/engine/scene/materials/LightMaterial", "core/src/ThreeObjects", "core/src/engine/scene/shapes/Mesh", "core/src/engine/scene/shapes/Triangle", "core/src/engine/scene/materials/Material", "core/src/engine/scene/shapes/TransformedShape", "core/src/engine/scene/materials/Attenuation", "core/src/engine/math/Matrix4", "core/src/engine/scene/materials/Texture"], function(exports_58, context_58) {
+System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/math/Color", "core/src/engine/scene/Camera", "core/src/engine/scene/SharedScene", "core/src/engine/scene/shapes/Cube", "core/src/engine/math/Vector3", "core/src/engine/scene/shapes/Sphere", "core/src/engine/scene/materials/LightMaterial", "core/src/ThreeObjects", "core/src/engine/scene/shapes/Mesh", "core/src/engine/scene/shapes/Triangle", "core/src/engine/scene/materials/Material", "core/src/engine/scene/shapes/TransformedShape", "core/src/engine/scene/materials/Attenuation", "core/src/engine/math/Matrix4"], function(exports_58, context_58) {
     "use strict";
     var __moduleName = context_58 && context_58.id;
-    var GIRenderBase_1, Color_11, Camera_3, SharedScene_3, Cube_4, Vector3_15, Sphere_4, LightMaterial_3, ThreeObjects_1, Mesh_5, Triangle_6, Material_19, TransformedShape_4, Attenuation_10, Attenuation_11, Matrix4_5, Texture_5;
+    var GIRenderBase_1, Color_12, Camera_3, SharedScene_3, Cube_4, Vector3_15, Sphere_4, LightMaterial_3, ThreeObjects_1, Mesh_5, Triangle_6, Material_19, TransformedShape_4, Attenuation_10, Attenuation_11, Matrix4_5;
     var GIJSView;
     return {
         setters:[
             function (GIRenderBase_1_1) {
                 GIRenderBase_1 = GIRenderBase_1_1;
             },
-            function (Color_11_1) {
-                Color_11 = Color_11_1;
+            function (Color_12_1) {
+                Color_12 = Color_12_1;
             },
             function (Camera_3_1) {
                 Camera_3 = Camera_3_1;
@@ -7695,9 +7761,6 @@ System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/
             },
             function (Matrix4_5_1) {
                 Matrix4_5 = Matrix4_5_1;
-            },
-            function (Texture_5_1) {
-                Texture_5 = Texture_5_1;
             }],
         execute: function() {
             GIJSView = (function (_super) {
@@ -7708,7 +7771,7 @@ System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/
                     this.height = height;
                     this.container = container;
                     this.identityMatrix = new THREE.Matrix4().identity();
-                    this.scene = new SharedScene_3.SharedScene(Color_11.Color.hexColor(0x262626));
+                    this.scene = new SharedScene_3.SharedScene(Color_12.Color.hexColor(0x262626));
                     this.camera = Camera_3.Camera.lookAt(new Vector3_15.Vector3(0, 0, 0), new Vector3_15.Vector3(0, 0, 0), new Vector3_15.Vector3(0, 1, 0), 45);
                     this.cameraSamples = -1;
                     this.hitSamples = 1;
@@ -7744,7 +7807,7 @@ System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/
                     switch (src.type) {
                         case ThreeObjects_1.ThreeObjects.Mesh:
                             var material = GIJSView.getMaterial(src.material);
-                            var shape = this.buildGeometry(src.geometry, material);
+                            var shape = this.buildGeometry(src.geometry, material, src.smooth);
                             var matrixWorld = src.matrixWorld;
                             if (matrixWorld.equals(this.identityMatrix)) {
                                 return shape;
@@ -7758,7 +7821,8 @@ System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/
                     }
                     return null;
                 };
-                GIJSView.prototype.buildGeometry = function (geometry, material) {
+                GIJSView.prototype.buildGeometry = function (geometry, material, smooth) {
+                    if (smooth === void 0) { smooth = false; }
                     if (geometry["_bufferGeometry"]) {
                         geometry = geometry["_bufferGeometry"];
                     }
@@ -7788,7 +7852,9 @@ System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/
                     }
                     else {
                         var positions = geometry.attributes["position"].array;
-                        var uv = geometry.attributes["uv"].array;
+                        if (geometry.attributes["uv"]) {
+                            var uv = geometry.attributes["uv"].array;
+                        }
                         var normals;
                         if (geometry.attributes["normal"]) {
                             normals = geometry.attributes["normal"].array;
@@ -7867,7 +7933,9 @@ System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/
                         }
                     }
                     var mesh = Mesh_5.Mesh.newMesh(triangles);
-                    mesh.smoothNormals();
+                    if (smooth) {
+                        mesh.smoothNormals();
+                    }
                     return mesh;
                 };
                 GIJSView.prototype.computeNormals = function (positions) {
@@ -7889,24 +7957,16 @@ System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/
                     }
                 };
                 GIJSView.getMaterial = function (srcMaterial) {
-                    var material = new Material_19.Material(Color_11.Color.hexColor(srcMaterial.color.getHex()));
+                    if (srcMaterial instanceof THREE.MultiMaterial) {
+                        srcMaterial = srcMaterial.materials[0];
+                    }
+                    var material = new Material_19.Material(Color_12.Color.hexColor(srcMaterial.color.getHex()));
                     material.ior = srcMaterial.ior ? srcMaterial.ior : 1;
                     material.tint = srcMaterial.tint ? srcMaterial.tint : 0;
                     material.gloss = srcMaterial.gloss ? srcMaterial.gloss : 0;
                     material.emittance = srcMaterial.emittance ? srcMaterial.emittance : 0;
                     material.transparent = srcMaterial.transparent;
                     material.attenuation = Attenuation_10.Attenuation.fromJson(srcMaterial.attenuation);
-                    if (srcMaterial.map) {
-                        if (srcMaterial.map.image && srcMaterial.map.image.length == 0) {
-                            var image = srcMaterial.map.mipmaps[0];
-                            material.texture = new Texture_5.Texture();
-                            material.texture.setImageData(image.width, image.height, image.data);
-                            material.texture.sourceFile = srcMaterial.map.uuid;
-                        }
-                        else if (srcMaterial.map.image) {
-                            material.texture = new Texture_5.Texture(srcMaterial.map.image);
-                        }
-                    }
                     return material;
                 };
                 GIJSView.prototype.getLight = function (src) {
@@ -7920,7 +7980,7 @@ System.register("core/src/GIJSView", ["core/src/GIRenderBase", "core/src/engine/
                             var height = lightGeometry.parameters.height;
                         }
                     }
-                    var material = new LightMaterial_3.LightMaterial(Color_11.Color.hexColor(src.color.getHex()), src.intensity, new Attenuation_11.LinearAttenuation(src.distance));
+                    var material = new LightMaterial_3.LightMaterial(Color_12.Color.hexColor(src.color.getHex()), src.intensity, new Attenuation_11.LinearAttenuation(src.distance));
                     if (_radius) {
                         var shape = Sphere_4.Sphere.newSphere(new Vector3_15.Vector3(src.position.x, src.position.y, src.position.z), _radius, material);
                     }
