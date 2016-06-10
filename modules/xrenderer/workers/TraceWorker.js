@@ -19,22 +19,6 @@ System.register(["xrenderer"], function(exports_1, context_1) {
                     var data = e.data;
                     switch (data.command) {
                         case xrenderer_1.TraceJob.INIT:
-                            this.id = e.data.id;
-                            this.pixelMemory = new Uint8ClampedArray(e.data.pixelBuffer);
-                            this.sampleMemory = new Float32Array(e.data.sampleBuffer);
-                            this.sceneMemory = new xrenderer_1.DirectMemory(e.data.sceneBuffer);
-                            if (!this.camera) {
-                                this.camera = xrenderer_1.Camera.fromJson(e.data.camera);
-                            }
-                            if (!this.scene) {
-                                this.flags = new Uint8Array(this.sceneMemory.data.buffer, 0, 3 + xrenderer_1.ThreadPool.maxThreads);
-                                this.scene = xrenderer_1.SharedScene.getScene(this.sceneMemory);
-                            }
-                            this.full_width = e.data.full_width;
-                            this.full_height = e.data.full_height;
-                            this.cameraSamples = e.data.cameraSamples;
-                            this.hitSamples = e.data.hitSamples;
-                            this.bounces = e.data.bounces;
                             postMessage(xrenderer_1.TraceJob.INITED);
                             break;
                         case xrenderer_1.TraceJob.TRACE:

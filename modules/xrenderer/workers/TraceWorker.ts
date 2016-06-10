@@ -56,7 +56,9 @@ export class TraceWorker {
 
             case TraceJob.INIT:
 
-                this.id = e.data.id;
+                postMessage(TraceJob.INITED);
+
+                /*this.id = e.data.id;
                 this.pixelMemory = new Uint8ClampedArray(e.data.pixelBuffer);
                 this.sampleMemory = new Float32Array(e.data.sampleBuffer);
                 this.sceneMemory = new DirectMemory(e.data.sceneBuffer);
@@ -64,6 +66,7 @@ export class TraceWorker {
                 if (!this.camera) {
                     this.camera = Camera.fromJson(e.data.camera);
                 }
+
                 if (!this.scene) {
                     this.flags = new Uint8Array(this.sceneMemory.data.buffer, 0, 3 + ThreadPool.maxThreads);
                     this.scene = SharedScene.getScene(this.sceneMemory);
@@ -73,9 +76,8 @@ export class TraceWorker {
                 this.full_height = e.data.full_height;
                 this.cameraSamples = e.data.cameraSamples;
                 this.hitSamples = e.data.hitSamples;
-                this.bounces = e.data.bounces;
+                this.bounces = e.data.bounces;*/
 
-                postMessage(TraceJob.INITED);
                 break;
 
             case TraceJob.TRACE:

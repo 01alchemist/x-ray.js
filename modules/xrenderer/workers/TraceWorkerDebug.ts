@@ -54,6 +54,8 @@ export class TraceWorkerDebug {
 
             case TraceJob.INIT:
 
+                // postMessage(TraceJob.INITED);
+
                 this.id = e.data.id;
                 this.pixelMemory = new Uint8ClampedArray(e.data.pixelBuffer);
                 this.sampleMemory = new Float32Array(e.data.sampleBuffer);
@@ -74,6 +76,7 @@ export class TraceWorkerDebug {
                 this.bounces = e.data.bounces;
 
                 postMessage(TraceJob.INITED);
+
                 break;
 
             case TraceJob.TRACE:
