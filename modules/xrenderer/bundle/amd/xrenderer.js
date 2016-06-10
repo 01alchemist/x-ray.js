@@ -1777,7 +1777,7 @@ define("core/src/pointer/src/Pointer", ["require", "exports", "core/src/pointer/
             if (Pointer.initialized) {
                 return;
             }
-            var maxMemory = 128 * 1024 * 1024;
+            var maxMemory = 64 * 1024 * 1024;
             Pointer.heap = new Uint8Array(new SharedArrayBuffer(maxMemory));
             Pointer.memory = new DirectMemory_1.DirectMemory(Pointer.heap.buffer);
             Pointer.initialized = true;
@@ -6842,7 +6842,7 @@ define("core/src/GIRenderBase", ["require", "exports", "core/src/CanvasDisplay",
     }(CanvasDisplay_1.CanvasDisplay));
     exports.GIRenderBase = GIRenderBase;
 });
-define("core/src/GIJSView", ["require", "exports", "core/src/GIRenderBase", "core/src/engine/math/Color", "core/src/engine/scene/Camera", "core/src/engine/scene/SharedScene", "core/src/engine/scene/shapes/Cube", "core/src/engine/math/Vector3", "core/src/engine/scene/shapes/Sphere", "core/src/engine/scene/materials/LightMaterial", "core/src/ThreeObjects", "core/src/engine/scene/shapes/Mesh", "core/src/engine/scene/shapes/Triangle", "core/src/engine/scene/materials/Material", "core/src/engine/scene/shapes/TransformedShape", "core/src/engine/scene/materials/Attenuation", "core/src/engine/scene/materials/Attenuation", "core/src/engine/math/Matrix4"], function (require, exports, GIRenderBase_1, Color_12, Camera_3, SharedScene_3, Cube_4, Vector3_15, Sphere_4, LightMaterial_3, ThreeObjects_1, Mesh_5, Triangle_6, Material_19, TransformedShape_4, Attenuation_10, Attenuation_11, Matrix4_5) {
+define("core/src/GIJSView", ["require", "exports", "core/src/GIRenderBase", "core/src/engine/math/Color", "core/src/engine/scene/Camera", "core/src/engine/scene/SharedScene", "core/src/engine/scene/shapes/Cube", "core/src/engine/math/Vector3", "core/src/engine/scene/shapes/Sphere", "core/src/engine/scene/materials/LightMaterial", "core/src/ThreeObjects", "core/src/engine/scene/shapes/Mesh", "core/src/engine/scene/shapes/Triangle", "core/src/engine/scene/materials/Material", "core/src/engine/scene/shapes/TransformedShape", "core/src/engine/scene/materials/Attenuation", "core/src/engine/scene/materials/Attenuation", "core/src/engine/math/Matrix4", "core/src/engine/scene/materials/Texture"], function (require, exports, GIRenderBase_1, Color_12, Camera_3, SharedScene_3, Cube_4, Vector3_15, Sphere_4, LightMaterial_3, ThreeObjects_1, Mesh_5, Triangle_6, Material_19, TransformedShape_4, Attenuation_10, Attenuation_11, Matrix4_5, Texture_5) {
     "use strict";
     var GIJSView = (function (_super) {
         __extends(GIJSView, _super);
@@ -7058,6 +7058,39 @@ define("core/src/GIJSView", ["require", "exports", "core/src/GIRenderBase", "cor
             material.emittance = srcMaterial.emittance ? srcMaterial.emittance : 0;
             material.transparent = srcMaterial.transparent;
             material.attenuation = Attenuation_10.Attenuation.fromJson(srcMaterial.attenuation);
+            if (srcMaterial.map) {
+                if (srcMaterial.map.image && srcMaterial.map.image.length == 0) {
+                    var image = srcMaterial.map.mipmaps[0];
+                    material.texture = new Texture_5.Texture();
+                    material.texture.setImageData(image.width, image.height, image.data);
+                    material.texture.sourceFile = srcMaterial.map.uuid;
+                }
+                else if (srcMaterial.map.image) {
+                    material.texture = new Texture_5.Texture(srcMaterial.map.image);
+                }
+            }
+            if (srcMaterial.normalMap) {
+                if (srcMaterial.normalMap.image && srcMaterial.normalMap.image.length == 0) {
+                    var image = srcMaterial.normalMap.mipmaps[0];
+                    material.normalTexture = new Texture_5.Texture();
+                    material.normalTexture.setImageData(image.width, image.height, image.data);
+                    material.normalTexture.sourceFile = srcMaterial.normalMap.uuid;
+                }
+                else if (srcMaterial.normalMap.image) {
+                    material.normalTexture = new Texture_5.Texture(srcMaterial.normalMap.image);
+                }
+            }
+            if (srcMaterial.bumpMap) {
+                if (srcMaterial.bumpMap.image && srcMaterial.bumpMap.image.length == 0) {
+                    var image = srcMaterial.bumpMap.mipmaps[0];
+                    material.bumpTexture = new Texture_5.Texture();
+                    material.bumpTexture.setImageData(image.width, image.height, image.data);
+                    material.bumpTexture.sourceFile = srcMaterial.bumpMap.uuid;
+                }
+                else if (srcMaterial.bumpMap.image) {
+                    material.bumpTexture = new Texture_5.Texture(srcMaterial.bumpMap.image);
+                }
+            }
             return material;
         };
         GIJSView.prototype.getLight = function (src) {
@@ -7098,7 +7131,7 @@ define("core/core", ["require", "exports", "core/src/pointer/pointer", "core/src
     __export(GIRenderBase_2);
     __export(GIJSView_1);
 });
-define("DS/XCTRayTracer", ["require", "exports", "core/core"], function (require, exports, core_1) {
+define("xrenderer", ["require", "exports", "core/core"], function (require, exports, core_1) {
     "use strict";
     function __export(m) {
         for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
