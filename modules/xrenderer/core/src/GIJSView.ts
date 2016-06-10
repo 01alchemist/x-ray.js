@@ -167,7 +167,7 @@ export class GIJSView extends GIRenderBase {
                     b = indices[i + 1];
                     c = indices[i + 2];
 
-                    /*if (triCount % 2 !== 0) {
+                    if (triCount % 2 !== 0) {
                         a = indices[i];
                         b = indices[i + 1];
                         c = indices[i + 2];
@@ -175,7 +175,7 @@ export class GIJSView extends GIRenderBase {
                         c = indices[i];
                         b = indices[i + 1];
                         a = indices[i + 2];
-                    }*/
+                    }
 
                     //[....,ax,ay,az, bx,by,bz, cx,xy,xz,....]
                     var ax = a * 3;
@@ -292,7 +292,7 @@ export class GIJSView extends GIRenderBase {
         material.transparent = srcMaterial.transparent;
         material.attenuation = Attenuation.fromJson(srcMaterial.attenuation);
 
-        /*if (srcMaterial.map) {
+        if (srcMaterial.map) {
             if(srcMaterial.map.image && srcMaterial.map.image.length == 0){
                 var image = srcMaterial.map.mipmaps[0];
                 material.texture = new Texture();
@@ -311,8 +311,8 @@ export class GIJSView extends GIRenderBase {
             }else if(srcMaterial.normalMap.image){
                 material.normalTexture = new Texture(srcMaterial.normalMap.image);
             }
-        }*/
-        /*if (srcMaterial.bumpMap) {
+        }
+        if (srcMaterial.bumpMap) {
             if(srcMaterial.bumpMap.image && srcMaterial.bumpMap.image.length == 0){
                 var image = srcMaterial.bumpMap.mipmaps[0];
                 material.bumpTexture = new Texture();
@@ -321,7 +321,7 @@ export class GIJSView extends GIRenderBase {
             }else if(srcMaterial.bumpMap.image){
                 material.bumpTexture = new Texture(srcMaterial.bumpMap.image);
             }
-        }*/
+        }
         return material;
     }
 

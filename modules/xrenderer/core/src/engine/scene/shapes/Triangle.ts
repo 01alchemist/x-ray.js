@@ -337,7 +337,7 @@ export class Triangle implements Shape {
     }
 
     intersect(r:Ray):Hit {
-        return this.intersectSIMD(r);
+        //return this.intersectSIMD(r);
         //Möller–Trumbore intersection algorithm
 
         //Edge1

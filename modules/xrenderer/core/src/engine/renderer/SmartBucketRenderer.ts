@@ -20,7 +20,7 @@ export class SmartBucketRenderer {
         return this.traceManager.initialized;
     }
 
-    bucketSize:number = 64;
+    bucketSize:number = 64/2;
 
     constructor() {
         this.traceManager = new TraceJobManager();

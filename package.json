@@ -9,7 +9,9 @@
     "build-example": "tsc -p ./example",
     "build-tst": "tsc ./modules/xrenderer/test/TextureTest.ts",
     "build-worker": "tsc -p ./modules/xrenderer/workers",
-    "bundle": "tsc -p ./modules/xrenderer -d --outFile ./modules/xrenderer/bundle/xrenderer.js"
+    "build-amd-worker": "tsc -p ./modules/xrenderer/workers -m amd",
+    "bundle": "tsc -p ./modules/xrenderer -d --outFile ./modules/xrenderer/bundle/system/xrenderer.js",
+    "bundle-amd": "tsc -p ./modules/xrenderer -m amd -d --outFile ./modules/xrenderer/bundle/amd/xrenderer.js"
   },
   "repository": {
     "type": "git",

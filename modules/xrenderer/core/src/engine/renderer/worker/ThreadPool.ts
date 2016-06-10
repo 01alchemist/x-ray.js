@@ -5,7 +5,7 @@ import {Thread} from "./Thread";
 export class ThreadPool {
 
     public static get maxThreads():number {
-        return navigator["hardwareConcurrency"] || 2;
+        return navigator["hardwareConcurrency"] - 4 || 2;
     };
 
     private static pool:Thread[];
