@@ -83,7 +83,7 @@ export class SharedScene extends Scene {
         memory.writeByte(0);//scene is not locked
         memory.position += ThreadPool.maxThreads;//thread lock reserve
 
-        //write materials first
+        //write textures and materials first
         Texture.write(memory);
         Material.write(memory);
 

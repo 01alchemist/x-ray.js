@@ -47,7 +47,8 @@ export class Texture extends ImageLoader {
     width:number;
     height:number;
     image:HTMLImageElement;
-    data:Color[];
+    //data:Color[]; //@deprecated
+    data:Float32Array;
     pixels:number[]|Uint8ClampedArray;
 
     constructor(arg?:HTMLImageElement|string) {
@@ -80,11 +81,11 @@ export class Texture extends ImageLoader {
         this.width = memory.readUnsignedInt();
         this.height = memory.readUnsignedInt();
         this.data = [];
-        for (var i:number = 0; i < this.width * this.height; i++) {
+        /*for (var i:number = 0; i < this.width * this.height; i++) {
             var color = new Color();
             color.read(memory);
             this.data.push(color);
-        }
+        }*/
         Texture.setTexture(this.sourceFile, this);
         return memory.position;
     }
@@ -237,7 +238,7 @@ export class Texture extends ImageLoader {
     static restore(memory:ByteArrayBase|DirectMemory):number {
         var numTextures:number = memory.readUnsignedInt();
         for (var i = 0; i < numTextures; i++) {
-            var tex = new Texture();
+            var tex:Texture = new Texture();
             tex.read(memory);
             //tex.validate();
         }
