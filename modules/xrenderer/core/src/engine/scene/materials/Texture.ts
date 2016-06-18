@@ -1,4 +1,4 @@
-import {Color} from "../../math/Color";
+import {Color, ColorRef} from "../../math/Color";
 import {Vector3} from "../../math/Vector3";
 import {ImageLoader} from "../../data/ImageLoader";
 import {MathUtils} from "../../utils/MathUtils";
@@ -49,7 +49,7 @@ export class Texture extends ImageLoader {
     image:HTMLImageElement;
     //data:Color[]; //@deprecated
     data:Float32Array;
-    pixels:number[]|Uint8ClampedArray;
+    pixels:ColorRef[];
 
     constructor(arg?:HTMLImageElement|string) {
         super();
@@ -80,12 +80,13 @@ export class Texture extends ImageLoader {
         this.sourceFile = memory.readUTF();
         this.width = memory.readUnsignedInt();
         this.height = memory.readUnsignedInt();
-        this.data = [];
-        /*for (var i:number = 0; i < this.width * this.height; i++) {
-            var color = new Color();
-            color.read(memory);
-            this.data.push(color);
-        }*/
+        this.data = memory.readFloat32Array(this.width * this.height, false);
+        /*this.data = [];
+         for (var i:number = 0; i < this.width * this.height; i++) {
+         var color = new Color();
+         color.read(memory);
+         this.data.push(color);
+         }*/
         Texture.setTexture(this.sourceFile, this);
         return memory.position;
     }
@@ -94,10 +95,10 @@ export class Texture extends ImageLoader {
         memory.writeUTF(this.sourceFile);
         memory.writeUnsignedInt(this.width);
         memory.writeUnsignedInt(this.height);
-
-        for (var i:number = 0; i < this.width * this.height; i++) {
+        memory.writeFloat32Array(this.data);
+        /*for (var i:number = 0; i < this.width * this.height; i++) {
             this.data[i].write(memory);
-        }
+        }*/
 
         return memory.position;
     }
@@ -105,14 +106,12 @@ export class Texture extends ImageLoader {
     bilinearSample(u:number, v:number):Color {
         let w = this.width - 1;
         let h = this.height - 1;
-        let Xx = MathUtils.Modf(u * w);
-        let Yy = MathUtils.Modf(v * h);
-
-        let X = Xx.int;
-        let x = Xx.frac;
-
-        let Y = Yy.int;
-        let y = Yy.frac;
+        let f = u * w;
+        let X = Math.floor(f);
+        let x = f - X;
+        f = v * h;
+        let Y = Math.floor(f);
+        let y = f - Y;
 
         let x0 = X;
         let y0 = Y;
@@ -123,10 +122,10 @@ export class Texture extends ImageLoader {
         let i10:number = y0 * this.width + x1;
         let i11:number = y1 * this.width + x1;
 
-        let c00 = this.data[i00 >= this.data.length?this.data.length-1:i00];
-        let c01 = this.data[i01 >= this.data.length?this.data.length-1:i01];
-        let c10 = this.data[i10 >= this.data.length?this.data.length-1:i10];
-        let c11 = this.data[i11 >= this.data.length?this.data.length-1:i11];
+        let c00 = this.data[i00 >= this.data.length ? this.data.length - 1 : i00];
+        let c01 = this.data[i01 >= this.data.length ? this.data.length - 1 : i01];
+        let c10 = this.data[i10 >= this.data.length ? this.data.length - 1 : i10];
+        let c11 = this.data[i11 >= this.data.length ? this.data.length - 1 : i11];
         let c = new Color();
         c = c.add(c00.mulScalar((1 - x) * (1 - y)));
         c = c.add(c10.mulScalar(x * (1 - y)));
@@ -205,20 +204,23 @@ export class Texture extends ImageLoader {
         this.image = image;
     }
 
-    setImageData(width:number, height:number, pixels:Uint8Array|number[]) {
-        this.data = [];
+    setImageData(width:number, height:number, pixelData:Uint8Array|number[]) {
+        this.data = new Float32Array(width * height * 3);
 
         for (var y:number = 0; y < height; y++) {
             for (var x:number = 0; x < width; x++) {
                 var pi:number = y * (width * 4) + (x * 4);
-                var index:number = y * width + x;
+                var index:number = y * (width * 3) + (x * 3);
+                //var index:number = y * width + x;
                 var rgba:RGBA = {
-                    r: pixels[pi],
-                    g: pixels[pi + 1],
-                    b: pixels[pi + 2],
-                    a: pixels[pi + 3],
+                    r: pixelData[pi],
+                    g: pixelData[pi + 1],
+                    b: pixelData[pi + 2],
+                    a: pixelData[pi + 3],
                 };
-                this.data[index] = new Color(rgba.r / 255, rgba.g / 255, rgba.b / 255);
+                this.data[index] = rgba.r / 255;
+                this.data[index + 1] = rgba.g / 255;
+                this.data[index + 2] = rgba.b / 255;
             }
         }
 

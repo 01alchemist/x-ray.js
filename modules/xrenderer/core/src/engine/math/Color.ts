@@ -1,6 +1,7 @@
 import {Vector3} from "./Vector3";
 import {ByteArrayBase} from "../../pointer/src/ByteArrayBase";
 import {DirectMemory} from "../../pointer/src/DirectMemory";
+import {MemoryObject} from "../../pointer/src/MemoryObject";
 /**
  * Created by Nidin Vinayakan on 10-01-2016.
  */
@@ -10,6 +11,23 @@ export interface RGBA {
     g:number,
     b:number,
     a:number
+}
+export class ColorRef{
+
+    constructor(private index:number, private data:Float32Array) {
+    }
+
+    get r():number {
+        return this.data[this.index];
+    }
+
+    get g():number {
+        return this.data[this.index + 1];
+    }
+
+    get b():number {
+        return this.data[this.index + 2];
+    }
 }
 export class Color {
 
