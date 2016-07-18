@@ -1,6 +1,6 @@
 /*importScripts(
     "../../../node_modules/systemjs/dist/system.src.js",
-    "../bundle/x-ray.js"
+    "../bundle/x-ray"
 );*/
 
 var System = require('systemjs');

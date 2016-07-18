@@ -5,24 +5,24 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc -p ./modules/x-ray.js",
+    "build": "tsc -p ./modules/x-ray",
     "build-example": "tsc -p ./example",
-    "build-tst": "tsc ./modules/x-ray.js/test/TextureTest.ts",
-    "build-worker": "tsc -p ./modules/x-ray.js/workers",
-    "build-amd-worker": "tsc -p ./modules/x-ray.js/workers -m amd",
-    "bundle": "tsc -p ./modules/x-ray.js -d --outFile ./modules/x-ray.js/bundle/system/x-ray.js.js",
-    "bundle-amd": "tsc -p ./modules/x-ray.js -m amd -d --outFile ./modules/x-ray.js/bundle/amd/x-ray.js.js"
+    "build-tst": "tsc ./modules/x-ray/test/TextureTest.ts",
+    "build-worker": "tsc -p ./modules/x-ray/workers",
+    "build-amd-worker": "tsc -p ./modules/x-ray/workers -m amd",
+    "bundle": "tsc -p ./modules/x-ray -d --outFile ./modules/x-ray/bundle/system/x-ray.js",
+    "bundle-amd": "tsc -p ./modules/x-ray -m amd -d --outFile ./modules/x-ray/bundle/amd/x-ray.js"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/01alchemist/ParallelRayJS.git"
+    "url": "https://github.com/01alchemist/x-ray.js.git"
   },
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/01alchemist/ParallelRayJS/issues"
+    "url": "https://github.com/01alchemist/x-ray/issues"
   },
-  "homepage": "https://github.com/01alchemist/ParallelRayJS",
+  "homepage": "https://github.com/01alchemist/x-ray",
   "dependencies": {
     "systemjs": "0.19.6",
     "xdata": "^2.1.15"
