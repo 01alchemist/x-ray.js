@@ -1,5 +1,5 @@
-import {Camera, Scene, RGBA, Color, Ray, Cube, Vector3, Sphere, SharedScene, DirectMemory, ThreadPool, TraceJob} from "xrenderer";
-import {DiffuseMaterial, LightMaterial, LinearAttenuation, SpecularMaterial} from "xrenderer";
+import {Camera, Scene, RGBA, Color, Ray, Cube, Vector3, Sphere, SharedScene, DirectMemory, ThreadPool, TraceJob} from "x-ray";
+import {DiffuseMaterial, LightMaterial, LinearAttenuation, SpecularMaterial} from "x-ray";
 
 /**
  * Created by Nidin Vinayakan on 10-01-2016.

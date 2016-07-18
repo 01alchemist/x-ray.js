@@ -20,14 +20,14 @@ System.config({
             format: 'register',
             defaultExtension: 'js'
         },
-        'xrenderer': {
-            main: "xrenderer",
+        'x-ray': {
+            main: "x-ray",
             format: 'register',
             defaultExtension: 'js'
         }
     },
     map: {
-        'xrenderer': "../modules/xrenderer/bundle"
+        'x-ray': "../modules/x-ray/bundle"
     }
 });
 System.import('Example').then(function (module) {

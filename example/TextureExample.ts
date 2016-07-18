@@ -1,5 +1,5 @@
 import {SimpleGUI} from "./SimpleGUI";
-import {ThreeJSView, GIJSView, MathUtils, Thread} from "xrenderer";
+import {ThreeJSView, GIJSView, MathUtils, Thread} from "x-ray";
 import Matrix3 = THREE.Matrix3;
 /**
  * Created by Nidin Vinayakan on 27-02-2016.
@@ -13,7 +13,7 @@ export class TextureExample extends SimpleGUI {
     constructor() {
         super();
 
-        Thread.workerUrl = "../modules/xrenderer/workers/trace-worker-bootstrap.js";
+        Thread.workerUrl = "../modules/x-ray/workers/trace-worker-bootstrap.js";
 
         this.i_width = 2560 / 2;
         this.i_height = 1440 / 2;

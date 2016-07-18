@@ -1,0 +1,135 @@
+
+namespace kernel{
+
+    const height = 600;
+    const width = 800;
+    const RAW_MEMORY = new ArrayBuffer(height*width*4 + 65536);
+    ll.Runtime.init(RAW_MEMORY, 0, RAW_MEMORY.byteLength, true);
+
+    const shadows = true;		// Compute object shadows
+    const reflection = true;	// Compute object reflections
+    const reflection_depth = 2;
+    const antialias = false; // true;		// Antialias the image (expensive but pretty)
+
+    const debug = false;		// Progress printout, may confuse the consumer
+
+    const SENTINEL = 1e32;
+    const EPS = 0.00001;
+
+    function DL3(x, y, z) { return {x:x, y:y, z:z}; }
+
+    function add(a, b) { return DL3(a.x+b.x, a.y+b.y, a.z+b.z); }
+    function addi(a, c) { return DL3(a.x+c, a.y+c, a.z+c); }
+    function sub(a, b) { return DL3(a.x-b.x, a.y-b.y, a.z-b.z); }
+    function subi(a, c) { return DL3(a.x-c, a.y-c, a.z-c); }
+    function muli(a, c) { return DL3(a.x*c, a.y*c, a.z*c); }
+    function divi(a, c) { return DL3(a.x/c, a.y/c, a.z/c); }
+    function neg(a) { return DL3(-a.x, -a.y, -a.z); }
+    function length(a) { return Math.sqrt(a.x*a.x + a.y*a.y + a.z*a.z); }
+    function normalize(a) { var d = length(a); return DL3(a.x/d, a.y/d, a.z/d); }
+    function cross(a, b) { return DL3(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x); }
+    function dot(a, b) { return a.x*b.x + a.y*b.y + a.z*b.z; }
+
+    @turbo:: struct Vec3 {
+        x: float64
+        y: float64
+        z: float64
+
+        @get(SELF){
+            return DL3(SELF.x, SELF.y, SELF.z);
+        }
+    } @end
+
+    // Avoid intermediate DL3 objects
+
+    function subvref(a, b) { return DL3(a.x-Vec3.x(b), a.y-Vec3.y(b), a.z-Vec3.z(b)); }
+    function subrefref(a, b) { return DL3(Vec3.x(a)-Vec3.x(b), Vec3.y(a)-Vec3.y(b), Vec3.z(a)-Vec3.z(b)); }
+    function mulrefi(a, c) { return DL3(Vec3.x(a)*c, Vec3.y(a)*c, Vec3.z(a)*c); }
+
+    @turbo:: struct Material {
+        diffuse:   Vec3
+        specular:  Vec3
+        shininess: float64
+        ambient:   Vec3
+        mirror:    float64
+    } @end
+
+    function makeMaterial(diffuse, specular, shininess, ambient, mirror) {
+        var v = new Material;
+        v.diffuse = diffuse;
+        v.specular = specular;
+        v.shininess = shininess;
+        v.ambient = ambient;
+        v.mirror = mirror;
+        return v;
+    }
+
+    @turbo:: class Surface {
+        material: Material
+
+        @method init(SELF, material) {
+            SELF.material = material;
+            return SELF;
+        }
+
+        @virtual intersect(SELF, eye, ray, min, max) {
+            throw "Pure: Surface.intersect"
+        }
+
+        @virtual normal(SELF, p) {
+            throw "Pure: Surface.normal"
+        }
+    } @end
+
+    @turbo:: class Object3D {
+        children:Object3D.Array
+
+    } @end
+
+    @turbo:: class BufferGeometry {
+
+    }
+    @turbo:: class Mesh extends Object3D{
+        geometry:BufferGeometry
+
+    } @end
+
+    @turbo:: class Scene extends Surface {
+        length: int32
+        objects: Surface.Array
+
+        @method init(SELF, objects) {
+            var len = objects.length;
+            SELF.length = len;
+            var objs = @new Surface.Array(len);
+            for ( var i=0 ; i < len ; i++ )
+                Surface.Array.setAt(objs, i, objects[i]);
+            SELF.objects = objs;
+            return SELF;
+        }
+
+        @virtual intersect(SELF, eye, ray, min, max) {
+            var min_obj = ll.Runtime.NULL;
+            var min_dist = SENTINEL;
+
+            var objs = SELF.objects;
+            for ( var idx=0, limit=SELF.length ; idx < limit ; idx++ ) {
+                var surf = Surface.Array.at(objs, idx);
+                var tmp = Surface.intersect(surf, eye, ray, min, max);
+                var obj = tmp.obj;
+                var dist = tmp.dist;
+                if (obj)
+                    if (dist >= min && dist < max)
+                        if (dist < min_dist) {
+                            min_obj = obj;
+                            min_dist = dist;
+                        }
+            }
+            return {obj:min_obj, dist:min_dist};
+        }
+
+    } @end
+
+}
+    
+    

@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>XRenderer Example</title>
+    <title>x-ray Example</title>
     <script src="../libs/uil.js"></script>
     <script src="../libs/threejs/three.js"></script>
     <script src="../libs/threejs/controls/EditorControls.js"></script>
     <script src="../libs/threejs/loaders/STLLoader.js"></script>
     <script src="../node_modules/systemjs/dist/system.src.js"></script>
-    <script src="../modules/xrenderer/bundle/xrenderer.js"></script>
+    <script src="../modules/x-ray/bundle/x-ray.js"></script>
     <script>
         System.config({
             packages: {
@@ -16,14 +16,14 @@
                     format: 'register',
                     defaultExtension: 'js'
                 },
-                'xrenderer': {
-                    main:"xrenderer",
+                'x-ray': {
+                    main:"x-ray",
                     format: 'register',
                     defaultExtension: 'js'
                 }
             },
             map: {
-                'xrenderer': "../modules/xrenderer/bundle"
+                'x-ray': "../modules/x-ray/bundle"
             }
         });
         System.import('STLExample').then(function (module) {

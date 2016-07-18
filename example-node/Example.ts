@@ -2,9 +2,9 @@
  * Created by Nidin Vinayakan on 08-05-2016.
  */
 import {Worker as _worker} from "Worker";
-import {HeadlessRenderBase, SharedScene, Cube, Vector3, Sphere, Camera} from "xrenderer";
-import {LightMaterial, ClearMaterial, SpecularMaterial, TransparentMaterial, GlossyMaterial, DiffuseMaterial} from "xrenderer";
-import {LinearAttenuation, MathUtils, Color, Thread} from "xrenderer";
+import {HeadlessRenderBase, SharedScene, Cube, Vector3, Sphere, Camera} from "x-ray";
+import {LightMaterial, ClearMaterial, SpecularMaterial, TransparentMaterial, GlossyMaterial, DiffuseMaterial} from "x-ray";
+import {LinearAttenuation, MathUtils, Color, Thread} from "x-ray";
 // import fs = require("fs");
 //import from = require("pngjs").PNG;
 

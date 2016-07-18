@@ -1,9 +1,9 @@
 import {SimpleGUI} from "./SimpleGUI";
 //import {ThreeJSView} from "core/src/ThreeJSView";
 //import {GIJSView} from "core/src/GIJSView";
-import {ThreeJSView, GIJSView, MathUtils} from "xrenderer";
+import {ThreeJSView, GIJSView, MathUtils} from "x-ray";
 import Matrix3 = THREE.Matrix3;
-import {Thread} from "xrenderer";
+import {Thread} from "x-ray";
 /**
  * Created by Nidin Vinayakan on 27-02-2016.
  */
@@ -16,7 +16,7 @@ export class ThreeMFExample extends SimpleGUI {
     constructor() {
         super();
 
-        Thread.workerUrl = "../modules/xrenderer/workers/trace-worker-bootstrap.js";
+        Thread.workerUrl = "../modules/x-ray/workers/trace-worker-bootstrap.js";
 
         this.i_width = 2560 / 4;
         this.i_height = 1440 / 4;
