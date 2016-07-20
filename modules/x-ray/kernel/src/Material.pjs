@@ -1,0 +1,17 @@
+@turbo:: struct Material {
+    diffuse:   Vector3
+    specular:  Vector3
+    shininess: float64
+    ambient:   Vector3
+    mirror:    float64
+} @end
+
+function makeMaterial(diffuse, specular, shininess, ambient, mirror) {
+    var v = new Material;
+    v.diffuse = diffuse;
+    v.specular = specular;
+    v.shininess = shininess;
+    v.ambient = ambient;
+    v.mirror = mirror;
+    return v;
+}

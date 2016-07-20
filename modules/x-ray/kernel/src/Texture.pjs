@@ -1,0 +1,114 @@
+@turbo:: class Texture {
+    data: Color.Array
+    height: int32
+    width: int32
+
+
+
+    @method init(SELF, height, width, color) {
+        SELF.height = height;
+        SELF.width = width;
+        var data = @new Color.Array(height * width);
+        //var c = (255<<24)|((255*color.z)<<16)|((255*color.y)<<8)|(255*color.x)
+
+        if(!color){
+            color = black;
+        }
+
+        if(color instanceof Float32Array){
+            for ( var i=0, l=width*height ; i < l ; i += 3) {
+                Color.Array.setAt(data, i, Color.init( RGB(color[i], color[i+1], color[i+2]) ) );
+            }
+        }else{
+            for ( var i=0, l=width*height ; i < l ; i++ ) {
+                Color.Array.setAt(data, i, Color.init(color));
+            }
+        }
+
+        SELF.data = data;
+        return SELF;
+    }
+
+    // For debugging only
+    @method ref(SELF, y, x) {
+        return Color.Array.at(SELF.data, (SELF.height-y)*SELF.width+x);
+    }
+
+    //
+    @method bilinearSample(SELF, u:number, v:number):Color {
+        let _w = SELF.width;
+        let w = _w - 1;
+        let h = SELF.height - 1;
+        let f = u * w;
+        let X = Math.floor(f);
+        let x = f - X;
+        f = v * h;
+        let Y = Math.floor(f);
+        let y = f - Y;
+
+        let x0 = X;
+        let y0 = Y;
+        let x1 = x0 + 1;
+        let y1 = y0 + 1;
+        let i00:number = y0 * _w + x0;
+        let i01:number = y1 * _w + x0;
+        let i10:number = y0 * _w + x1;
+        let i11:number = y1 * _w + x1;
+
+        let len:number = SELF.data.length;
+
+        i00 = i00 >= len ? len - 1 : i00;
+        i01 = i01 >= len ? len - 1 : i01;
+        i10 = i10 >= len ? len - 1 : i10;
+        i11 = i11 >= len ? len - 1 : i11;
+
+        let c00 = Color.Array.at(SELF.data, i00);
+        let c01 = Color.Array.at(SELF.data, i01);
+        let c10 = Color.Array.at(SELF.data, i10);
+        let c11 = Color.Array.at(SELF.data, i11);
+        let c = RGB();
+        c = Color.add(c, Color.mulScalar_mem(c00, (1 - x) * (1 - y)));
+        c = Color.add(c, Color.mulScalar_mem(c10, x * (1 - y)));
+        c = Color.add(c, Color.mulScalar_mem(c01, (1 - x) * y));
+        c = Color.add(c, Color.mulScalar_mem(c11, x * y));
+
+        //if (c.isBlack()) {
+        //console.log(c00, c01, c10, c11);
+        //}
+
+        return c;
+    }
+
+    @method sample(SELF, u:number, v:number):Vector3 {
+        // u = fract(fract(u) + 1);
+        u = fract_add1(u);
+        // v = fract(fract(v) + 1);
+        v = fract_add1(v);
+        return SELF.bilinearSample(u, 1 - v);
+    }
+    @method normalSample(SELF, u:number, v:number):Vector3 {
+        let c = SELF.sample(u, v);
+        return normalize(RGB(c.x * 2 - 1, c.y * 2 - 1, c.z * 2 - 1));
+    }
+
+    @method bumpSample(SELF, u:number, v:number):Vector3 {
+        u = fract_add1(u);
+        v = fract_add1(v);
+        v = 1 - v;
+        let w = SELF.width;
+        let h = SELF.height;
+        let x:number = Math.round(u * w);
+        let y:number = Math.round(v * h);
+        let x1:number = clampInt(x - 1, 0, w - 1);
+        let x2:number = clampInt(x + 1, 0, w - 1);
+        let y1:number = clampInt(y - 1, 0, h - 1);
+        let y2:number = clampInt(y + 1, 0, h - 1);
+        let cx = Color.sub_mem(Color.Array.at(SELF.data, y * w + x1), Color.Array.at(SELF.data, y * w + x2));
+        let cy = Color.sub_mem(Color.Array.at(SELF.data, y1 * w + x), Color.Array.at(SELF.data, y2 * w + x));
+        return RGB(cx.x, cy.x, 0);
+    }
+    // Not a hot function
+    @method setColor(SELF, y, x, v) {
+        int32.Array.setAt(SELF.data, (SELF.height-y-1)*SELF.width+x, (255<<24)|((255*v.z)<<16)|((255*v.y)<<8)|(255*v.x));
+    }
+} @end

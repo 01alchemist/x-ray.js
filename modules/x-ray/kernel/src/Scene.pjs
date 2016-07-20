@@ -1,0 +1,35 @@
+@turbo:: class Scene extends Surface {
+    length: int32
+    objects: Surface.Array
+
+    @method init(SELF, objects) {
+        var len = objects.length;
+        SELF.length = len;
+        var objs = @new Surface.Array(len);
+        for ( var i=0 ; i < len ; i++ )
+            Surface.Array.setAt(objs, i, objects[i]);
+        SELF.objects = objs;
+        return SELF;
+    }
+
+    @virtual intersect(SELF, eye, ray, min, max) {
+        var min_obj = ll.Runtime.NULL;
+        var min_dist = SENTINEL;
+
+        var objs = SELF.objects;
+        for ( var idx=0, limit=SELF.length ; idx < limit ; idx++ ) {
+            var surf = Surface.Array.at(objs, idx);
+            var tmp = Surface.intersect(surf, eye, ray, min, max);
+            var obj = tmp.obj;
+            var dist = tmp.dist;
+            if (obj)
+                if (dist >= min && dist < max)
+                    if (dist < min_dist) {
+                        min_obj = obj;
+                        min_dist = dist;
+                    }
+        }
+        return {obj:min_obj, dist:min_dist};
+    }
+
+} @end

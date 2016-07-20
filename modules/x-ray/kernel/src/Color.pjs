@@ -1,0 +1,129 @@
+@turbo:: class Color {
+    r: float32
+    g: float32
+    b: float32
+
+    @method init(SELF, color){
+        SELF.r = color.r;
+        SELF.g = color.g;
+        SELF.b = color.b;
+        return SELF;
+    }
+
+    @method Color.fromJson = function(SELF, color) {
+        if (color) {
+            return Color.init(SELF, color);
+        } else {
+            return null;
+        }
+    };
+
+    @method Color.hexColor = function(SELF, hex:number):number {
+        var red = ((hex >> 16) & 255 ) / 255;
+        var green = ((hex >> 8) & 255) / 255;
+        var blue = (hex & 255) / 255;
+        return Color.pow(Color.init(SELF, RGB(red, green, blue)), 2.2);
+    };
+
+    @method Color.newColor = function(SELF, c:RGBA):number {
+        return Color.init(SELF, RGB(c.r / 65535, c.g / 65535, c.b / 65535));
+    };
+
+    @method Color.RGBA = function(SELF:number):RGBA {
+        let _c:Uint8Array = new Uint8Array(3);
+        _c[0] = Math.max(0, Math.min(255, Color.r(SELF) * 255));
+        _c[1] = Math.max(0, Math.min(255, Color.g(SELF) * 255));
+        _c[2] = Math.max(0, Math.min(255, Color.b(SELF) * 255));
+        return {r: _c[0], g: _c[1], b: _c[2], a: 255};
+    };
+
+    @method Color.isBlack = function(SELF:number):boolean {
+        return Color.r(SELF) === 0 && Color.g(SELF) === 0 && Color.b(SELF) === 0;
+    };
+
+    @method Color.isWhite = function(SELF:number):boolean {
+        return Color.r(SELF) === 1 && Color.g(SELF) === 1 && Color.b(SELF) === 1;
+    };
+
+    Color.add = function(a:Color, b:Color){return RGB(a.r + b.r, a.g + b.g, a.b + b.b);};
+    @method Color.add_mem = function(a:number, b:number){
+        return RGB(Color.r(a) + Color.r(b), Color.g(a) + Color.g(b), Color.b(a) + Color.b(b));
+    };
+
+    Color.sub = function(a:Color, b:Color){return RGB(a.r - b.r, a.g - b.g, a.b - b.b);};
+    @method Color.sub_mem = function(a:number, b:number){
+        return RGB(Color.r(a) - Color.r(b), Color.g(a) - Color.g(b), Color.b(a) - Color.b(b));
+    };
+
+    Color.mul = function(a:Color, b:Color){return RGB(a.r * b.r, a.g * b.g, a.b * b.b);};
+    @method Color.mul_mem = function(a:number, b:number) {
+        return RGB(Color.r(a) * Color.r(b), Color.g(a) * Color.g(b), Color.b(a) * Color.b(b));
+    };
+
+    Color.mulScalar = function(a:Color, f:number){return RGB(a.r * f, a.g * f, a.b * f);};
+    @method Color.mulScalar_mem = function(a:number, f:number) {
+        return RGB(Color.r(a) * f, Color.g(a) * f, Color.b(a) * f);
+    };
+
+    Color.divScalar = function(a:Color, f:number){return RGB(a.r / f, a.g / f, a.b / f);};
+    @method Color.divScalar_mem = function(a:number, f:number) {
+        return RGB(Color.r(a) / f, Color.g(a) / f, Color.b(a) / f);
+    };
+
+    Color.min = function(a:Color, b:Color) {return RGB( Math.min(a.r , b.r), Math.min(a.g , b.g), Math.min(a.b , b.b) );};
+    @method Color.min_mem = function(a:number, b:number) {
+        return RGB( Math.min(Color.r(a) , Color.r(b)), Math.min(Color.g(a) , Color.g(b)), Math.min(Color.b(a) , Color.b(b)) );
+    };
+
+    Color.max = function(a:Color, b:Color){return RGB( Math.max(a.r , b.r), Math.max(a.g , b.g), Math.max(a.b , b.b) );};
+    @method Color.max_mem = function(a:number, b:number){
+        return RGB( Math.max(Color.r(a) , Color.r(b)), Math.max(Color.g(a) , Color.g(b)), Math.max(Color.b(a) , Color.b(b)) );
+    };
+
+    Color.pow = function(a:Color, f:number) {return RGB( Math.pow(a.r, f), Math.pow(a.g, f), Math.pow(a.b, f) );};
+    @method Color.pow_mem = function(a:number, f:number) {
+        return RGB( Math.pow(Color.r(a), f), Math.pow(Color.g(a), f), Math.pow(Color.b(a), f) );
+    };
+
+    Color.mix = function(a:Color, b:Color, pct:number) {
+        let _a = Color.mulScalar(a, 1 - pct);
+        let _b = Color.mulScalar(b, pct);
+        return RGB(_a.r + _b.r, _a.g + _b.g, _a.b + _b.b);
+    };
+    @method Color.mix_mem = function(a:number, b:number, pct:number) {
+        let _a = Color.mulScalar_mem(a, 1 - pct);
+        let _b = Color.mulScalar_mem(b, pct);
+        return RGB(_a.r + _b.r, _a.g + _b.g, _a.b + _b.b);
+    };
+
+    @method set(SELF, r:number, g:number, b:number) {
+        SELF.r = r;
+        SELF.g = g;
+        SELF.b = b;
+        return SELF;
+    }
+
+    @method clone(SELF):number {
+        return Color.init(SELF, RGB(SELF.r, SELF.g, SELF.b));
+    }
+
+    Color.brightColors = [
+        Color.hexColor(0xFF00FF),
+        Color.hexColor(0x84FF00),
+        Color.hexColor(0xFF0084),
+        Color.hexColor(0x00FFFF),
+        Color.hexColor(0x00FF84),
+        Color.hexColor(0xDD40FF),
+        Color.hexColor(0xFFFF00)
+    ];
+
+    Color.random = function():Color {
+        return new Color(Math.random(), Math.random(), Math.random());
+    };
+
+    Color.randomBrightColor = function():Color {
+        var i:number = Math.round(Math.random() * Color.brightColors.length);
+        return Color.brightColors[i];
+    };
+
+} @end

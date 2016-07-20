@@ -1,0 +1,3 @@
+function subvref(a, b) { return DL3(a.x-Vector3.x(b), a.y-Vector3.y(b), a.z-Vector3.z(b)); }
+function subrefref(a, b) { return DL3(Vector3.x(a)-Vector3.x(b), Vector3.y(a)-Vector3.y(b), Vector3.z(a)-Vector3.z(b)); }
+function mulrefi(a, c) { return DL3(Vector3.x(a)*c, Vector3.y(a)*c, Vector3.z(a)*c); }

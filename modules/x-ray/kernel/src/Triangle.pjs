@@ -1,0 +1,57 @@
+@turbo:: class Triangle extends Surface {
+    v1: Vector3
+    v2: Vector3
+    v3: Vector3
+
+    n1: Vector3
+    n2: Vector3
+    n3: Vector3
+
+    t1: Vector3
+    t2: Vector3
+    t3: Vector3
+
+    @method init(SELF, material, v1, v2, v3) {
+        Surface.init(SELF, material)
+        SELF.v1 = v1;
+        SELF.v2 = v2;
+        SELF.v3 = v3;
+        return SELF;
+    }
+
+    @virtual intersect(SELF, eye, ray, min, max) {
+        // TODO: observe that values that do not depend on g, h, and i can be precomputed
+        // and stored with the triangle (for a given eye position), at some (possibly significant)
+        // space cost.  Notably the numerator of "t" is invariant, as are many factors of the
+        // numerator of "gamma".
+        var a = SELF.v1.x - SELF.v2.x;
+        var b = SELF.v1.y - SELF.v2.y;
+        var c = SELF.v1.z - SELF.v2.z;
+        var d = SELF.v1.x - SELF.v3.x;
+        var e = SELF.v1.y - SELF.v3.y;
+        var f = SELF.v1.z - SELF.v3.z;
+        var g = ray.x;
+        var h = ray.y;
+        var i = ray.z;
+        var j = SELF.v1.x - eye.x;
+        var k = SELF.v1.y - eye.y;
+        var l = SELF.v1.z - eye.z;
+        var M = a*(e*i - h*f) + b*(g*f - d*i) + c*(d*h - e*g);
+        var t = -((f*(a*k - j*b) + e*(j*c - a*l) + d*(b*l - k*c))/M);
+        if (t < min || t > max)
+            return {obj:NULL,dist:0};
+        var gamma = (i*(a*k - j*b) + h*(j*c - a*l) + g*(b*l - k*c))/M;
+        if (gamma < 0 || gamma > 1.0)
+            return {obj:NULL,dist:0};
+        var beta = (j*(e*i - h*f) + k*(g*f - d*i) + l*(d*h - e*g))/M;
+        if (beta < 0.0 || beta > 1.0 - gamma)
+            return {obj:NULL,dist:0};
+        return {obj:SELF, dist:t};
+    }
+
+    @virtual normal(SELF, p) {
+        // TODO: Observe that the normal is invariant and can be stored with the triangle
+        return normalize(cross(subrefref(SELF.v2.ref, SELF.v1.ref), subrefref(SELF.v3.ref, SELF.v1.ref)));
+    }
+
+} @end

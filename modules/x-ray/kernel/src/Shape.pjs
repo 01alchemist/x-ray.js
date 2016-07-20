@@ -1,0 +1,16 @@
+@turbo:: class Shape {
+    material: Material
+
+    @method init(SELF, material) {
+        SELF.material = material;
+        return SELF;
+    }
+
+    @virtual intersect(SELF, eye, ray, min, max) {
+        throw "Pure: Surface.intersect"
+    }
+
+    @virtual normal(SELF, p) {
+        throw "Pure: Surface.normal"
+    }
+} @end

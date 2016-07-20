@@ -1,8 +1,8 @@
-
-import {Vector3} from "../core/src/engine/math/Vector3";
+/*
+*  Ray Tracer kernel
+**/
 namespace kernel{
 
-    import Face3 = THREE.Face3;
     const height = 600;
     const width = 800;
     const RAW_MEMORY = new SharedArrayBuffer(height*width*4 + 65536);

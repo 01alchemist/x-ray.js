@@ -1,0 +1,44 @@
+const height = 600;
+const width = 800;
+const RAW_MEMORY = new SharedArrayBuffer(height*width*4 + 65536);
+ll.Runtime.init(RAW_MEMORY, 0, RAW_MEMORY.byteLength, true);
+
+const shadows = true;		// Compute object shadows
+const reflection = true;	// Compute object reflections
+const reflection_depth = 2;
+const antialias = false; // true;		// Antialias the image (expensive but pretty)
+
+const debug = false;		// Progress printout, may confuse the consumer
+
+const SENTINEL = 1e32;
+const EPS = 0.00001;
+
+function DL2(x, y) { return {x:x, y:y}; }
+function DL3(x, y, z) { return {x:x, y:y, z:z}; }
+function DL4(x, y, z, w) { return {x:x, y:y, z:z, w:w}; }
+function F3(a, b, c) { return {a:a, b:b, c:c}; }
+function RGB(r, g, b) { return {r:r, g:g, b:b}; }
+
+const black = DL3(0,0,0);
+
+function add(a, b) { return DL3(a.x+b.x, a.y+b.y, a.z+b.z); }
+function addi(a, c) { return DL3(a.x+c, a.y+c, a.z+c); }
+function sub(a, b) { return DL3(a.x-b.x, a.y-b.y, a.z-b.z); }
+function subi(a, c) { return DL3(a.x-c, a.y-c, a.z-c); }
+function muli(a, c) { return DL3(a.x*c, a.y*c, a.z*c); }
+function divi(a, c) { return DL3(a.x/c, a.y/c, a.z/c); }
+function neg(a) { return DL3(-a.x, -a.y, -a.z); }
+function length(a) { return Math.sqrt(a.x*a.x + a.y*a.y + a.z*a.z); }
+function normalize(a) { var d = length(a); return DL3(a.x/d, a.y/d, a.z/d); }
+function cross(a, b) { return DL3(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x); }
+function dot(a, b) { return a.x*b.x + a.y*b.y + a.z*b.z; }
+function fract(f) { return f - Math.floor(f); }
+function fract_add1(f) {
+    let f1 = f - Math.floor(f);
+    return f1 - Math.floor(f1 + 1);
+}
+function clampInt(x:number, lo:number, hi:number):number {
+    if (x < lo) {return lo;}
+    if (x > hi) {return hi;}
+    return x;
+}
