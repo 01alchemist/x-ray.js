@@ -1,13 +1,13 @@
-@turbo:: class Scene extends Surface {
+@turbo:: class Scene extends Shape {
     length: int32
-    objects: Surface.Array
+    objects: Shape.Array
 
     @method init(SELF, objects) {
         var len = objects.length;
         SELF.length = len;
-        var objs = @new Surface.Array(len);
+        var objs = @new Shape.Array(len);
         for ( var i=0 ; i < len ; i++ )
-            Surface.Array.setAt(objs, i, objects[i]);
+            Shape.Array.setAt(objs, i, objects[i]);
         SELF.objects = objs;
         return SELF;
     }
@@ -18,8 +18,8 @@
 
         var objs = SELF.objects;
         for ( var idx=0, limit=SELF.length ; idx < limit ; idx++ ) {
-            var surf = Surface.Array.at(objs, idx);
-            var tmp = Surface.intersect(surf, eye, ray, min, max);
+            var surf = Shape.Array.at(objs, idx);
+            var tmp = Shape.intersect(surf, eye, ray, min, max);
             var obj = tmp.obj;
             var dist = tmp.dist;
             if (obj)

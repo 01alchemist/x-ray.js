@@ -1,4 +1,4 @@
-@turbo:: class Triangle extends Surface {
+@turbo:: class Triangle extends Shape {
     v1: Vector3
     v2: Vector3
     v3: Vector3

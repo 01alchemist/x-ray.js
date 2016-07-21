@@ -1,0 +1,33 @@
+@turbo:: struct Vector2 {
+    x: float32
+    y: float32
+
+    @get(SELF){
+        return DL2(SELF.x, SELF.y);
+    }
+} @end
+
+@turbo:: struct Vector3 {
+    x: float32
+    y: float32
+    z: float32
+
+    @get(SELF){
+        return DL3(SELF.x, SELF.y, SELF.z);
+    }
+} @end
+
+@turbo:: struct Face3 {
+    a: int32
+    b: int32
+    c: int32
+
+    @get(SELF){
+        return F3(SELF.a, SELF.b, SELF.c);
+    }
+} @end
+
+@turbo:: struct Box {
+    min:Vector3
+    max:Vector3
+} @end
