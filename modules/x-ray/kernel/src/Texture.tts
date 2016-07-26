@@ -108,6 +108,6 @@ let addColor = Color.add;
     }
     // Not a hot function
     @method setColor(SELF, y, x, v) {
-        int32.Array.setAt(SELF.data, (SELF.height-y-1)*SELF.width+x, (255<<24)|((255*v.z)<<16)|((255*v.y)<<8)|(255*v.x));
+        Color.Array.setAt(SELF.data, (SELF.height-y-1)*SELF.width+x, (255<<24)|((255*v.z)<<16)|((255*v.y)<<8)|(255*v.x));
     }
 } @end
