@@ -1,29 +1,32 @@
 // combine kernel modules and compile
 
 let fs = require("fs");
+let path = require("path");
 let turbo = require("../../../node_modules/turbo.js/lib/compiler.js");
 let compiler = new turbo();
 let modules = [
-    "src/global.pjs",
-    "src/structures.pjs",
-    "src/mem_op.pjs",
-    "src/Color.pjs",
-    "src/Texture.pjs",
-    "src/Material.pjs",
-    "src/Shape.pjs",
-    "src/Triangle.pjs",
-    "src/Object3D.pjs",
-    "src/BufferGeometry.pjs",
-    "src/Mesh.pjs",
-    "src/Scene.pjs",
+    "./src/global.tts",
+    "./src/structures.tts",
+    "./src/mem_op.tts",
+    "./src/Color.tts",
+    "./src/Texture.tts",
+    "./src/Material.tts",
+    "./src/Shape.tts",
+    "./src/Triangle.tts",
+    "./src/Object3D.tts",
+    "./src/BufferGeometry.tts",
+    "./src/Mesh.tts",
+    "./src/Scene.tts",
 ];
 var source = "";
 modules.forEach((file) => {
-    var content = fs.readFileSync(file);
+    var content = fs.readFileSync(path.resolve(__dirname, file));
     source += content + "\n";
 });
 
-fs.writeFileSync("kernel-all.pjs", source);
+fs.writeFileSync(path.resolve(__dirname, "rt-kernel.tts"), source);
 
-console.log(compiler.compile(["kernel-all.pjs"]));
+compiler.compile([path.resolve(__dirname, "rt-kernel.tts")]);
+
+fs.unlinkSync(path.resolve(__dirname, "rt-kernel.tts"));
 

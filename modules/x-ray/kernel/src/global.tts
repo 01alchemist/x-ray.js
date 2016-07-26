@@ -1,7 +1,8 @@
+///<reference path="../../../node_modules/turbo.js/src/modules/turbo.js/bundle/Runtime.d.ts" />
 const height = 600;
 const width = 800;
 const RAW_MEMORY = new SharedArrayBuffer(height*width*4 + 65536);
-ll.Runtime.init(RAW_MEMORY, 0, RAW_MEMORY.byteLength, true);
+turbo.Runtime.init(RAW_MEMORY, 0, RAW_MEMORY.byteLength, true);
 
 const shadows = true;		// Compute object shadows
 const reflection = true;	// Compute object reflections
@@ -37,7 +38,7 @@ function fract_add1(f) {
     let f1 = f - Math.floor(f);
     return f1 - Math.floor(f1 + 1);
 }
-function clampInt(x:number, lo:number, hi:number):number {
+function clampInt(x, lo, hi){
     if (x < lo) {return lo;}
     if (x > hi) {return hi;}
     return x;

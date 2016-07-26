@@ -12,7 +12,7 @@
     "build-amd-worker": "tsc -p ./modules/x-ray/workers -m amd",
     "bundle": "tsc -p ./modules/x-ray -d --outFile ./modules/x-ray/bundle/system/x-ray.js",
     "bundle-amd": "tsc -p ./modules/x-ray -m amd -d --outFile ./modules/x-ray/bundle/amd/x-ray.js",
-    "compile-kernel": "turbo modules/x-ray/kernel/rt-kernel.pts"
+    "compile-kernel": "node ./modules/x-ray/kernel/make.js && tsc ./modules/x-ray/kernel/rt-kernel.ts -m commonjs -d"
   },
   "repository": {
     "type": "git",
@@ -29,7 +29,7 @@
     "xdata": "^2.1.15"
   },
   "devDependencies": {
-    "turbo.js": "^1.0.5",
+    "turbo.js": "^1.0.7",
     "typescript": "^1.8.10"
   }
 }

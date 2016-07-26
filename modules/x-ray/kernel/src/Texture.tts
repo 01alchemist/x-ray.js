@@ -1,9 +1,8 @@
+let addColor = Color.add;
 @turbo:: class Texture {
     data: Color.Array
     height: int32
     width: int32
-
-
 
     @method init(SELF, height, width, color) {
         SELF.height = height;
@@ -67,10 +66,10 @@
         let c10 = Color.Array.at(SELF.data, i10);
         let c11 = Color.Array.at(SELF.data, i11);
         let c = RGB();
-        c = Color.add(c, Color.mulScalar_mem(c00, (1 - x) * (1 - y)));
-        c = Color.add(c, Color.mulScalar_mem(c10, x * (1 - y)));
-        c = Color.add(c, Color.mulScalar_mem(c01, (1 - x) * y));
-        c = Color.add(c, Color.mulScalar_mem(c11, x * y));
+        c = addColor(c, Color.mulScalar_mem(c00, (1 - x) * (1 - y)));
+        c = addColor(c, Color.mulScalar_mem(c10, x * (1 - y)));
+        c = addColor(c, Color.mulScalar_mem(c01, (1 - x) * y));
+        c = addColor(c, Color.mulScalar_mem(c11, x * y));
 
         //if (c.isBlack()) {
         //console.log(c00, c01, c10, c11);
