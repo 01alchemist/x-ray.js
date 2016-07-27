@@ -33,3 +33,5 @@
     }
 
 } @end
+
+kernel.Scene = Scene;

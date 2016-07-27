@@ -4,3 +4,5 @@
     texCoords: Vector2.Array
     indices: Face3.Array
 } @end
+
+kernel.BufferGeometry = BufferGeometry;

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>x-ray Example</title>
+    <script src="../../../libs/uil.js"></script>
+
+    <script src="../../../node_modules/three/build/three.js"></script>
+    <script src="../../../libs/threejs/controls/EditorControls.js"></script>
+    <script src="../../../node_modules/three/examples/js/loaders/DDSLoader.js"></script>
+    <script src="../../../node_modules/three/examples/js/loaders/MTLLoader.js"></script>
+    <script src="../../../node_modules/three/examples/js/loaders/OBJLoader.js"></script>
+
+    <script src="../../../node_modules/turbo.js/src/modules/turbo.js/bundle/Runtime.js"></script>
+    <script src="../kernel/rt-kernel.js"></script>
+
+    <script src="../../../node_modules/systemjs/dist/system.src.js"></script>
+    <script>
+        System.config({
+            packages: {
+                "../": {
+                    format: 'register',
+                    defaultExtension: 'js'
+                }
+            }
+        });
+        System.import('TurboTest').then(function (module) {
+            new module.TurboTest();
+        }, console.error.bind(console));
+    </script>
+</head>
+<body>
+</body>
+</html>

@@ -1,4 +1,6 @@
 // Generated from D:\workspace\x-ray.js\modules\x-ray\kernel\rt-kernel.tts by Parallel.js 1.0.0; github.com/01alchemist/parallel-js
+namespace kernel {
+
 ///<reference path="../../../node_modules/turbo.js/src/modules/turbo.js/bundle/Runtime.d.ts" />
 const height = 600;
 const width = 800;
@@ -44,6 +46,7 @@ function clampInt(x, lo, hi){
     if (x > hi) {return hi;}
     return x;
 }
+
 function Vector2() {}
 Vector2.NAME = "Vector2";
 Vector2.SIZE = 8;
@@ -96,9 +99,11 @@ Box._set_impl = function (SELF, v) {
   Vector3._set_impl((SELF + 0), (v.min));
   Vector3._set_impl((SELF + 12), (v.max));
 }
+
 function subvref(a, b) { return DL3(a.x-turbo.Runtime._mem_float32[(b + 0) >> 2], a.y-turbo.Runtime._mem_float32[(b + 4) >> 2], a.z-turbo.Runtime._mem_float32[(b + 8) >> 2]); }
 function subrefref(a, b) { return DL3(turbo.Runtime._mem_float32[(a + 0) >> 2]-turbo.Runtime._mem_float32[(b + 0) >> 2], turbo.Runtime._mem_float32[(a + 4) >> 2]-turbo.Runtime._mem_float32[(b + 4) >> 2], turbo.Runtime._mem_float32[(a + 8) >> 2]-turbo.Runtime._mem_float32[(b + 8) >> 2]); }
 function mulrefi(a, c) { return DL3(turbo.Runtime._mem_float32[(a + 0) >> 2]*c, turbo.Runtime._mem_float32[(a + 4) >> 2]*c, turbo.Runtime._mem_float32[(a + 8) >> 2]*c); }
+
 export interface RGBA {
     r:number,
     g:number,
@@ -229,6 +234,9 @@ Color.clone = function (SELF):number {
     };
 Color.initInstance = function(SELF) { turbo.Runtime._mem_int32[SELF>>2]=194603; return SELF; }
 turbo.Runtime._idToType[194603] = Color;
+
+export Color;
+
 let addColor = Color.add;
 function Texture(p) { this._pointer = (p|0); }
 Object.defineProperty(Texture.prototype, 'pointer', { get: function () { return this._pointer } });
@@ -343,6 +351,9 @@ Texture.setColor = function (SELF, y, x, v) {
     }
 Texture.initInstance = function(SELF) { turbo.Runtime._mem_int32[SELF>>2]=10502342; return SELF; }
 turbo.Runtime._idToType[10502342] = Texture;
+
+kernel.Texture = Texture;
+
 function Material() {}
 Material.NAME = "Material";
 Material.SIZE = 56;
@@ -373,6 +384,9 @@ function makeMaterial(diffuse, specular, shininess, ambient, mirror) {
     v.mirror = mirror;
     return v;
 }
+
+kernel.Material = Material;
+
 function Shape(p) { this._pointer = (p|0); }
 Object.defineProperty(Shape.prototype, 'pointer', { get: function () { return this._pointer } });
 Shape.NAME = "Shape";
@@ -415,6 +429,9 @@ Shape.normal = function (SELF , p) {
 }
 Shape.initInstance = function(SELF) { turbo.Runtime._mem_int32[SELF>>2]=255446; return SELF; }
 turbo.Runtime._idToType[255446] = Shape;
+
+kernel.Shape = Shape;
+
 function Triangle(p) { this._pointer = (p|0); }
 Triangle.prototype = new Shape;
 Triangle.NAME = "Triangle";
@@ -480,6 +497,9 @@ Triangle.normal = function (SELF , p) {
 }
 Triangle.initInstance = function(SELF) { turbo.Runtime._mem_int32[SELF>>2]=232773086; return SELF; }
 turbo.Runtime._idToType[232773086] = Triangle;
+
+kernel.Triangle = Triangle;
+
 function Object3D(p) { this._pointer = (p|0); }
 Object.defineProperty(Object3D.prototype, 'pointer', { get: function () { return this._pointer } });
 Object3D.NAME = "Object3D";
@@ -489,6 +509,9 @@ Object3D.CLSID = 163336955;
 Object.defineProperty(Object3D, 'BASE', {get: function () { return null; }});
 Object3D.initInstance = function(SELF) { turbo.Runtime._mem_int32[SELF>>2]=163336955; return SELF; }
 turbo.Runtime._idToType[163336955] = Object3D;
+
+kernel.Object3D = Object3D;
+
 function BufferGeometry(p) { this._pointer = (p|0); }
 Object.defineProperty(BufferGeometry.prototype, 'pointer', { get: function () { return this._pointer } });
 BufferGeometry.NAME = "BufferGeometry";
@@ -498,6 +521,9 @@ BufferGeometry.CLSID = 195949499;
 Object.defineProperty(BufferGeometry, 'BASE', {get: function () { return null; }});
 BufferGeometry.initInstance = function(SELF) { turbo.Runtime._mem_int32[SELF>>2]=195949499; return SELF; }
 turbo.Runtime._idToType[195949499] = BufferGeometry;
+
+kernel.BufferGeometry = BufferGeometry;
+
 function Mesh(p) { this._pointer = (p|0); }
 Mesh.prototype = new Object3D;
 Mesh.NAME = "Mesh";
@@ -507,6 +533,9 @@ Mesh.CLSID = 159255331;
 Object.defineProperty(Mesh, 'BASE', {get: function () { return Object3D; }});
 Mesh.initInstance = function(SELF) { turbo.Runtime._mem_int32[SELF>>2]=159255331; return SELF; }
 turbo.Runtime._idToType[159255331] = Mesh;
+
+kernel.Mesh = Mesh;
+
 function Scene(p) { this._pointer = (p|0); }
 Scene.prototype = new Shape;
 Scene.NAME = "Scene";
@@ -558,3 +587,7 @@ Scene.normal = function (SELF , p) {
 }
 Scene.initInstance = function(SELF) { turbo.Runtime._mem_int32[SELF>>2]=122068895; return SELF; }
 turbo.Runtime._idToType[122068895] = Scene;
+
+kernel.Scene = Scene;
+
+}

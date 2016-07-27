@@ -2,3 +2,5 @@
     geometry:BufferGeometry
 
 } @end
+
+kernel.Mesh = Mesh;
