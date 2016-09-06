@@ -2,3 +2,5 @@
     children:Object3D.Array
 
 } @end
+
+kernel.Object3D = Object3D;

@@ -15,3 +15,5 @@ function makeMaterial(diffuse, specular, shininess, ambient, mirror) {
     v.mirror = mirror;
     return v;
 }
+
+kernel.Material = Material;

@@ -18,11 +18,12 @@ let modules = [
     "./src/Mesh.tts",
     "./src/Scene.tts",
 ];
-var source = "";
+var source = "namespace kernel {\n\n";
 modules.forEach((file) => {
     var content = fs.readFileSync(path.resolve(__dirname, file));
-    source += content + "\n";
+    source += content + "\n\n";
 });
+source += "}";
 
 fs.writeFileSync(path.resolve(__dirname, "rt-kernel.tts"), source);
 
