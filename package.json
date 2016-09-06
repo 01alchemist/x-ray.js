@@ -4,6 +4,7 @@
   "description": "Global Illumination using parallel path tracing",
   "main": "index.js",
   "scripts": {
+    "server": "lite-server",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc -p ./modules/x-ray",
     "build-example": "tsc -p ./example",
@@ -26,9 +27,11 @@
   "homepage": "https://github.com/01alchemist/x-ray",
   "dependencies": {
     "systemjs": "0.19.6",
+    "three": "^0.79.0",
     "xdata": "^2.1.15"
   },
   "devDependencies": {
+    "lite-server": "^2.2.2",
     "turbo.js": "^1.0.7",
     "typescript": "^1.8.10"
   }

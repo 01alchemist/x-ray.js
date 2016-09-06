@@ -1,5 +1,5 @@
 "use strict";
-// Generated from D:\workspace\x-ray.js\modules\x-ray\kernel\rt-kernel.tts by Parallel.js 1.0.0; github.com/01alchemist/parallel-js
+// Generated from G:\nid_workspace\x-ray.js\modules\x-ray\kernel\rt-kernel.tts by Parallel.js 1.0.0; github.com/01alchemist/parallel-js
 ///<reference path="../../../node_modules/turbo.js/src/modules/turbo.js/bundle/Runtime.d.ts" />
 var height = 600;
 var width = 800;

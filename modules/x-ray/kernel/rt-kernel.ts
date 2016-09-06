@@ -1,4 +1,4 @@
-// Generated from D:\workspace\x-ray.js\modules\x-ray\kernel\rt-kernel.tts by Parallel.js 1.0.0; github.com/01alchemist/parallel-js
+// Generated from G:\nid_workspace\x-ray.js\modules\x-ray\kernel\rt-kernel.tts by Parallel.js 1.0.0; github.com/01alchemist/parallel-js
 ///<reference path="../../../node_modules/turbo.js/src/modules/turbo.js/bundle/Runtime.d.ts" />
 const height = 600;
 const width = 800;
@@ -43,6 +43,15 @@ function clampInt(x, lo, hi){
     if (x < lo) {return lo;}
     if (x > hi) {return hi;}
     return x;
+}
+
+
+interface MemoryObject{
+    NAME:string;
+    SIZE:number;
+    ALIGN:number;
+    _get_impl(SELF:number):any;
+    _set_impl(SELF:number, impl:any):any;
 }
 function Vector2() {}
 Vector2.NAME = "Vector2";

@@ -43,3 +43,12 @@ function clampInt(x, lo, hi){
     if (x > hi) {return hi;}
     return x;
 }
+
+
+interface MemoryObject{
+    NAME:string;
+    SIZE:number;
+    ALIGN:number;
+    _get_impl(SELF:number):any;
+    _set_impl(SELF:number, impl:any):any;
+}
