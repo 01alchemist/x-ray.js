@@ -72,8 +72,23 @@ System.register(["../../math/Vector3", "../Axis"], function(exports_1, context_1
                 Box.prototype.size = function () {
                     return this.max.sub(this.min);
                 };
+                Box.prototype.outerRadius = function () {
+                    return this.min.sub(this.center()).length();
+                };
+                Box.prototype.innerRadius = function () {
+                    return this.center().sub(this.min).maxComponent();
+                };
                 Box.prototype.extend = function (b) {
                     return new Box(this.min.min(b.min), this.max.max(b.max));
+                };
+                Box.prototype.contains = function (b) {
+                    return this.min.x <= b.x && this.max.x >= b.x &&
+                        this.min.y <= b.y && this.max.y >= b.y &&
+                        this.min.z <= b.z && this.max.z >= b.z;
+                };
+                Box.prototype.intersects = function (b) {
+                    return !(this.min.x > b.max.x || this.max.x < b.min.x || this.min.y > b.max.y ||
+                        this.max.y < b.min.y || this.min.z > b.max.z || this.max.z < b.min.z);
                 };
                 Box.prototype.intersect = function (r) {
                     var x1 = (this.min.x - r.origin.x) / r.direction.x;

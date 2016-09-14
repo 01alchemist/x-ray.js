@@ -100,8 +100,8 @@ export class Box implements IPointer {
 
     contains(b:Vector3):boolean {
         return this.min.x <= b.x && this.max.x >= b.x &&
-        this.min.y <= b.y && this.max.y >= b.y &&
-        this.min.z <= b.z && this.max.z >= b.z
+            this.min.y <= b.y && this.max.y >= b.y &&
+            this.min.z <= b.z && this.max.z >= b.z
     }
 
     intersects(b:Box):boolean {
