@@ -1,4 +1,4 @@
-@turbo:: class Shape {
+@turbo class Shape {
     material: Material
 
     @method init(SELF, material) {

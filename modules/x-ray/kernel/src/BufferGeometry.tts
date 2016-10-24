@@ -1,4 +1,4 @@
-@turbo:: class BufferGeometry {
+@turbo class BufferGeometry {
     points: Vector3.Array
     normals: Vector3.Array
     texCoords: Vector2.Array

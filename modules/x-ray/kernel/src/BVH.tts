@@ -1,7 +1,7 @@
 /**
  * Created by Nidin Vinayakan on 23/8/2016.
  */
-@turbo:: class BVH
+@turbo class BVH
 {
     @method init(SELF){
         return SELF;

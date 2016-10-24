@@ -1,4 +1,4 @@
-@turbo:: struct Material {
+@turbo struct Material {
     diffuse:   Vector3
     specular:  Vector3
     shininess: float64

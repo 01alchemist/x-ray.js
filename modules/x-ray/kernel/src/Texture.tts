@@ -1,5 +1,5 @@
 let addColor = Color.add;
-@turbo:: class Texture {
+@turbo class Texture {
     data: Color.Array
     height: int32
     width: int32

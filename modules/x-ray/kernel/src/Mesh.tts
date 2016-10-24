@@ -1,4 +1,4 @@
-@turbo:: class Mesh extends Object3D{
+@turbo class Mesh extends Object3D{
     geometry:BufferGeometry
 
 } @end

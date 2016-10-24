@@ -1,4 +1,4 @@
-@turbo:: struct Vector2 {
+@turbo struct Vector2 {
     x: float32
     y: float32
 
@@ -7,7 +7,7 @@
     }
 } @end
 
-@turbo:: struct Vector3 {
+@turbo struct Vector3 {
     x: float32
     y: float32
     z: float32
@@ -17,7 +17,7 @@
     }
 } @end
 
-@turbo:: struct Face3 {
+@turbo struct Face3 {
     a: int32
     b: int32
     c: int32
@@ -27,7 +27,7 @@
     }
 } @end
 
-@turbo:: struct Box {
+@turbo struct Box {
     min:Vector3
     max:Vector3
 } @end

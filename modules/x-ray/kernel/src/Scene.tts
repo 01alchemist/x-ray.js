@@ -1,4 +1,4 @@
-@turbo:: class Scene extends Shape {
+@turbo class Scene extends Shape {
     length: int32
     objects: Shape.Array
 

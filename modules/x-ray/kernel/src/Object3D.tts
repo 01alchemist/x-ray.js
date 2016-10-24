@@ -1,4 +1,4 @@
-@turbo:: class Object3D {
+@turbo class Object3D {
     children:Object3D.Array
 
 } @end

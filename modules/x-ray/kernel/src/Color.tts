@@ -5,7 +5,7 @@ export interface RGBA {
     a:number
 }
 
-@turbo:: class Color {
+@turbo class Color {
     r: float32
     g: float32
     b: float32
