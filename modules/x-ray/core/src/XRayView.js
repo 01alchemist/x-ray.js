@@ -101,7 +101,7 @@ System.register(["./XRayRenderBase", "./engine/math/Color", "./engine/scene/Came
                     switch (src.type) {
                         case ThreeObjects_1.ThreeObjects.Mesh:
                             var material = XRayView.getMaterial(src.material);
-                            var shape = this.buildGeometry(src.geometry, material, src.smooth);
+                            var shape = this.buildTurboGeometry(src.geometry, material, src.smooth);
                             var matrixWorld = src.matrixWorld;
                             if (matrixWorld.equals(this.identityMatrix)) {
                                 return shape;
@@ -114,6 +114,127 @@ System.register(["./XRayRenderBase", "./engine/math/Color", "./engine/scene/Came
                             return this.getLight(src);
                     }
                     return null;
+                };
+                XRayView.prototype.buildTurboGeometry = function (geometry, material, smooth) {
+                    if (geometry["_bufferGeometry"]) {
+                        geometry = geometry["_bufferGeometry"];
+                    }
+                    var triangles = [];
+                    if (!geometry.attributes) {
+                        var vertices = geometry.vertices;
+                        var faces = geometry.faces;
+                        if (vertices && faces) {
+                            turbo.Runtime._mem_int32[triangles >> 2] = (faces.length);
+                            for (var i = 0; i < faces.length; i++) {
+                                var face = faces[i];
+                                var t = Triangle_1.Triangle.initInstance(turbo.Runtime.allocOrThrow(53, 4));
+                                turbo.Runtime._mem_int32[(t + 44) >> 2] = material;
+                                turbo.Runtime._mem_int32[(t + 8) >> 2] = Vector.NewVector(vertices[face.a].x, vertices[face.a].y, vertices[face.a].z);
+                                turbo.Runtime._mem_int32[(t + 12) >> 2] = Vector.NewVector(vertices[face.b].x, vertices[face.b].y, vertices[face.b].z);
+                                turbo.Runtime._mem_int32[(t + 16) >> 2] = Vector.NewVector(vertices[face.c].x, vertices[face.c].y, vertices[face.c].z);
+                                turbo.Runtime._mem_int32[(t + 20) >> 2] = Vector.NewVector();
+                                turbo.Runtime._mem_int32[(t + 24) >> 2] = Vector.NewVector();
+                                turbo.Runtime._mem_int32[(t + 28) >> 2] = Vector.NewVector();
+                                triangles.push(t);
+                            }
+                        }
+                        else {
+                            return null;
+                        }
+                    }
+                    else {
+                        var positions = geometry.attributes["position"].array;
+                        if (geometry.attributes["uv"]) {
+                            var uv = geometry.attributes["uv"].array;
+                        }
+                        var normals;
+                        if (geometry.attributes["normal"]) {
+                            normals = geometry.attributes["normal"].array;
+                        }
+                        else {
+                            normals = this.computeNormals(positions);
+                        }
+                        var triCount = 0;
+                        var indexAttribute = geometry.getIndex();
+                        if (indexAttribute) {
+                            var indices = indexAttribute.array;
+                            var uvIndex = 0;
+                            turbo.Runtime._mem_int32[triangles >> 2] = (indices.length);
+                            for (var i = 0; i < indices.length; i = i + 3) {
+                                triCount++;
+                                var a = void 0;
+                                var b = void 0;
+                                var c = void 0;
+                                a = indices[i];
+                                b = indices[i + 1];
+                                c = indices[i + 2];
+                                if (triCount % 2 !== 0) {
+                                    a = indices[i];
+                                    b = indices[i + 1];
+                                    c = indices[i + 2];
+                                }
+                                else {
+                                    c = indices[i];
+                                    b = indices[i + 1];
+                                    a = indices[i + 2];
+                                }
+                                var ax = a * 3;
+                                var ay = (a * 3) + 1;
+                                var az = (a * 3) + 2;
+                                var bx = b * 3;
+                                var by = (b * 3) + 1;
+                                var bz = (b * 3) + 2;
+                                var cx = c * 3;
+                                var cy = (c * 3) + 1;
+                                var cz = (c * 3) + 2;
+                                var au = a * 2;
+                                var av = (a * 2) + 1;
+                                var bu = b * 2;
+                                var bv = (b * 2) + 1;
+                                var cu = c * 2;
+                                var cv = (c * 2) + 1;
+                                var t_1 = Triangle_1.Triangle.initInstance(turbo.Runtime.allocOrThrow(53, 4));
+                                turbo.Runtime._mem_int32[(t_1 + 44) >> 2] = material;
+                                turbo.Runtime._mem_int32[(t_1 + 8) >> 2] = Vector.NewVector(positions[ax], positions[ay], positions[az]);
+                                turbo.Runtime._mem_int32[(t_1 + 12) >> 2] = Vector.NewVector(positions[bx], positions[by], positions[bz]);
+                                turbo.Runtime._mem_int32[(t_1 + 16) >> 2] = Vector.NewVector(positions[cx], positions[cy], positions[cz]);
+                                turbo.Runtime._mem_int32[(t_1 + 20) >> 2] = Vector.NewVector(normals[ax], normals[ay], normals[az]);
+                                turbo.Runtime._mem_int32[(t_1 + 24) >> 2] = Vector.NewVector(normals[bx], normals[by], normals[bz]);
+                                turbo.Runtime._mem_int32[(t_1 + 28) >> 2] = Vector.NewVector(normals[cx], normals[cy], normals[cz]);
+                                if (uv) {
+                                    turbo.Runtime._mem_int32[(t_1 + 32) >> 2] = Vector.NewVector(uv[au], uv[av], 0);
+                                    turbo.Runtime._mem_int32[(t_1 + 36) >> 2] = Vector.NewVector(uv[bu], uv[bv], 0);
+                                    turbo.Runtime._mem_int32[(t_1 + 40) >> 2] = Vector.NewVector(uv[cu], uv[cv], 0);
+                                }
+                                triangles.push(t_1);
+                                uvIndex += 2;
+                            }
+                        }
+                        else {
+                            uvIndex = 0;
+                            turbo.Runtime._mem_int32[triangles >> 2] = (positions.length);
+                            for (var i_1 = 0; i_1 < positions.length; i_1 = i_1 + 9) {
+                                var t_2 = Triangle_1.Triangle.initInstance(turbo.Runtime.allocOrThrow(53, 4));
+                                turbo.Runtime._mem_int32[(t_2 + 44) >> 2] = material;
+                                turbo.Runtime._mem_int32[(t_2 + 8) >> 2] = Vector.NewVector(positions[i_1], positions[i_1 + 1], positions[i_1 + 2]);
+                                turbo.Runtime._mem_int32[(t_2 + 12) >> 2] = Vector.NewVector(positions[i_1 + 3], positions[i_1 + 4], positions[i_1 + 5]);
+                                turbo.Runtime._mem_int32[(t_2 + 16) >> 2] = Vector.NewVector(positions[i_1 + 6], positions[i_1 + 7], positions[i_1 + 8]);
+                                turbo.Runtime._mem_int32[(t_2 + 20) >> 2] = Vector.NewVector(normals[i_1], normals[i_1 + 1], normals[i_1 + 2]);
+                                turbo.Runtime._mem_int32[(t_2 + 24) >> 2] = Vector.NewVector(normals[i_1 + 3], normals[i_1 + 4], normals[i_1 + 5]);
+                                turbo.Runtime._mem_int32[(t_2 + 28) >> 2] = Vector.NewVector(normals[i_1 + 6], normals[i_1 + 7], normals[i_1 + 8]);
+                                if (uv) {
+                                    turbo.Runtime._mem_int32[(t_2 + 32) >> 2] = Vector.NewVector(uv[uvIndex], uv[uvIndex + 1], 0);
+                                    turbo.Runtime._mem_int32[(t_2 + 36) >> 2] = Vector.NewVector(uv[uvIndex + 2], uv[uvIndex + 3], 0);
+                                    turbo.Runtime._mem_int32[(t_2 + 40) >> 2] = Vector.NewVector(uv[uvIndex + 4], uv[uvIndex + 5], 0);
+                                }
+                                Triangle_1.Triangle.FixNormals(t_2);
+                                triangles.push(t_2);
+                                uvIndex += 6;
+                            }
+                        }
+                    }
+                    var meshRef = Mesh_1.Mesh.NewMesh(Triangle_1.Triangle.Pack(triangles));
+                    return meshRef;
                 };
                 XRayView.prototype.buildGeometry = function (geometry, material, smooth) {
                     if (smooth === void 0) { smooth = false; }

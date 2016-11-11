@@ -33,7 +33,7 @@ export class TurboKernelTest extends SimpleGUI {
         // this.xrayView.cameraSamples = 4;
         this.xrayView.blockIterations = 1;
         this.xrayView.bounces = 2;
-        this.xrayView.scene.color.set(0, 0, 0);
+        //this.xrayView.scene.color.set(0, 0, 0);
         // this.xrayView.scene.color = Color.hexColor(0xFDDCBA);
         // var ambient = new THREE.AmbientLight(0x5C5C5C);
         // this.threeJSView.scene.add(ambient);

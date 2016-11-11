@@ -4069,7 +4069,7 @@ export class MasterScene{
 	static defaultMaterial;
 
 	constructor(color){
-        color  = color || 0x000000;
+        color = color || 0x000000;
 		this.scenePtr = Scene.NewScene(color);
         this.shapes = [];
         this.lights = [];

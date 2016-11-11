@@ -25,6 +25,7 @@
   "homepage": "https://github.com/01alchemist/ParallelRayJS",
   "dependencies": {
     "systemjs": "0.19.6",
+    "three": "^0.82.1",
     "xdata": "^2.1.15"
   },
   "devDependencies": {
