@@ -1447,7 +1447,7 @@ declare module "core/core" {
     export * from "core/src/GIRenderBase";
     export * from "core/src/GIJSView";
 }
-declare module "xrenderer" {
+declare module "x-ray" {
     export * from "core/core";
 }
 declare module "core/src/three/GIThree" {
