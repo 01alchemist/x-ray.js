@@ -1,4 +1,4 @@
-System.register(["./SimpleGUI", "../core/src/ThreeJSView", "../core/src/GIJSView", "../core/src/engine/renderer/worker/Thread", "../core/src/engine/utils/MathUtils"], function(exports_1, context_1) {
+System.register(["./SimpleGUI", "../core/src/ThreeJSView", "../core/src/XRayView", "../core/src/engine/renderer/worker/Thread", "../core/src/engine/utils/MathUtils"], function(exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
     var __extends = (this && this.__extends) || function (d, b) {
@@ -6,7 +6,7 @@ System.register(["./SimpleGUI", "../core/src/ThreeJSView", "../core/src/GIJSView
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
-    var SimpleGUI_1, ThreeJSView_1, GIJSView_1, Thread_1, MathUtils_1;
+    var SimpleGUI_1, ThreeJSView_1, XRayView_1, Thread_1, MathUtils_1;
     var ColladaTest;
     return {
         setters:[
@@ -16,8 +16,8 @@ System.register(["./SimpleGUI", "../core/src/ThreeJSView", "../core/src/GIJSView
             function (ThreeJSView_1_1) {
                 ThreeJSView_1 = ThreeJSView_1_1;
             },
-            function (GIJSView_1_1) {
-                GIJSView_1 = GIJSView_1_1;
+            function (XRayView_1_1) {
+                XRayView_1 = XRayView_1_1;
             },
             function (Thread_1_1) {
                 Thread_1 = Thread_1_1;
@@ -38,7 +38,7 @@ System.register(["./SimpleGUI", "../core/src/ThreeJSView", "../core/src/GIJSView
                     var _this = this;
                     var self = this;
                     this.threeJSView = new ThreeJSView_1.ThreeJSView(this.i_width, this.i_height, this.webglOutput, this.appContainer);
-                    this.giJSView = new GIJSView_1.GIJSView(this.i_width, this.i_height, this.giOutput);
+                    this.giJSView = new XRayView_1.XRayView(this.i_width, this.i_height, this.giOutput);
                     this.giJSView.iterations = 10000000;
                     this.giJSView.hitSamples = 1;
                     this.giJSView.blockIterations = 1;

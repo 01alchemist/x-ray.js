@@ -1,8 +1,8 @@
 import {SimpleGUI} from "./SimpleGUI";
-// import {ThreeJSView, GIJSView, MathUtils, Thread} from "xrenderer";
+// import {ThreeJSView, XRayView, MathUtils, Thread} from "xrenderer";
 import Matrix3 = THREE.Matrix3;
 import {ThreeJSView} from "../core/src/ThreeJSView";
-import {GIJSView} from "../core/src/GIJSView";
+import {XRayView} from "../core/src/XRayView";
 import {Thread} from "../core/src/engine/renderer/worker/Thread";
 import {MathUtils} from "../core/src/engine/utils/MathUtils";
 import {Color} from "../core/src/engine/math/Color";
@@ -12,7 +12,7 @@ import {Color} from "../core/src/engine/math/Color";
 export class PorscheTest extends SimpleGUI {
 
     private threeJSView:ThreeJSView;
-    private giJSView:GIJSView;
+    private giJSView:XRayView;
 
     constructor() {
         super();
@@ -27,7 +27,7 @@ export class PorscheTest extends SimpleGUI {
         var self = this;
 
         this.threeJSView = new ThreeJSView(this.i_width, this.i_height, this.webglOutput, this.appContainer);
-        this.giJSView = new GIJSView(this.i_width, this.i_height, this.giOutput);
+        this.giJSView = new XRayView(this.i_width, this.i_height, this.giOutput);
         this.giJSView.iterations = 10000000;
         this.giJSView.hitSamples = 1;
         // this.giJSView.cameraSamples = 4;

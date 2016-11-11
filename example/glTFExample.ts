@@ -1,6 +1,6 @@
 import {SimpleGUI} from "./SimpleGUI";
 //import {ThreeJSView} from "core/src/ThreeJSView";
-//import {GIJSView} from "core/src/GIJSView";
+//import {XRayView} from "core/src/XRayView";
 import {ThreeJSView, GIJSView, MathUtils} from "xrenderer";
 import Matrix3 = THREE.Matrix3;
 import {Thread} from "xrenderer";

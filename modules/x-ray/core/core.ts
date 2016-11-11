@@ -7,5 +7,5 @@ export * from "./src/ThreeObjects";
 export * from "./src/ThreeJSView";
 export * from "./src/CanvasDisplay";
 export * from "./src/HeadlessRenderBase";
-export * from "./src/GIRenderBase";
-export * from "./src/GIJSView";
+export * from "./src/XRayRenderBase";
+export * from "./src/XRayView";

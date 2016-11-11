@@ -1,38 +1,40 @@
 import {SimpleGUI} from "./SimpleGUI";
-//import {ThreeJSView} from "core/src/ThreeJSView";
-//import {XRayView} from "core/src/XRayView";
-import {ThreeJSView, GIJSView, MathUtils, Color} from "xrenderer";
+// import {ThreeJSView, XRayView, MathUtils, Thread} from "xrenderer";
 import Matrix3 = THREE.Matrix3;
-import {Thread} from "xrenderer";
+import {ThreeJSView} from "../core/src/ThreeJSView";
+import {XRayView} from "../core/src/XRayView";
+import {Thread} from "../core/src/engine/renderer/worker/Thread";
+import {MathUtils} from "../core/src/engine/utils/MathUtils";
+import {Color} from "../core/src/engine/math/Color";
 /**
  * Created by Nidin Vinayakan on 27-02-2016.
  */
-export class STLExample extends SimpleGUI {
+export class TurboKernelTest extends SimpleGUI {
 
     private threeJSView:ThreeJSView;
-    private giJSView:GIJSView;
-    private model;
+    private xrayView:XRayView;
 
     constructor() {
         super();
 
-        Thread.workerUrl = "../modules/xrenderer/workers/trace-worker-bootstrap.js";
+        Thread.workerUrl = "../workers/trace-worker-bootstrap-debug.js";
 
-        this.i_width = 2560 / 2;
-        this.i_height = 1440 / 2;
+        this.i_width = 2560 / 4;
+        this.i_height = 1440 / 4;
     }
 
     onInit() {
         var self = this;
 
         this.threeJSView = new ThreeJSView(this.i_width, this.i_height, this.webglOutput, this.appContainer);
-        this.giJSView = new GIJSView(this.i_width, this.i_height, this.giOutput);
-        this.giJSView.hitSamples = 16;
-        // this.giJSView.cameraSamples = 4;
-        // this.giJSView.blockIterations = 4;
-        this.giJSView.bounces = 3;
-        this.giJSView.scene.color.set(0, 0, 0);
-        // this.giJSView.scene.color = Color.hexColor(0xFDDCBA);
+        this.xrayView = new XRayView(this.i_width, this.i_height, this.giOutput);
+        this.xrayView.iterations = 10000000;
+        this.xrayView.hitSamples = 1;
+        // this.xrayView.cameraSamples = 4;
+        this.xrayView.blockIterations = 1;
+        this.xrayView.bounces = 2;
+        this.xrayView.scene.color.set(0, 0, 0);
+        // this.xrayView.scene.color = Color.hexColor(0xFDDCBA);
         // var ambient = new THREE.AmbientLight(0x5C5C5C);
         // this.threeJSView.scene.add(ambient);
         var directionalLight = new THREE.DirectionalLight(0xffeedd, 1);
@@ -46,15 +48,15 @@ export class STLExample extends SimpleGUI {
         var material:any = new THREE.MeshBasicMaterial({color: 0xffffff});
         var sphere = new THREE.Mesh(geometry, material);
 
-        var pointLight1 = new THREE.PointLight(0xffffff, 1, 30);
-        pointLight1.position.set(0, 20, 0);
+        var pointLight1 = new THREE.PointLight(0xffffff, 3, 30);
+        pointLight1.position.set(-10, 5, 10);
         pointLight1.add(sphere.clone());
         this.threeJSView.scene.add(pointLight1);
 
-        var pointLight2 = new THREE.PointLight(0xffffff, 1, 30);
-        pointLight2.position.set(12, 0, 0);
+        var pointLight2 = new THREE.PointLight(0xffffff, 3, 30);
+        pointLight2.position.set(10, 5, 10);
         pointLight2.add(sphere.clone());
-        //this.threeJSView.scene.add(pointLight2);
+        this.threeJSView.scene.add(pointLight2);
 
         /*var pointLight = new THREE.PointLight(color, 1, 30);
          pointLight.position.set(5, 5, 0);
@@ -66,8 +68,11 @@ export class STLExample extends SimpleGUI {
 
         // texture
         var manager = new THREE.LoadingManager();
-        manager.onProgress = function (item, loaded, total) {
-            console.log(item, loaded, total);
+        /*manager.onProgress = function (item, loaded, total) {
+         console.log(item, loaded, total);
+         };*/
+        manager.onLoad = function () {
+            console.log(arguments);
         };
 
         var onProgress = function (xhr) {
@@ -83,6 +88,8 @@ export class STLExample extends SimpleGUI {
         geometry = new THREE.PlaneGeometry(100, 100);
         // material = new THREE.MeshPhongMaterial({color: 0xFDDCBA});
         material = new THREE.MeshPhongMaterial({color: 0xB9B9B9});
+        material.ior = 1.5;
+        material.gloss = MathUtils.radians(15);
         var mesh = new THREE.Mesh(geometry, material);
         mesh.rotation.set(MathUtils.radians(-90), 0, 0);
         // mesh.position.set(-0.5, -0.5, -0.5);
@@ -98,47 +105,42 @@ export class STLExample extends SimpleGUI {
 
         self.render();
 
-        var loader = new THREE["STLLoader"](manager);
-        loader.load('../models/stl/binary/pr2_head_tilt.stl', function (geometry) {
+        var name = "stanford-dragon";
+        var folder = "stanford-dragon/";
 
-            var material = new THREE.MeshPhongMaterial({
-                // ambient: 0x555555,
-                color: 0xAAAAAA,
-                specular: 0x111111,
-                shininess: 200
-            });
-            var mesh = new THREE.Mesh(geometry, material);
+        //THREE.Loader.Handlers.add( /\.dds$/i, new THREE["DDSLoader"]() );
+        var mtlLoader = new THREE["MTLLoader"](manager);
+        mtlLoader.setPath('./models/' + folder);
+        mtlLoader.load(name + '.mtl', function (materials) {
+            var objLoader = new THREE["OBJLoader"]();
+            objLoader.setMaterials(materials);
+            objLoader.setPath('./models/' + folder);
+            materials.preload();
+            objLoader.load(name + '.obj', function (object) {
+                // object.position.y = -95;
+                object.scale.set(0.3, 0.3, 0.3);
+                object.smooth = true;
+                self.threeJSView.scene.add(object);
+                self.render();
 
-            mesh.position.set(0, 0, 0);
-            mesh.rotation.set(-Math.PI / 2, 0.3, 0);
-            mesh.scale.set(2, 2, 2);
+                setTimeout(function () {
+                    self.xrayView.setThreeJSScene(self.threeJSView.scene, function () {
+                        self.xrayView.updateCamera(self.threeJSView.camera);
+                        if (self._tracing.value) {
+                            self.xrayView.toggleTrace(true);
+                        }
+                    });
+                    self.render();
+                }, 5000);
 
-            mesh.castShadow = true;
-            mesh.receiveShadow = true;
+            }, onProgress, onError);
+        });
 
-            self.threeJSView.scene.add(mesh);
-            self.render();
-            self.giJSView.setThreeJSScene(self.threeJSView.scene, function () {
-                self.giJSView.updateCamera(self.threeJSView.camera);
-                if (self._tracing.value) {
-                    self.giJSView.toggleTrace(true);
-                }
-            });
-            self.render();
-        }, onProgress, onError);
 
-        /* GI */
-
-        /*this.giJSView.loadModel('../models/teapot.obj', function(){
-         //this.giJSView.loadModel('../models/emerald.obj', function(){
-         if(self._tracing.value){
-         self.giJSView.toggleTrace(true);
-         }
-         });*/
         this.threeJSView.onCameraChange = function (camera) {
-            self.giJSView.updateCamera(camera);
-            if (self._tracing.value && self.giJSView.dirty) {
-                //self.giJSView.toggleTrace(true);
+            self.xrayView.updateCamera(camera);
+            if (self._tracing.value && self.xrayView.dirty) {
+                //self.xrayView.toggleTrace(true);
             }
         };
         this.render();
@@ -173,13 +175,13 @@ export class STLExample extends SimpleGUI {
                 this._tracing.click();
                 this.traceInitialized = true;
             }
-            if (this._tracing.value && this.giJSView.dirty) {
-                this.giJSView.toggleTrace(newValue);
+            if (this._tracing.value && this.xrayView.dirty) {
+                this.xrayView.toggleTrace(newValue);
             }
         }
     }
 
     toggleTrace(newValue:boolean) {
-        this.giJSView.toggleTrace(newValue);
+        this.xrayView.toggleTrace(newValue);
     }
 }

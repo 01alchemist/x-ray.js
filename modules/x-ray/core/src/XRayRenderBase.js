@@ -7,7 +7,7 @@ System.register(["./CanvasDisplay", "./engine/renderer/SmartBucketRenderer"], fu
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
     var CanvasDisplay_1, SmartBucketRenderer_1;
-    var GIRenderBase;
+    var XRayRenderBase;
     return {
         setters:[
             function (CanvasDisplay_1_1) {
@@ -17,35 +17,35 @@ System.register(["./CanvasDisplay", "./engine/renderer/SmartBucketRenderer"], fu
                 SmartBucketRenderer_1 = SmartBucketRenderer_1_1;
             }],
         execute: function() {
-            GIRenderBase = (function (_super) {
-                __extends(GIRenderBase, _super);
-                function GIRenderBase(i_width, i_height, container) {
+            XRayRenderBase = (function (_super) {
+                __extends(XRayRenderBase, _super);
+                function XRayRenderBase(i_width, i_height, container) {
                     _super.call(this, i_width, i_height, container);
                     this.renderer = new SmartBucketRenderer_1.SmartBucketRenderer();
                 }
-                GIRenderBase.prototype.updateCameraSamples = function (newValue) {
+                XRayRenderBase.prototype.updateCameraSamples = function (newValue) {
                     if (this.cameraSamples != newValue) {
                         this.cameraSamples = newValue;
                         this.renderer.updateCameraSamples(newValue);
                     }
                 };
-                GIRenderBase.prototype.updateHitSamples = function (newValue) {
+                XRayRenderBase.prototype.updateHitSamples = function (newValue) {
                     if (this.hitSamples != newValue) {
                         this.hitSamples = newValue;
                         this.renderer.updateHitSamples(newValue);
                     }
                 };
-                GIRenderBase.prototype.updateCamera = function (newValue) {
+                XRayRenderBase.prototype.updateCamera = function (newValue) {
                     this.camera.updateFromArray(newValue.eye, newValue.lookAt, newValue.up, newValue.fov, newValue.focus, newValue.aperture);
                     this.renderer.updateCamera(this.camera.toJSON());
                 };
-                GIRenderBase.prototype.updateCameraMatrix = function (matrix) {
+                XRayRenderBase.prototype.updateCameraMatrix = function (matrix) {
                     this.camera.u.setFromArray(matrix, 0);
                     this.camera.v.setFromArray(matrix, 4);
                     this.camera.w.setFromArray(matrix, 8);
                     this.renderer.updateCamera(this.camera.toJSON());
                 };
-                GIRenderBase.prototype.toggleTrace = function (newValue) {
+                XRayRenderBase.prototype.toggleTrace = function (newValue) {
                     if (this.renderer.initialized) {
                         console.log("toggleTrace:" + newValue);
                         if (newValue) {
@@ -58,7 +58,7 @@ System.register(["./CanvasDisplay", "./engine/renderer/SmartBucketRenderer"], fu
                         }
                     }
                 };
-                GIRenderBase.prototype.render = function (onInit) {
+                XRayRenderBase.prototype.render = function (onInit) {
                     console.info("+ Render settings");
                     console.info("      Resolution          :   " + this.i_width + "x" + this.i_height);
                     console.info("      CameraSamples       :   " + this.cameraSamples);
@@ -75,10 +75,10 @@ System.register(["./CanvasDisplay", "./engine/renderer/SmartBucketRenderer"], fu
                         self.updateIndicator(rect);
                     }
                 };
-                return GIRenderBase;
+                return XRayRenderBase;
             }(CanvasDisplay_1.CanvasDisplay));
-            exports_1("GIRenderBase", GIRenderBase);
+            exports_1("XRayRenderBase", XRayRenderBase);
         }
     }
 });
-//# sourceMappingURL=GIRenderBase.js.map
+//# sourceMappingURL=XRayRenderBase.js.map

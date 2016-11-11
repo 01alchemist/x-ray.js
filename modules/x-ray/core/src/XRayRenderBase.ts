@@ -5,7 +5,7 @@ import {SharedScene} from "./engine/scene/SharedScene";
 /**
  * Created by Nidin Vinayakan on 19/2/2016.
  */
-export abstract class GIRenderBase extends CanvasDisplay {
+export abstract class XRayRenderBase extends CanvasDisplay {
 
     protected renderer:SmartBucketRenderer;
     protected pixels:Uint8ClampedArray;

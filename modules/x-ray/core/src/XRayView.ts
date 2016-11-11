@@ -1,4 +1,4 @@
-import {GIRenderBase} from "./GIRenderBase";
+import {XRayRenderBase} from "./XRayRenderBase";
 import {OBJLoader} from "./engine/data/OBJLoader";
 import {SpecularMaterial} from "./engine/scene/materials/SpecularMaterial";
 import {Color} from "./engine/math/Color";
@@ -28,12 +28,12 @@ import {Texture} from "./engine/scene/materials/Texture";
  * Created by Nidin Vinayakan on 27-02-2016.
  */
 
-export class GIJSView extends GIRenderBase {
+export class XRayView extends XRayRenderBase {
 
     constructor(public width:number, public height:number, public container?:HTMLElement) {
         super(width, height, container);
 
-        this.scene = new SharedScene(Color.hexColor(0x262626));
+        this.scene = new xray.MasterScene(0x262626);
 
         //default ground
         //this.scene.add(Cube.newCube(new Vector3(-100, -1, -100), new Vector3(100, 0, 100), new DiffuseMaterial(new Color(1, 1, 1))));
@@ -83,7 +83,7 @@ export class GIJSView extends GIRenderBase {
 
         switch (src.type) {
             case ThreeObjects.Mesh:
-                var material = GIJSView.getMaterial(src.material);
+                var material = XRayView.getMaterial(src.material);
                 var shape:Shape = this.buildGeometry(src.geometry, material, src.smooth);
 
                 var matrixWorld = src.matrixWorld;

@@ -1,6 +1,6 @@
 import {SimpleGUI} from "./SimpleGUI";
 import {ThreeJSView} from "../core/src/ThreeJSView";
-import {GIJSView} from "../core/src/GIJSView";
+import {XRayView} from "../core/src/XRayView";
 import {Thread} from "../core/src/engine/renderer/worker/Thread";
 import {MathUtils} from "../core/src/engine/utils/MathUtils";
 import Matrix3 = THREE.Matrix3;
@@ -10,7 +10,7 @@ import Matrix3 = THREE.Matrix3;
 export class glTFTest extends SimpleGUI {
 
     private threeJSView:ThreeJSView;
-    private giJSView:GIJSView;
+    private giJSView:XRayView;
     private model;
     private geometryList;
 
@@ -27,7 +27,7 @@ export class glTFTest extends SimpleGUI {
         var self = this;
 
         this.threeJSView = new ThreeJSView(this.i_width, this.i_height, this.webglOutput, this.appContainer);
-        this.giJSView = new GIJSView(this.i_width, this.i_height, this.giOutput);
+        this.giJSView = new XRayView(this.i_width, this.i_height, this.giOutput);
 
         //var ambient = new THREE.AmbientLight(0x5C5C5C);
         //this.threeJSView.scene.add(ambient);

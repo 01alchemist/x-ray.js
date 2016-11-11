@@ -1,4 +1,4 @@
-System.register(["./GIRenderBase", "./engine/math/Color", "./engine/scene/Camera", "./engine/scene/SharedScene", "./engine/scene/shapes/Cube", "./engine/math/Vector3", "./engine/scene/shapes/Sphere", "./engine/scene/materials/LightMaterial", "./ThreeObjects", "./engine/scene/shapes/Mesh", "./engine/scene/shapes/Triangle", "./engine/scene/materials/Material", "./engine/scene/shapes/TransformedShape", "./engine/scene/materials/Attenuation", "./engine/math/Matrix4", "./engine/scene/materials/Texture"], function(exports_1, context_1) {
+System.register(["./XRayRenderBase", "./engine/math/Color", "./engine/scene/Camera", "./engine/scene/shapes/Cube", "./engine/math/Vector3", "./engine/scene/shapes/Sphere", "./engine/scene/materials/LightMaterial", "./ThreeObjects", "./engine/scene/shapes/Mesh", "./engine/scene/shapes/Triangle", "./engine/scene/materials/Material", "./engine/scene/shapes/TransformedShape", "./engine/scene/materials/Attenuation", "./engine/math/Matrix4", "./engine/scene/materials/Texture"], function(exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
     var __extends = (this && this.__extends) || function (d, b) {
@@ -6,21 +6,18 @@ System.register(["./GIRenderBase", "./engine/math/Color", "./engine/scene/Camera
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
-    var GIRenderBase_1, Color_1, Camera_1, SharedScene_1, Cube_1, Vector3_1, Sphere_1, LightMaterial_1, ThreeObjects_1, Mesh_1, Triangle_1, Material_1, TransformedShape_1, Attenuation_1, Attenuation_2, Matrix4_1, Texture_1;
-    var GIJSView;
+    var XRayRenderBase_1, Color_1, Camera_1, Cube_1, Vector3_1, Sphere_1, LightMaterial_1, ThreeObjects_1, Mesh_1, Triangle_1, Material_1, TransformedShape_1, Attenuation_1, Attenuation_2, Matrix4_1, Texture_1;
+    var XRayView;
     return {
         setters:[
-            function (GIRenderBase_1_1) {
-                GIRenderBase_1 = GIRenderBase_1_1;
+            function (XRayRenderBase_1_1) {
+                XRayRenderBase_1 = XRayRenderBase_1_1;
             },
             function (Color_1_1) {
                 Color_1 = Color_1_1;
             },
             function (Camera_1_1) {
                 Camera_1 = Camera_1_1;
-            },
-            function (SharedScene_1_1) {
-                SharedScene_1 = SharedScene_1_1;
             },
             function (Cube_1_1) {
                 Cube_1 = Cube_1_1;
@@ -60,15 +57,15 @@ System.register(["./GIRenderBase", "./engine/math/Color", "./engine/scene/Camera
                 Texture_1 = Texture_1_1;
             }],
         execute: function() {
-            GIJSView = (function (_super) {
-                __extends(GIJSView, _super);
-                function GIJSView(width, height, container) {
+            XRayView = (function (_super) {
+                __extends(XRayView, _super);
+                function XRayView(width, height, container) {
                     _super.call(this, width, height, container);
                     this.width = width;
                     this.height = height;
                     this.container = container;
                     this.identityMatrix = new THREE.Matrix4().identity();
-                    this.scene = new SharedScene_1.SharedScene(Color_1.Color.hexColor(0x262626));
+                    this.scene = new xray.MasterScene(0x262626);
                     this.camera = Camera_1.Camera.lookAt(new Vector3_1.Vector3(0, 0, 0), new Vector3_1.Vector3(0, 0, 0), new Vector3_1.Vector3(0, 1, 0), 45);
                     this.cameraSamples = -1;
                     this.hitSamples = 1;
@@ -76,11 +73,11 @@ System.register(["./GIRenderBase", "./engine/math/Color", "./engine/scene/Camera
                     this.iterations = 1000000;
                     this.blockIterations = 1;
                 }
-                GIJSView.prototype.setThreeJSScene = function (scene, onInit) {
+                XRayView.prototype.setThreeJSScene = function (scene, onInit) {
                     this.loadChildren(scene);
                     this.render(onInit);
                 };
-                GIJSView.prototype.loadChildren = function (parent) {
+                XRayView.prototype.loadChildren = function (parent) {
                     var child;
                     for (var i = 0; i < parent.children.length; i++) {
                         child = parent.children[i];
@@ -100,10 +97,10 @@ System.register(["./GIRenderBase", "./engine/math/Color", "./engine/scene/Camera
                         }
                     }
                 };
-                GIJSView.prototype.buildSceneObject = function (src) {
+                XRayView.prototype.buildSceneObject = function (src) {
                     switch (src.type) {
                         case ThreeObjects_1.ThreeObjects.Mesh:
-                            var material = GIJSView.getMaterial(src.material);
+                            var material = XRayView.getMaterial(src.material);
                             var shape = this.buildGeometry(src.geometry, material, src.smooth);
                             var matrixWorld = src.matrixWorld;
                             if (matrixWorld.equals(this.identityMatrix)) {
@@ -118,7 +115,7 @@ System.register(["./GIRenderBase", "./engine/math/Color", "./engine/scene/Camera
                     }
                     return null;
                 };
-                GIJSView.prototype.buildGeometry = function (geometry, material, smooth) {
+                XRayView.prototype.buildGeometry = function (geometry, material, smooth) {
                     if (smooth === void 0) { smooth = false; }
                     if (geometry["_bufferGeometry"]) {
                         geometry = geometry["_bufferGeometry"];
@@ -245,10 +242,10 @@ System.register(["./GIRenderBase", "./engine/math/Color", "./engine/scene/Camera
                     }
                     return mesh;
                 };
-                GIJSView.prototype.computeNormals = function (positions) {
+                XRayView.prototype.computeNormals = function (positions) {
                     return new Float32Array(positions.length);
                 };
-                GIJSView.prototype.updateCamera = function (camera) {
+                XRayView.prototype.updateCamera = function (camera) {
                     this.camera.p.setFromJson(camera.position);
                     this.camera.m = 1 / Math.tan(camera.fov * Math.PI / 360);
                     var e = camera.matrix.elements;
@@ -263,7 +260,7 @@ System.register(["./GIRenderBase", "./engine/math/Color", "./engine/scene/Camera
                         this.renderer.traceManager.stop();
                     }
                 };
-                GIJSView.getMaterial = function (srcMaterial) {
+                XRayView.getMaterial = function (srcMaterial) {
                     if (srcMaterial instanceof THREE.MultiMaterial) {
                         srcMaterial = srcMaterial.materials[0];
                     }
@@ -309,7 +306,7 @@ System.register(["./GIRenderBase", "./engine/math/Color", "./engine/scene/Camera
                     }
                     return material;
                 };
-                GIJSView.prototype.getLight = function (src) {
+                XRayView.prototype.getLight = function (src) {
                     if (src.children.length > 0) {
                         var lightGeometry = src.children[0].geometry;
                         if (lightGeometry instanceof THREE.SphereGeometry) {
@@ -329,10 +326,10 @@ System.register(["./GIRenderBase", "./engine/math/Color", "./engine/scene/Camera
                     }
                     return shape;
                 };
-                return GIJSView;
-            }(GIRenderBase_1.GIRenderBase));
-            exports_1("GIJSView", GIJSView);
+                return XRayView;
+            }(XRayRenderBase_1.XRayRenderBase));
+            exports_1("XRayView", XRayView);
         }
     }
 });
-//# sourceMappingURL=GIJSView.js.map
+//# sourceMappingURL=XRayView.js.map
