@@ -29,6 +29,6 @@
     "xdata": "^2.1.15"
   },
   "devDependencies": {
-    "typescript": "^1.8.10"
+    "typescript": "^2.0.10"
   }
 }

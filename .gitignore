@@ -50,6 +50,6 @@ crashlytics-build.properties
 
 # Created by .ignore support plugin (hsz.mobi)
 
-modules/**/*.js
+src/**/*.js
 /models
-modules/**/*.map
+src/**/*.map

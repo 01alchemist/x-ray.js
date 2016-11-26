@@ -1,0 +1,13 @@
+{
+  "sceneList":[
+    {
+      "type":"simple",
+      "name":"Spheres",
+      "url":"spheres.json"
+    },
+    {
+      "type":"embedded",
+      "name":"Materials"
+    }
+  ]
+}
