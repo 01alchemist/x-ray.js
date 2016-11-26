@@ -37,11 +37,11 @@ export class TurboKernelTest extends SimpleGUI {
         //this.xrayView.scene.color.set(0, 0, 0);
         // this.xrayView.scene.color = Color.hexColor(0xFDDCBA);
         var ambient = new THREE.AmbientLight(0x5C5C5C);
-        this.threeJSView.scene.add(ambient);
+        // this.threeJSView.scene.add(ambient);
         var directionalLight = new THREE.DirectionalLight(0xffeedd, 1);
         directionalLight.castShadow = true;
         directionalLight.position.set(0, 1, 0);
-        this.threeJSView.scene.add(directionalLight);
+        // this.threeJSView.scene.add(directionalLight);
 
         var color = 0xffeedd;
 
@@ -52,7 +52,7 @@ export class TurboKernelTest extends SimpleGUI {
         var pointLight1 = new THREE.PointLight(0xffffff, 3, 30);
         pointLight1.position.set(-10, 5, 10);
         pointLight1.add(sphere.clone());
-        this.threeJSView.scene.add(pointLight1);
+        // this.threeJSView.scene.add(pointLight1);
 
         var pointLight2 = new THREE.PointLight(0xffffff, 3, 30);
         pointLight2.position.set(10, 5, 10);
@@ -65,7 +65,7 @@ export class TurboKernelTest extends SimpleGUI {
          pointLight.shadow.camera["near"] = 1;
          pointLight.shadow.camera["far"] = 300;
          pointLight.shadow.bias = 0.01;
-         this.threeJSView.scene.add(pointLight);
+         // this.threeJSView.scene.add(pointLight);
 
         // texture
         var manager = new THREE.LoadingManager();
@@ -94,7 +94,7 @@ export class TurboKernelTest extends SimpleGUI {
         var mesh = new THREE.Mesh(geometry, material);
         mesh.castShadow = false;
         mesh.receiveShadow = true;
-        // this.threeJSView.scene.add(mesh);
+        this.threeJSView.scene.add(mesh);
 
         /*var areaLightMesh = mesh.clone();
          var pointLight3 = new THREE.PointLight(0xffffff, 1, 1000);
@@ -104,8 +104,8 @@ export class TurboKernelTest extends SimpleGUI {
 
         self.render();
 
-        var name = "gopher";
-        // var name = "stanford-dragon";
+        // var name = "gopher";
+        var name = "stanford-dragon";
         // var name = "sphere";
 
         var folder = name + "/";
