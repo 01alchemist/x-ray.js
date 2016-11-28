@@ -76,7 +76,12 @@ System.register(["./TraceJob", "./TraceJobManager"], function(exports_1, context
                     }
                 };
                 Thread.prototype.send = function (data, buffers) {
-                    this.instance.postMessage(data, buffers);
+                    if (navigator.userAgent.indexOf("Firefox") > -1) {
+                        this.instance.postMessage(data);
+                    }
+                    else {
+                        this.instance.postMessage(data, buffers);
+                    }
                 };
                 Thread.prototype.terminate = function () {
                 };

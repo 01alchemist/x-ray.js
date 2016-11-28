@@ -80,7 +80,11 @@ export class Thread {
     }
 
     send(data:any, buffers?):void {
-        this.instance.postMessage(data, buffers);
+        if(navigator.userAgent.indexOf("Firefox") > -1) {
+            this.instance.postMessage(data);
+        }else{
+            this.instance.postMessage(data, buffers);
+        }
     }
 
     terminate():void {

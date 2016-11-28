@@ -59,12 +59,10 @@ System.register(["./ThreadPool"], function(exports_1, context_1) {
                     console.log("configure");
                     this.width = param.width;
                     this.height = param.height;
-                    console.log("Checkpoint #1");
                     this.flags = new Uint8Array(new SharedArrayBuffer(ThreadPool_1.ThreadPool.maxThreads));
                     TraceJobManager.flags = this.flags;
                     this.pixelMemory = new Uint8Array(new SharedArrayBuffer(this.width * this.height * 3));
                     this.sampleMemory = new Float32Array(new SharedArrayBuffer(4 * this.width * this.height * 3));
-                    console.log("Checkpoint #3");
                     this.traceParameters = {
                         turboBuffer: unsafe.RAW_MEMORY,
                         flagsBuffer: this.flags.buffer,

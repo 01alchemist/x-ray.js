@@ -76,7 +76,13 @@ System.register(["./XRayRenderBase", "./ThreeObjects"], function(exports_1, cont
                             var material = XRayView.getTurboMaterial(src.material);
                             var shape = this.buildTurboGeometry(src.geometry, material, src.smooth);
                             var matrixWorld = src.matrixWorld;
-                            return shape;
+                            if (matrixWorld.equals(this.identityMatrix)) {
+                                return shape;
+                            }
+                            else {
+                                var mat = xray.Matrix.fromTHREEJS(matrixWorld.elements);
+                                return xray.TransformedShape.NewTransformedShape(shape, mat);
+                            }
                         case ThreeObjects_1.ThreeObjects.PointLight:
                             return this.getTurboLight(src);
                     }

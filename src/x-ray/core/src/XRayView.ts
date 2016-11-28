@@ -85,12 +85,12 @@ export class XRayView extends XRayRenderBase {
 
                 var matrixWorld = src.matrixWorld;
 
-                // if (matrixWorld.equals(this.identityMatrix)) {
+                if (matrixWorld.equals(this.identityMatrix)) {
                     return shape;
-                // } else {
-                //     var mat:Matrix4 = Matrix4.fromTHREEJS(matrixWorld.elements);
-                //     return TransformedShape.newTransformedShape(shape, mat);
-                // }
+                } else {
+                    var mat = xray.Matrix.fromTHREEJS(matrixWorld.elements);
+                    return xray.TransformedShape.NewTransformedShape(shape, mat);
+                }
 
             case ThreeObjects.PointLight:
                 return this.getTurboLight(src);

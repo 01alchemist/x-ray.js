@@ -6,11 +6,12 @@ import {XRayView} from "../core/src/XRayView";
 import {Thread} from "../core/src/engine/renderer/worker/Thread";
 import {MathUtils} from "../core/src/engine/utils/MathUtils";
 import {Color} from "../core/src/engine/math/Color";
+declare var THREE:any;
 /**
  * Created by Nidin Vinayakan on 27-02-2016
  * Turbo Kernel Test
  */
-export class TurboKernelTest extends SimpleGUI {
+export class ObjectLoaderTest extends SimpleGUI {
 
     private threeJSView: ThreeJSView;
     private xrayView: XRayView;
@@ -29,11 +30,11 @@ export class TurboKernelTest extends SimpleGUI {
 
         this.threeJSView = new ThreeJSView(this.i_width, this.i_height, this.webglOutput, this.appContainer);
         this.xrayView = new XRayView(this.i_width, this.i_height, this.giOutput);
-        this.xrayView.iterations = 10000000;
+        this.xrayView.iterations = 10000;
         this.xrayView.hitSamples = 1;
         // this.xrayView.cameraSamples = 4;
         this.xrayView.blockIterations = 1;
-        this.xrayView.bounces = 2;
+        this.xrayView.bounces = 5;
         //this.xrayView.scene.color.set(0, 0, 0);
         // this.xrayView.scene.color = Color.hexColor(0xFDDCBA);
         var ambient = new THREE.AmbientLight(0x5C5C5C);
@@ -67,15 +68,59 @@ export class TurboKernelTest extends SimpleGUI {
          pointLight.shadow.bias = 0.01;
          // this.threeJSView.scene.add(pointLight);
 
-        // texture
+        // geometry = new THREE.BoxBufferGeometry( 1000, 1, 1000);
+        geometry = new THREE.CubeGeometry(100,1,100,10,1,10);
+        material = new THREE.MeshPhongMaterial({color: 0xB9B9B9});
+        material.ior = 1.5;
+        material.gloss = MathUtils.radians(15);
+        var ground = new THREE.Mesh(geometry, material);
+        ground.castShadow = false;
+        ground.receiveShadow = true;
+        this.threeJSView.scene.add(ground);
+
+        geometry = new THREE.CubeGeometry(1,40,40,1,10,10);
+        material = new THREE.MeshPhongMaterial({color: 0xFF0000});
+        material.ior = 1.5;
+        material.gloss = MathUtils.radians(15);
+        var left = new THREE.Mesh(geometry, material);
+        left.position.set(-10,0,0);
+        left.castShadow = false;
+        left.receiveShadow = true;
+        this.threeJSView.scene.add(left);
+
+        geometry = new THREE.CubeGeometry(1,40,40,1,10,10);
+        material = new THREE.MeshPhongMaterial({color: 0x00FF00});
+        material.ior = 1.5;
+        material.gloss = MathUtils.radians(15);
+        var right = new THREE.Mesh(geometry, material);
+        right.position.set(10,0,0);
+        right.castShadow = false;
+        right.receiveShadow = true;
+        this.threeJSView.scene.add(right);
+
+        geometry = new THREE.CubeGeometry(40,40,1,10,10,1);
+        material = new THREE.MeshPhongMaterial({color: 0xB9B9B9});
+        material.ior = 1.5;
+        material.gloss = MathUtils.radians(15);
+        var back = new THREE.Mesh(geometry, material);
+        back.position.set(0,0,-10);
+        back.castShadow = false;
+        back.receiveShadow = true;
+        this.threeJSView.scene.add(back);
+
+        /*var areaLightMesh = mesh.clone();
+         var pointLight3 = new THREE.PointLight(0xffffff, 1, 1000);
+         pointLight3.position.set(0, 100, 0);
+         pointLight3.add(areaLightMesh);
+         this.threeJSView.scene.add(pointLight3);*/
+
+        self.render();
+
+
         var manager = new THREE.LoadingManager();
-        /*manager.onProgress = function (item, loaded, total) {
-         console.log(item, loaded, total);
-         };*/
         manager.onLoad = function () {
             console.log(arguments);
         };
-
         var onProgress = function (xhr) {
             if (xhr.lengthComputable) {
                 var percentComplete = xhr.loaded / xhr.total * 100;
@@ -86,60 +131,40 @@ export class TurboKernelTest extends SimpleGUI {
         var onError = function (xhr) {
         };
 
-        // geometry = new THREE.BoxBufferGeometry( 1000, 1, 1000);
-        geometry = new THREE.CubeGeometry(1000,1,1000,10,1,10);
-        material = new THREE.MeshPhongMaterial({color: 0xB9B9B9});
-        material.ior = 1.5;
-        material.gloss = MathUtils.radians(15);
-        var mesh = new THREE.Mesh(geometry, material);
-        mesh.castShadow = false;
-        mesh.receiveShadow = true;
-        this.threeJSView.scene.add(mesh);
+        /* model loader */
+        var loader = new THREE.ObjectLoader();
+        /*end*/
 
-        /*var areaLightMesh = mesh.clone();
-         var pointLight3 = new THREE.PointLight(0xffffff, 1, 1000);
-         pointLight3.position.set(0, 100, 0);
-         pointLight3.add(areaLightMesh);
-         this.threeJSView.scene.add(pointLight3);*/
-
-        self.render();
 
         // var name = "gopher";
-        var name = "stanford-dragon";
-        // var name = "cornellbox_suzanne_lucy";
+        // var name = "stanford-dragon";
+        // var name = "cornellbox_suzanne_lucy_scene";
+        // var name = "lucy";
+        var name = "scene";
         // var name = "sphere";
 
-        var folder = name + "/";
+        var folder = "models/";
 
-        //THREE.Loader.Handlers.add( /\.dds$/i, new THREE["DDSLoader"]() );
-        var mtlLoader = new THREE["MTLLoader"](manager);
-        mtlLoader.setPath('./models/' + folder);
-        mtlLoader.load(name + '.mtl', function (materials) {
-            var objLoader = new THREE["OBJLoader"]();
-            objLoader.setMaterials(materials);
-            objLoader.setPath('./models/' + folder);
-            materials.preload();
-            objLoader.load(name + '.obj', function (object) {
-                // object.position.y = -95;
-                // object.scale.set(0.3, 0.3, 0.3);
-                object.smooth = true;
+        loader.load(folder + name + '.json', function (object) {
+            // object.position.y = -95;
+            // object.scale.set(0.3, 0.3, 0.3);
+            object.smooth = true;
 
-                self.threeJSView.scene.add(object);
+            self.threeJSView.scene.add(object);
 
+            self.render();
+
+            setTimeout(function () {
+                self.xrayView.setThreeJSScene(self.threeJSView.scene, function () {
+                    self.xrayView.updateCamera(self.threeJSView.camera);
+                    if (self._tracing.value) {
+                        self.xrayView.toggleTrace(true);
+                    }
+                });
                 self.render();
+            }, 2000);
 
-                setTimeout(function () {
-                    self.xrayView.setThreeJSScene(self.threeJSView.scene, function () {
-                        self.xrayView.updateCamera(self.threeJSView.camera);
-                        if (self._tracing.value) {
-                            self.xrayView.toggleTrace(true);
-                        }
-                    });
-                    self.render();
-                }, 2000);
-
-            }, onProgress, onError);
-        });
+        }, onProgress, onError);
 
 
         this.threeJSView.onCameraChange = function (camera) {

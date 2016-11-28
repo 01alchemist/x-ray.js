@@ -9,9 +9,7 @@
     <script src="../../../libs/threejs/controls/EditorControls.js"></script>
 
     <!--Loaders-->
-    <script src="../../../node_modules/three/examples/js/loaders/ctm/lzma.js"></script>
-    <script src="../../../node_modules/three/examples/js/loaders/ctm/ctm.js"></script>
-    <script src="../../../node_modules/three/examples/js/loaders/ctm/CTMLoader.js"></script>
+    <script src="../../../node_modules/three/examples/js/loaders/OBJLoader.js"></script>
 
     <!--system js-->
     <script src="../../../node_modules/systemjs/dist/system.src.js"></script>
@@ -35,8 +33,8 @@
     </script>
     <script src="../../../libs/xray-kernel/xray-kernel-turbo.js"></script>
     <script>
-        System.import('CTMTest').then(function (module) {
-            new module.CTMTest();
+        System.import('ObjectLoaderTest').then(function (module) {
+            new module.ObjectLoaderTest();
         }, console.error.bind(console));
     </script>
 </head>

@@ -9,9 +9,25 @@
     <script src="../../../libs/threejs/controls/EditorControls.js"></script>
 
     <!--Loaders-->
+    <script src="../../../node_modules/three/examples/js/MorphAnimMesh.js"></script>
+    <script src="../../../node_modules/three/examples/js/loaders/collada/Animation.js"></script>
+    <script src="../../../node_modules/three/examples/js/loaders/collada/AnimationHandler.js"></script>
+    <script src="../../../node_modules/three/examples/js/loaders/collada/KeyFrameAnimation.js"></script>
+
+    <script src="../../../node_modules/three/examples/js/loaders/DDSLoader.js"></script>
+
     <script src="../../../node_modules/three/examples/js/loaders/ctm/lzma.js"></script>
     <script src="../../../node_modules/three/examples/js/loaders/ctm/ctm.js"></script>
     <script src="../../../node_modules/three/examples/js/loaders/ctm/CTMLoader.js"></script>
+
+    <script src="../../../node_modules/three/examples/js/loaders/deprecated/SceneLoader.js"></script>
+    <script src="../../../node_modules/three/examples/js/loaders/BinaryLoader.js"></script>
+    <script src="../../../node_modules/three/examples/js/loaders/OBJLoader.js"></script>
+    <script src="../../../node_modules/three/examples/js/loaders/VTKLoader.js"></script>
+    <script src="../../../node_modules/three/examples/js/loaders/STLLoader.js"></script>
+    <script src="../../../node_modules/three/examples/js/loaders/ColladaLoader.js"></script>
+    <script src="../../../node_modules/three/examples/js/loaders/UTF8Loader.js"></script>
+    <script src="../../../node_modules/three/examples/js/loaders/MTLLoader.js"></script>
 
     <!--system js-->
     <script src="../../../node_modules/systemjs/dist/system.src.js"></script>
@@ -35,8 +51,8 @@
     </script>
     <script src="../../../libs/xray-kernel/xray-kernel-turbo.js"></script>
     <script>
-        System.import('CTMTest').then(function (module) {
-            new module.CTMTest();
+        System.import('SceneTurboKernelTest').then(function (module) {
+            new module.SceneTurboKernelTest();
         }, console.error.bind(console));
     </script>
 </head>

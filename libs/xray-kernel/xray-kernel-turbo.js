@@ -481,9 +481,6 @@ var xray;
         Vector.Dot = function (a, B) {
             return (a.X * B.X) + (a.Y * B.Y) + (a.Z * B.Z);
         };
-        Vector.Dot_12 = function (a, B) {
-            return (turbo.Runtime._mem_float64[(a + 8) >> 3] * B.x) + (turbo.Runtime._mem_float64[(a + 16) >> 3] * B.y) + (turbo.Runtime._mem_float64[(a + 24) >> 3] * B.z);
-        };
         Vector.Dot_mem = function (a, B) {
             return (turbo.Runtime._mem_float64[(a + 8) >> 3] * turbo.Runtime._mem_float64[(B + 8) >> 3]) + (turbo.Runtime._mem_float64[(a + 16) >> 3] * turbo.Runtime._mem_float64[(B + 16) >> 3]) + (turbo.Runtime._mem_float64[(a + 24) >> 3] * turbo.Runtime._mem_float64[(B + 24) >> 3]);
         };
@@ -1082,7 +1079,7 @@ var xray;
         };
         Box.OuterRadius = function (SELF) {
             var center = Box.Center(SELF);
-            var tmp = Vector.Sub_mem(turbo.Runtime._mem_int32[(SELF + 4) >> 2], center, center);
+            var tmp = Vector.Sub_mem(turbo.Runtime._mem_int32[(SELF + 4) >> 2], center);
             var len = Vector.Length_mem(tmp);
             free(center);
             free(tmp);
@@ -1090,7 +1087,7 @@ var xray;
         };
         Box.InnerRadius = function (SELF) {
             var center = Box.Center(SELF);
-            var tmp = Vector.Sub_mem(center, turbo.Runtime._mem_int32[(SELF + 4) >> 2], center);
+            var tmp = Vector.Sub_mem(center, turbo.Runtime._mem_int32[(SELF + 4) >> 2]);
             var result = Vector.MaxComponent_mem(tmp);
             free(tmp);
             return result;
@@ -1235,6 +1232,9 @@ var xray;
             var ptr = Matrix.initInstance(turbo.Runtime.allocOrThrow(136, 8));
             return Matrix.init(ptr, x00, x01, x02, x03, x10, x11, x12, x13, x20, x21, x22, x23, x30, x31, x32, x33);
         };
+        Matrix.fromTHREEJS = function (e) {
+            return Matrix.NewMatrix(e[0], e[4], e[8], e[12], e[1], e[5], e[9], e[13], e[2], e[6], e[10], e[14], e[3], e[7], e[11], e[15]);
+        };
         Matrix.DATA = function (SELF) {
             return [
                 turbo.Runtime._mem_float64[(SELF + 8) >> 3], turbo.Runtime._mem_float64[(SELF + 16) >> 3], turbo.Runtime._mem_float64[(SELF + 24) >> 3], turbo.Runtime._mem_float64[(SELF + 32) >> 3],
@@ -1333,18 +1333,18 @@ var xray;
             turbo.Runtime._mem_float64[(m + 128) >> 3] = turbo.Runtime._mem_float64[(a + 104) >> 3] * turbo.Runtime._mem_float64[(b + 32) >> 3] + turbo.Runtime._mem_float64[(a + 112) >> 3] * turbo.Runtime._mem_float64[(b + 64) >> 3] + turbo.Runtime._mem_float64[(a + 120) >> 3] * turbo.Runtime._mem_float64[(b + 96) >> 3] + turbo.Runtime._mem_float64[(a + 128) >> 3] * turbo.Runtime._mem_float64[(b + 128) >> 3];
             return m;
         };
-        Matrix.MulPosition2 = function (a, b) {
-            var x = turbo.Runtime._mem_float64[(a + 8) >> 3] * b.x + turbo.Runtime._mem_float64[(a + 16) >> 3] * b.y + turbo.Runtime._mem_float64[(a + 24) >> 3] * b.z + turbo.Runtime._mem_float64[(a + 32) >> 3];
-            var y = turbo.Runtime._mem_float64[(a + 40) >> 3] * b.x + turbo.Runtime._mem_float64[(a + 48) >> 3] * b.y + turbo.Runtime._mem_float64[(a + 56) >> 3] * b.z + turbo.Runtime._mem_float64[(a + 64) >> 3];
-            var z = turbo.Runtime._mem_float64[(a + 72) >> 3] * b.x + turbo.Runtime._mem_float64[(a + 80) >> 3] * b.y + turbo.Runtime._mem_float64[(a + 88) >> 3] * b.z + turbo.Runtime._mem_float64[(a + 96) >> 3];
-            return new Vector3(x, y, z);
-        };
         Matrix.MulPosition = function (a, b, c) {
             var x = turbo.Runtime._mem_float64[(a + 8) >> 3] * turbo.Runtime._mem_float64[(b + 8) >> 3] + turbo.Runtime._mem_float64[(a + 16) >> 3] * turbo.Runtime._mem_float64[(b + 16) >> 3] + turbo.Runtime._mem_float64[(a + 24) >> 3] * turbo.Runtime._mem_float64[(b + 24) >> 3] + turbo.Runtime._mem_float64[(a + 32) >> 3];
             var y = turbo.Runtime._mem_float64[(a + 40) >> 3] * turbo.Runtime._mem_float64[(b + 8) >> 3] + turbo.Runtime._mem_float64[(a + 48) >> 3] * turbo.Runtime._mem_float64[(b + 16) >> 3] + turbo.Runtime._mem_float64[(a + 56) >> 3] * turbo.Runtime._mem_float64[(b + 24) >> 3] + turbo.Runtime._mem_float64[(a + 64) >> 3];
             var z = turbo.Runtime._mem_float64[(a + 72) >> 3] * turbo.Runtime._mem_float64[(b + 8) >> 3] + turbo.Runtime._mem_float64[(a + 80) >> 3] * turbo.Runtime._mem_float64[(b + 16) >> 3] + turbo.Runtime._mem_float64[(a + 88) >> 3] * turbo.Runtime._mem_float64[(b + 24) >> 3] + turbo.Runtime._mem_float64[(a + 96) >> 3];
             var ptr = c ? c : Vector.initInstance(turbo.Runtime.allocOrThrow(32, 8))();
             return Vector.Init_mem(ptr, x, y, z);
+        };
+        Matrix.MulPosition_vec3 = function (a, b) {
+            var x = turbo.Runtime._mem_float64[(a + 8) >> 3] * b.x + turbo.Runtime._mem_float64[(a + 16) >> 3] * b.y + turbo.Runtime._mem_float64[(a + 24) >> 3] * b.z + turbo.Runtime._mem_float64[(a + 32) >> 3];
+            var y = turbo.Runtime._mem_float64[(a + 40) >> 3] * b.x + turbo.Runtime._mem_float64[(a + 48) >> 3] * b.y + turbo.Runtime._mem_float64[(a + 56) >> 3] * b.z + turbo.Runtime._mem_float64[(a + 64) >> 3];
+            var z = turbo.Runtime._mem_float64[(a + 72) >> 3] * b.x + turbo.Runtime._mem_float64[(a + 80) >> 3] * b.y + turbo.Runtime._mem_float64[(a + 88) >> 3] * b.z + turbo.Runtime._mem_float64[(a + 96) >> 3];
+            return new Vector3(x, y, z);
         };
         Matrix.MulDirection = function (a, b, c) {
             var x = turbo.Runtime._mem_float64[(a + 8) >> 3] * turbo.Runtime._mem_float64[(b + 8) >> 3] + turbo.Runtime._mem_float64[(a + 16) >> 3] * turbo.Runtime._mem_float64[(b + 16) >> 3] + turbo.Runtime._mem_float64[(a + 24) >> 3] * turbo.Runtime._mem_float64[(b + 24) >> 3];
@@ -1353,19 +1353,16 @@ var xray;
             var ptr = c ? c : Vector.initInstance(turbo.Runtime.allocOrThrow(32, 8));
             return Vector.Normalize_mem(Vector.Init_mem(ptr, x, y, z));
         };
-        Matrix.MulDirection2 = function (a, b) {
+        Matrix.MulDirection_vec3 = function (a, b) {
             var x = turbo.Runtime._mem_float64[(a + 8) >> 3] * b.x + turbo.Runtime._mem_float64[(a + 16) >> 3] * b.y + turbo.Runtime._mem_float64[(a + 24) >> 3] * b.z;
             var y = turbo.Runtime._mem_float64[(a + 40) >> 3] * b.x + turbo.Runtime._mem_float64[(a + 48) >> 3] * b.y + turbo.Runtime._mem_float64[(a + 56) >> 3] * b.z;
             var z = turbo.Runtime._mem_float64[(a + 72) >> 3] * b.x + turbo.Runtime._mem_float64[(a + 80) >> 3] * b.y + turbo.Runtime._mem_float64[(a + 88) >> 3] * b.z;
-            return new Vector3(x, y, z).normalize();
+            return new Vector3(x, y, z);
         };
-        Matrix.MulRay = function (a, b) {
-            var origin = Matrix.MulPosition(a, Ray.Origin(b));
-            var direction = Matrix.MulDirection(a, Ray.Direction(b));
-            var ray = new Ray(new Vector3().read(origin), new Vector3().read(direction));
-            free(origin);
-            free(direction);
-            return ray;
+        Matrix.MulRay = function (a, ray) {
+            var origin = Matrix.MulPosition_vec3(a, ray.origin);
+            var direction = Matrix.MulDirection_vec3(a, ray.direction);
+            return new Ray(origin, direction);
         };
         Matrix.MulBox = function (a, box, c) {
             var min = turbo.Runtime._mem_int32[(box + 4) >> 2];
@@ -1780,7 +1777,7 @@ var xray;
             return SELF;
         };
         Shape.Type_impl = function (SELF) {
-            return ShapeType.UNKNOWN;
+            throw ShapeType.UNKNOWN;
         };
         Shape.ToJSON_impl = function (SELF) {
             throw "Pure: Shape.ToJSON()";
@@ -1807,6 +1804,8 @@ var xray;
             switch (turbo.Runtime._mem_int32[SELF >> 2]) {
                 case 255446:
                     return Shape.Type_impl(SELF);
+                case 124486674:
+                    return TransformedShape.Type_impl(SELF);
                 case 48824165:
                     return Cube.Type_impl(SELF);
                 case 171432461:
@@ -1815,8 +1814,6 @@ var xray;
                     return Triangle.Type_impl(SELF);
                 case 48819938:
                     return Mesh.Type_impl(SELF);
-                case 122109087:
-                    return Plane.Type_impl(SELF);
                 default:
                     throw turbo.Runtime._badType(SELF);
             }
@@ -1825,6 +1822,8 @@ var xray;
             switch (turbo.Runtime._mem_int32[SELF >> 2]) {
                 case 255446:
                     return Shape.ToJSON_impl(SELF);
+                case 124486674:
+                    return TransformedShape.ToJSON_impl(SELF);
                 case 48824165:
                     return Cube.ToJSON_impl(SELF);
                 case 171432461:
@@ -1833,8 +1832,6 @@ var xray;
                     return Triangle.ToJSON_impl(SELF);
                 case 48819938:
                     return Mesh.ToJSON_impl(SELF);
-                case 122109087:
-                    return Plane.ToJSON_impl(SELF);
                 default:
                     throw turbo.Runtime._badType(SELF);
             }
@@ -1843,6 +1840,8 @@ var xray;
             switch (turbo.Runtime._mem_int32[SELF >> 2]) {
                 case 255446:
                     return Shape.Compile_impl(SELF, c);
+                case 124486674:
+                    return TransformedShape.Compile_impl(SELF, c);
                 case 48824165:
                     return Cube.Compile_impl(SELF, c);
                 case 171432461:
@@ -1851,8 +1850,6 @@ var xray;
                     return Triangle.Compile_impl(SELF, c);
                 case 48819938:
                     return Mesh.Compile_impl(SELF, c);
-                case 122109087:
-                    return Plane.Compile_impl(SELF, c);
                 default:
                     throw turbo.Runtime._badType(SELF);
             }
@@ -1861,6 +1858,8 @@ var xray;
             switch (turbo.Runtime._mem_int32[SELF >> 2]) {
                 case 255446:
                     return Shape.BoundingBox_impl(SELF, c);
+                case 124486674:
+                    return TransformedShape.BoundingBox_impl(SELF, c);
                 case 48824165:
                     return Cube.BoundingBox_impl(SELF, c);
                 case 171432461:
@@ -1869,8 +1868,6 @@ var xray;
                     return Triangle.BoundingBox_impl(SELF, c);
                 case 48819938:
                     return Mesh.BoundingBox_impl(SELF, c);
-                case 122109087:
-                    return Plane.BoundingBox_impl(SELF, c);
                 default:
                     throw turbo.Runtime._badType(SELF);
             }
@@ -1879,6 +1876,8 @@ var xray;
             switch (turbo.Runtime._mem_int32[SELF >> 2]) {
                 case 255446:
                     return Shape.Intersect_impl(SELF, ray, c);
+                case 124486674:
+                    return TransformedShape.Intersect_impl(SELF, ray, c);
                 case 48824165:
                     return Cube.Intersect_impl(SELF, ray, c);
                 case 171432461:
@@ -1887,8 +1886,6 @@ var xray;
                     return Triangle.Intersect_impl(SELF, ray, c);
                 case 48819938:
                     return Mesh.Intersect_impl(SELF, ray, c);
-                case 122109087:
-                    return Plane.Intersect_impl(SELF, ray, c);
                 default:
                     throw turbo.Runtime._badType(SELF);
             }
@@ -1897,6 +1894,8 @@ var xray;
             switch (turbo.Runtime._mem_int32[SELF >> 2]) {
                 case 255446:
                     return Shape.UV_impl(SELF, p, c);
+                case 124486674:
+                    return TransformedShape.UV_impl(SELF, p, c);
                 case 48824165:
                     return Cube.UV_impl(SELF, p, c);
                 case 171432461:
@@ -1905,8 +1904,6 @@ var xray;
                     return Triangle.UV_impl(SELF, p, c);
                 case 48819938:
                     return Mesh.UV_impl(SELF, p, c);
-                case 122109087:
-                    return Plane.UV_impl(SELF, p, c);
                 default:
                     throw turbo.Runtime._badType(SELF);
             }
@@ -1915,6 +1912,8 @@ var xray;
             switch (turbo.Runtime._mem_int32[SELF >> 2]) {
                 case 255446:
                     return Shape.NormalAt_impl(SELF, p, c);
+                case 124486674:
+                    return TransformedShape.NormalAt_impl(SELF, p, c);
                 case 48824165:
                     return Cube.NormalAt_impl(SELF, p, c);
                 case 171432461:
@@ -1923,8 +1922,6 @@ var xray;
                     return Triangle.NormalAt_impl(SELF, p, c);
                 case 48819938:
                     return Mesh.NormalAt_impl(SELF, p, c);
-                case 122109087:
-                    return Plane.NormalAt_impl(SELF, p, c);
                 default:
                     throw turbo.Runtime._badType(SELF);
             }
@@ -1933,6 +1930,8 @@ var xray;
             switch (turbo.Runtime._mem_int32[SELF >> 2]) {
                 case 255446:
                     return Shape.MaterialAt_impl(SELF, p, c);
+                case 124486674:
+                    return TransformedShape.MaterialAt_impl(SELF, p, c);
                 case 48824165:
                     return Cube.MaterialAt_impl(SELF, p, c);
                 case 171432461:
@@ -1941,8 +1940,6 @@ var xray;
                     return Triangle.MaterialAt_impl(SELF, p, c);
                 case 48819938:
                     return Mesh.MaterialAt_impl(SELF, p, c);
-                case 122109087:
-                    return Plane.MaterialAt_impl(SELF, p, c);
                 default:
                     throw turbo.Runtime._badType(SELF);
             }
@@ -1963,32 +1960,40 @@ var xray;
         }
         Object.defineProperty(TransformedShape, "BASE", {
             get: function () {
-                return null;
+                return Shape;
             },
             enumerable: true,
             configurable: true
         });
-        TransformedShape.init = function (SELF, shape) {
-            turbo.Runtime._mem_int32[(SELF + 4) >> 2] = shape;
+        TransformedShape.init = function (SELF, shape, matrix) {
+            turbo.Runtime._mem_int32[(SELF + 12) >> 2] = shape;
+            turbo.Runtime._mem_int32[(SELF + 16) >> 2] = matrix;
+            turbo.Runtime._mem_int32[(SELF + 20) >> 2] = (Matrix.Inverse(matrix));
+            turbo.Runtime._mem_int32[(SELF + 24) >> 2] = (Matrix.Transpose(turbo.Runtime._mem_int32[(SELF + 20) >> 2]));
             return SELF;
         };
         TransformedShape.NewTransformedShape = function (s, m) {
-            return TransformedShape.init(TransformedShape.initInstance(turbo.Runtime.allocOrThrow(16, 4)), s, m, Matrix.Inverse(m));
+            return TransformedShape.init(TransformedShape.initInstance(turbo.Runtime.allocOrThrow(28, 4)), s, m);
         };
-        TransformedShape.BoundingBox = function (s) {
-            return Matrix.MulBox(s, Shape.BoundingBox(s));
+        TransformedShape.BoundingBox_impl = function (SELF) {
+            if (!turbo.Runtime._mem_int32[(SELF + 8) >> 2]) {
+                turbo.Runtime._mem_int32[(SELF + 8) >> 2] = (Matrix.MulBox(turbo.Runtime._mem_int32[(SELF + 16) >> 2], Shape.BoundingBox(turbo.Runtime._mem_int32[(SELF + 12) >> 2])));
+            }
+            return turbo.Runtime._mem_int32[(SELF + 8) >> 2];
         };
-        TransformedShape.Intersect = function (s, r) {
-            var shapeRay = Matrix.MulRay(turbo.Runtime._mem_int32[(s + 12) >> 2], r);
-            var hit = Shape.Intersect(s, shapeRay);
+        TransformedShape.Intersect_impl = function (SELF, r) {
+            var invMat = turbo.Runtime._mem_int32[(SELF + 20) >> 2];
+            var shapeRay = Matrix.MulRay(invMat, r);
+            var hit = Shape.Intersect(turbo.Runtime._mem_int32[(SELF + 12) >> 2], shapeRay);
             if (!hit.Ok()) {
                 return hit;
             }
+            var transMat = turbo.Runtime._mem_int32[(SELF + 24) >> 2];
             var shape = hit.Shape;
             var shapePosition = shapeRay.position(hit.T);
             var shapeNormal = Shape.NormalAt(shape, shapePosition);
-            var position = Matrix.MulPosition2(s, shapePosition);
-            var normal = Matrix.MulDirection2(Matrix.Transpose(Matrix.Inverse(s)), shapeNormal);
+            var position = Matrix.MulPosition_vec3(turbo.Runtime._mem_int32[(SELF + 16) >> 2], shapePosition);
+            var normal = Matrix.MulDirection_vec3(transMat, shapeNormal);
             var material = Material.MaterialAt(shape, shapePosition);
             var inside = false;
             if (shapeNormal.dot(shapeRay.direction) > 0) {
@@ -2001,15 +2006,97 @@ var xray;
             hit.HitInfo = info;
             return hit;
         };
-        TransformedShape.initInstance = function (SELF) { turbo.Runtime._mem_int32[SELF >> 2] = 245094204; return SELF; };
+        TransformedShape.Type_impl = function (SELF) {
+            return Shape.Type(turbo.Runtime._mem_int32[(SELF + 12) >> 2]);
+        };
+        TransformedShape.ToJSON_impl = function (SELF) {
+            return Shape.ToJSON(turbo.Runtime._mem_int32[(SELF + 12) >> 2]);
+        };
+        TransformedShape.Compile_impl = function (SELF, c) {
+            return Shape.Compile(turbo.Runtime._mem_int32[(SELF + 12) >> 2], c);
+        };
+        TransformedShape.UV_impl = function (SELF, p, c) {
+            return Shape.UV(turbo.Runtime._mem_int32[(SELF + 12) >> 2], p, c);
+        };
+        TransformedShape.NormalAt_impl = function (SELF, p, c) {
+            return Shape.NormalAt(turbo.Runtime._mem_int32[(SELF + 12) >> 2], p, c);
+        };
+        TransformedShape.MaterialAt_impl = function (SELF, p, c) {
+            return Shape.MaterialAt(turbo.Runtime._mem_int32[(SELF + 12) >> 2], p, c);
+        };
+        TransformedShape.BoundingBox = function (SELF) {
+            switch (turbo.Runtime._mem_int32[SELF >> 2]) {
+                case 124486674:
+                    return TransformedShape.BoundingBox_impl(SELF);
+                default:
+                    throw turbo.Runtime._badType(SELF);
+            }
+        };
+        TransformedShape.Intersect = function (SELF, r) {
+            switch (turbo.Runtime._mem_int32[SELF >> 2]) {
+                case 124486674:
+                    return TransformedShape.Intersect_impl(SELF, r);
+                default:
+                    throw turbo.Runtime._badType(SELF);
+            }
+        };
+        TransformedShape.Type = function (SELF) {
+            switch (turbo.Runtime._mem_int32[SELF >> 2]) {
+                case 124486674:
+                    return TransformedShape.Type_impl(SELF);
+                default:
+                    throw turbo.Runtime._badType(SELF);
+            }
+        };
+        TransformedShape.ToJSON = function (SELF) {
+            switch (turbo.Runtime._mem_int32[SELF >> 2]) {
+                case 124486674:
+                    return TransformedShape.ToJSON_impl(SELF);
+                default:
+                    throw turbo.Runtime._badType(SELF);
+            }
+        };
+        TransformedShape.Compile = function (SELF, c) {
+            switch (turbo.Runtime._mem_int32[SELF >> 2]) {
+                case 124486674:
+                    return TransformedShape.Compile_impl(SELF, c);
+                default:
+                    throw turbo.Runtime._badType(SELF);
+            }
+        };
+        TransformedShape.UV = function (SELF, p, c) {
+            switch (turbo.Runtime._mem_int32[SELF >> 2]) {
+                case 124486674:
+                    return TransformedShape.UV_impl(SELF, p, c);
+                default:
+                    throw turbo.Runtime._badType(SELF);
+            }
+        };
+        TransformedShape.NormalAt = function (SELF, p, c) {
+            switch (turbo.Runtime._mem_int32[SELF >> 2]) {
+                case 124486674:
+                    return TransformedShape.NormalAt_impl(SELF, p, c);
+                default:
+                    throw turbo.Runtime._badType(SELF);
+            }
+        };
+        TransformedShape.MaterialAt = function (SELF, p, c) {
+            switch (turbo.Runtime._mem_int32[SELF >> 2]) {
+                case 124486674:
+                    return TransformedShape.MaterialAt_impl(SELF, p, c);
+                default:
+                    throw turbo.Runtime._badType(SELF);
+            }
+        };
+        TransformedShape.initInstance = function (SELF) { turbo.Runtime._mem_int32[SELF >> 2] = 124486674; return SELF; };
         TransformedShape.NAME = "TransformedShape";
-        TransformedShape.SIZE = 16;
+        TransformedShape.SIZE = 28;
         TransformedShape.ALIGN = 4;
-        TransformedShape.CLSID = 245094204;
+        TransformedShape.CLSID = 124486674;
         return TransformedShape;
-    }(MemoryObject));
+    }(Shape));
     xray.TransformedShape = TransformedShape;
-    turbo.Runtime._idToType[245094204] = TransformedShape;
+    turbo.Runtime._idToType[124486674] = TransformedShape;
     var Cube = (function (_super) {
         __extends(Cube, _super);
         function Cube(p) {
@@ -2034,7 +2121,7 @@ var xray;
             return Cube.init(Cube.initInstance(turbo.Runtime.allocOrThrow(24, 4)), min, max, material, box);
         };
         Cube.Type_impl = function (SELF) {
-            return ShapeType.CUBE;
+            throw ShapeType.CUBE;
         };
         Cube.ToJSON_impl = function (SELF) {
             return {
@@ -2688,7 +2775,7 @@ var xray;
             return Mesh.NewMesh(triangles);
         };
         Mesh.Type_impl = function (SELF) {
-            return ShapeType.MESH;
+            throw ShapeType.MESH;
         };
         Mesh.ToJSON_impl = function (SELF) {
             return {
@@ -2710,12 +2797,11 @@ var xray;
             if (!turbo.Runtime._mem_int32[(SELF + 12) >> 2]) {
                 var t = turbo.Runtime._mem_int32[((turbo.Runtime._mem_int32[(SELF + 8) >> 2]) + 4 + (4 * 0)) >> 2];
                 var min = Vector.Clone(turbo.Runtime._mem_int32[(t + 8) >> 2]);
-                var max = Vector.Clone(turbo.Runtime._mem_int32[(t + 8) >> 2]);
+                var max = Vector.Clone(min);
                 var NumTriangles = turbo.Runtime._mem_int32[(turbo.Runtime._mem_int32[(SELF + 8) >> 2]) >> 2];
                 for (var i = 1; i < NumTriangles; i++) {
-                    t = turbo.Runtime._mem_int32[((turbo.Runtime._mem_int32[(SELF + 8) >> 2]) + 4 + (4 * i)) >> 2];
-                    Vector.Min_mem(Vector.Min_mem(Vector.Min_mem(min, turbo.Runtime._mem_int32[(t + 8) >> 2], min), turbo.Runtime._mem_int32[(t + 12) >> 2], min), turbo.Runtime._mem_int32[(t + 16) >> 2], min);
-                    Vector.Max_mem(Vector.Max_mem(Vector.Max_mem(max, turbo.Runtime._mem_int32[(t + 8) >> 2], max), turbo.Runtime._mem_int32[(t + 12) >> 2], max), turbo.Runtime._mem_int32[(t + 16) >> 2], max);
+                    Vector.Min_mem(Vector.Min_mem(Vector.Min_mem(min, t.V1, min), t.V2, min), t.V3, min);
+                    Vector.Max_mem(Vector.Max_mem(Vector.Max_mem(max, t.V1, max), t.V2, max), t.V3, max);
                 }
                 var ptr = Box.initInstance(turbo.Runtime.allocOrThrow(12, 4));
                 turbo.Runtime._mem_int32[(SELF + 12) >> 2] = (Box.Init_mem(ptr, min, max));
@@ -2895,148 +2981,6 @@ var xray;
     }(Shape));
     xray.Mesh = Mesh;
     turbo.Runtime._idToType[48819938] = Mesh;
-    var Plane = (function (_super) {
-        __extends(Plane, _super);
-        function Plane(p) {
-            _super.call(this, p);
-        }
-        Object.defineProperty(Plane, "BASE", {
-            get: function () {
-                return Shape;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Plane.init = function (SELF, point, normal, material) {
-            turbo.Runtime._mem_int32[(SELF + 8) >> 2] = point;
-            turbo.Runtime._mem_int32[(SELF + 12) >> 2] = normal;
-            turbo.Runtime._mem_int32[(SELF + 16) >> 2] = material;
-            turbo.Runtime._mem_int32[(SELF + 20) >> 2] = 0;
-            turbo.Runtime._mem_uint8[(SELF + 24) >> 0] = 0;
-            return SELF;
-        };
-        Plane.NewPlane = function (point, normal, material) {
-            Vector.Normalize_mem(normal, normal);
-            var ptr = Plane.initInstance(turbo.Runtime.allocOrThrow(25, 4));
-            return Plane.init(ptr, point, normal, material);
-        };
-        Plane.Type_impl = function (SELF) {
-            return ShapeType.PLANE;
-        };
-        Plane.ToJSON_impl = function (SELF) {
-            return {
-                point: Vector.ToJSON(turbo.Runtime._mem_int32[(SELF + 8) >> 2]),
-                normal: Vector.ToJSON(turbo.Runtime._mem_int32[(SELF + 12) >> 2]),
-                material: Material.ToJSON(turbo.Runtime._mem_int32[(SELF + 16) >> 2]),
-                box: Box.ToJSON(turbo.Runtime._mem_int32[(SELF + 20) >> 2])
-            };
-        };
-        Plane.Compile_impl = function (SELF) {
-        };
-        Plane.BoundingBox_impl = function (SELF) {
-            if (turbo.Runtime._mem_uint8[(SELF + 24) >> 0]) {
-                return turbo.Runtime._mem_int32[(SELF + 20) >> 2];
-            }
-            var ptr = Box.initInstance(turbo.Runtime.allocOrThrow(12, 4));
-            var inf = Number.POSITIVE_INFINITY;
-            turbo.Runtime._mem_int32[(SELF + 20) >> 2] = (Box.init(ptr, Vector.NewVector(-inf, -inf, -inf), Vector.NewVector(inf, inf, inf)));
-            turbo.Runtime._mem_uint8[(SELF + 24) >> 0] = 1;
-            return ptr;
-        };
-        Plane.Intersect_impl = function (SELF, ray) {
-            var d = Vector.Dot_12(turbo.Runtime._mem_int32[(SELF + 12) >> 2], ray.direction);
-            if (Math.abs(d) < EPS) {
-                return Hit.NoHit;
-            }
-            var a = Vector.Sub_12(turbo.Runtime._mem_int32[(SELF + 8) >> 2], ray.origin);
-            var t = Vector.Dot_12(turbo.Runtime._mem_int32[(SELF + 12) >> 2], a) / d;
-            if (t < EPS) {
-                return Hit.NoHit;
-            }
-            return new Hit(SELF, t);
-        };
-        Plane.UV_impl = function (SELF, a) {
-            return new Vector3();
-        };
-        Plane.MaterialAt_impl = function (SELF, a) {
-            return turbo.Runtime._mem_int32[(SELF + 16) >> 2];
-        };
-        Plane.NormalAt_impl = function (SELF, a) {
-            return new Vector3().read(turbo.Runtime._mem_int32[(SELF + 12) >> 2]);
-        };
-        Plane.Type = function (SELF) {
-            switch (turbo.Runtime._mem_int32[SELF >> 2]) {
-                case 122109087:
-                    return Plane.Type_impl(SELF);
-                default:
-                    throw turbo.Runtime._badType(SELF);
-            }
-        };
-        Plane.ToJSON = function (SELF) {
-            switch (turbo.Runtime._mem_int32[SELF >> 2]) {
-                case 122109087:
-                    return Plane.ToJSON_impl(SELF);
-                default:
-                    throw turbo.Runtime._badType(SELF);
-            }
-        };
-        Plane.Compile = function (SELF) {
-            switch (turbo.Runtime._mem_int32[SELF >> 2]) {
-                case 122109087:
-                    return Plane.Compile_impl(SELF);
-                default:
-                    throw turbo.Runtime._badType(SELF);
-            }
-        };
-        Plane.BoundingBox = function (SELF) {
-            switch (turbo.Runtime._mem_int32[SELF >> 2]) {
-                case 122109087:
-                    return Plane.BoundingBox_impl(SELF);
-                default:
-                    throw turbo.Runtime._badType(SELF);
-            }
-        };
-        Plane.Intersect = function (SELF, ray) {
-            switch (turbo.Runtime._mem_int32[SELF >> 2]) {
-                case 122109087:
-                    return Plane.Intersect_impl(SELF, ray);
-                default:
-                    throw turbo.Runtime._badType(SELF);
-            }
-        };
-        Plane.UV = function (SELF, a) {
-            switch (turbo.Runtime._mem_int32[SELF >> 2]) {
-                case 122109087:
-                    return Plane.UV_impl(SELF, a);
-                default:
-                    throw turbo.Runtime._badType(SELF);
-            }
-        };
-        Plane.MaterialAt = function (SELF, a) {
-            switch (turbo.Runtime._mem_int32[SELF >> 2]) {
-                case 122109087:
-                    return Plane.MaterialAt_impl(SELF, a);
-                default:
-                    throw turbo.Runtime._badType(SELF);
-            }
-        };
-        Plane.NormalAt = function (SELF, a) {
-            switch (turbo.Runtime._mem_int32[SELF >> 2]) {
-                case 122109087:
-                    return Plane.NormalAt_impl(SELF, a);
-                default:
-                    throw turbo.Runtime._badType(SELF);
-            }
-        };
-        Plane.initInstance = function (SELF) { turbo.Runtime._mem_int32[SELF >> 2] = 122109087; return SELF; };
-        Plane.NAME = "Plane";
-        Plane.SIZE = 25;
-        Plane.ALIGN = 4;
-        Plane.CLSID = 122109087;
-        return Plane;
-    }(Shape));
-    xray.Plane = Plane;
-    turbo.Runtime._idToType[122109087] = Plane;
     var Node = (function (_super) {
         __extends(Node, _super);
         function Node(p) {
@@ -3555,7 +3499,7 @@ var xray;
         };
         BufferGeometry.buildSceneObject = function (src) {
             var color = src.material.color || { r: 0, g: 0, b: 0 };
-            var mat = Material.GlossyMaterial(Color.NewColor(color.r, color.g, color.b), 1.5, Utils.Radians(10));
+            var mat = Material.DiffuseMaterial(Color.NewColor(color.r, color.g, color.b));
             return this.buildGeometry(src.geometry, mat, src.smooth);
         };
         BufferGeometry.buildGeometry = function (geometry, material, smooth) {
@@ -3975,9 +3919,6 @@ var xray;
         };
         Vector3.prototype.minComponent = function () {
             return Math.min(Math.min(this.x, this.y), this.z);
-        };
-        Vector3.prototype.maxComponent = function () {
-            return Math.max(Math.max(this.x, this.y), this.z);
         };
         Vector3.prototype.reflect = function (i) {
             return i.sub(this.mulScalar(2 * this.dot(i)));

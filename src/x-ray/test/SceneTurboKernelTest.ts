@@ -6,11 +6,12 @@ import {XRayView} from "../core/src/XRayView";
 import {Thread} from "../core/src/engine/renderer/worker/Thread";
 import {MathUtils} from "../core/src/engine/utils/MathUtils";
 import {Color} from "../core/src/engine/math/Color";
+declare var THREE:any;
 /**
  * Created by Nidin Vinayakan on 27-02-2016
  * Turbo Kernel Test
  */
-export class TurboKernelTest extends SimpleGUI {
+export class SceneTurboKernelTest extends SimpleGUI {
 
     private threeJSView: ThreeJSView;
     private xrayView: XRayView;
@@ -67,25 +68,6 @@ export class TurboKernelTest extends SimpleGUI {
          pointLight.shadow.bias = 0.01;
          // this.threeJSView.scene.add(pointLight);
 
-        // texture
-        var manager = new THREE.LoadingManager();
-        /*manager.onProgress = function (item, loaded, total) {
-         console.log(item, loaded, total);
-         };*/
-        manager.onLoad = function () {
-            console.log(arguments);
-        };
-
-        var onProgress = function (xhr) {
-            if (xhr.lengthComputable) {
-                var percentComplete = xhr.loaded / xhr.total * 100;
-                console.log(Math.round(percentComplete) + '% downloaded');
-            }
-        };
-
-        var onError = function (xhr) {
-        };
-
         // geometry = new THREE.BoxBufferGeometry( 1000, 1, 1000);
         geometry = new THREE.CubeGeometry(1000,1,1000,10,1,10);
         material = new THREE.MeshPhongMaterial({color: 0xB9B9B9});
@@ -104,9 +86,41 @@ export class TurboKernelTest extends SimpleGUI {
 
         self.render();
 
+
+        var manager = new THREE.LoadingManager();
+        manager.onLoad = function () {
+            console.log(arguments);
+        };
+        var onProgress = function (xhr) {
+            if (xhr.lengthComputable) {
+                var percentComplete = xhr.loaded / xhr.total * 100;
+                console.log(Math.round(percentComplete) + '% downloaded');
+            }
+        };
+
+        var onError = function (xhr) {
+        };
+
+        /* model loader */
+        THREE.Loader.Handlers.add( /\.dds$/i, new THREE.DDSLoader() );
+        var loader = new THREE.SceneLoader();
+        loader.addGeometryHandler( "binary", THREE.BinaryLoader );
+        loader.addGeometryHandler( "ctm", THREE.CTMLoader );
+        loader.addGeometryHandler( "vtk", THREE.VTKLoader );
+        loader.addGeometryHandler( "stl", THREE.STLLoader );
+        loader.addHierarchyHandler( "obj", THREE.OBJLoader );
+        loader.addHierarchyHandler( "dae", THREE.ColladaLoader );
+        loader.addHierarchyHandler( "utf8", THREE.UTF8Loader );
+        loader.callbackProgress = onProgress;
+        loader.load( "./models/cornellbox_suzanne_lucy_scene.js", function () {
+
+        });
+        /*end*/
+
+
         // var name = "gopher";
-        var name = "stanford-dragon";
-        // var name = "cornellbox_suzanne_lucy";
+        // var name = "stanford-dragon";
+        var name = "cornellbox_suzanne_lucy";
         // var name = "sphere";
 
         var folder = name + "/";
