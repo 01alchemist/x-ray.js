@@ -16,7 +16,7 @@ export class ThreeJSView {
 
         this.camera = new THREE.PerspectiveCamera(45, this.width / this.height, 1, 20000);
         this.camera.up = new THREE.Vector3(0, 1, 0);
-        this.camera.position.y = 10;
+        this.camera.position.y = 50;
         this.camera.position.z = 10;
         // this.camera.position.set(8, 3, 0.5);
         this.camera.lookAt(new THREE.Vector3(0, 0, 0));

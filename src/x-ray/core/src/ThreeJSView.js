@@ -14,7 +14,7 @@ System.register([], function(exports_1, context_1) {
                     this.appContainer = appContainer;
                     this.camera = new THREE.PerspectiveCamera(45, this.width / this.height, 1, 20000);
                     this.camera.up = new THREE.Vector3(0, 1, 0);
-                    this.camera.position.y = 10;
+                    this.camera.position.y = 50;
                     this.camera.position.z = 10;
                     this.camera.lookAt(new THREE.Vector3(0, 0, 0));
                     this.scene = new THREE.Scene();

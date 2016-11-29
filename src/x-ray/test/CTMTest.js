@@ -55,7 +55,7 @@ System.register(["./SimpleGUI", "../core/src/ThreeJSView", "../core/src/XRayView
                     pointLight1.position.set(-10, 5, 10);
                     pointLight1.add(sphere.clone());
                     var pointLight2 = new THREE.PointLight(0xffffff, 3, 30);
-                    pointLight2.position.set(10, 150, 10);
+                    pointLight2.position.set(30, 60, 10);
                     pointLight2.add(sphere.clone());
                     this.threeJSView.scene.add(pointLight2);
                     var pointLight = new THREE.PointLight(color, 1, 30);
@@ -173,7 +173,7 @@ System.register(["./SimpleGUI", "../core/src/ThreeJSView", "../core/src/XRayView
                         var m = materials[i];
                         if (m.name.indexOf("Body") !== -1) {
                             var mm = new THREE.MeshStandardMaterial();
-                            mm.color.setHex(0x000000);
+                            mm.color.setHex(0xFF0000);
                             mm.lightMap = m.map;
                             mm.envMap = this.textureCube;
                             mm.metalness = 0.5;

@@ -19,11 +19,11 @@ var xray;
 (function (xray) {
     var height = 600;
     var width = 800;
-    var shadows = true;
-    var reflection = true;
+    var shadows = true; // Compute object shadows
+    var reflection = true; // Compute object reflections
     var reflection_depth = 2;
-    var antialias = false;
-    var debug = false;
+    var antialias = false; // true;		// Antialias the image (expensive but pretty)
+    var debug = false; // Progress printout, may confuse the consumer
     var INF = 1e9;
     var EPS = 1e-9;
     var SENTINEL = 1e32;
@@ -48,6 +48,38 @@ var xray;
     function free(ptr) {
         turbo.Runtime.free(ptr);
     }
+    // const black = DL3(0,0,0);
+    // function add(a, b) { return DL3(a.x+b.x, a.y+b.y, a.z+b.z); }
+    // function addi(a, c) { return DL3(a.x+c, a.y+c, a.z+c); }
+    // function sub(a, b) { return DL3(a.x-b.x, a.y-b.y, a.z-b.z); }
+    // function subi(a, c) { return DL3(a.x-c, a.y-c, a.z-c); }
+    // function muli(a, c) { return DL3(a.x*c, a.y*c, a.z*c); }
+    // function divi(a, c) { return DL3(a.x/c, a.y/c, a.z/c); }
+    // function neg(a) { return DL3(-a.x, -a.y, -a.z); }
+    // function length(a) { return Math.sqrt(a.x*a.x + a.y*a.y + a.z*a.z); }
+    // function normalize(a) { var d = length(a); return DL3(a.x/d, a.y/d, a.z/d); }
+    // function cross(a, b) { return DL3(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x); }
+    // function dot(a, b) { return a.x*b.x + a.y*b.y + a.z*b.z; }
+    /*
+    function fract(f) {
+        return f - Math.floor(f);
+    }
+    function fract_add1(f) {
+        let f1 = f - Math.floor(f);
+        return f1 - Math.floor(f1 + 1);
+    }
+    function clampInt(x, lo, hi) {
+        if (x < lo) {
+            return lo;
+        }
+        if (x > hi) {
+            return hi;
+        }
+        return x;
+    }
+    function len(ptr, T) {
+    
+    }*/
     (function (Axis) {
         Axis[Axis["AxisNone"] = 0] = "AxisNone";
         Axis[Axis["AxisX"] = 1] = "AxisX";
@@ -105,6 +137,7 @@ var xray;
             var red;
             var green;
             var blue;
+            // red
             if (K >= 6600) {
                 var A = 351.97690566805693;
                 var B = 0.114206453784165;
@@ -115,6 +148,7 @@ var xray;
             else {
                 red = 255;
             }
+            // green
             if (K >= 6600) {
                 A = 325.4494125711974;
                 B = 0.07943456536662342;
@@ -132,6 +166,7 @@ var xray;
             else {
                 green = 0;
             }
+            // blue
             if (K >= 6600) {
                 blue = 255;
             }
@@ -189,6 +224,14 @@ var xray;
             };
         };
         Color.Add = function (A, B) { return rgb(A.R + B.R, A.G + B.G, A.B + B.B); };
+        /**
+         *
+         * @param A Color 1
+         * @param B Color 2
+         * @param C result Color
+         * @returns {number}
+         * @constructor
+         */
         Color.Add_mem = function (A, B, C) {
             if (C) {
                 turbo.Runtime._mem_float64[(C + 8) >> 3] = turbo.Runtime._mem_float64[(A + 8) >> 3] + turbo.Runtime._mem_float64[(B + 8) >> 3];
@@ -481,6 +524,9 @@ var xray;
         Vector.Dot = function (a, B) {
             return (a.X * B.X) + (a.Y * B.Y) + (a.Z * B.Z);
         };
+        Vector.Dot_12 = function (a, B) {
+            return (turbo.Runtime._mem_float64[(a + 8) >> 3] * B.x) + (turbo.Runtime._mem_float64[(a + 16) >> 3] * B.y) + (turbo.Runtime._mem_float64[(a + 24) >> 3] * B.z);
+        };
         Vector.Dot_mem = function (a, B) {
             return (turbo.Runtime._mem_float64[(a + 8) >> 3] * turbo.Runtime._mem_float64[(B + 8) >> 3]) + (turbo.Runtime._mem_float64[(a + 16) >> 3] * turbo.Runtime._mem_float64[(B + 16) >> 3]) + (turbo.Runtime._mem_float64[(a + 24) >> 3] * turbo.Runtime._mem_float64[(B + 24) >> 3]);
         };
@@ -615,6 +661,7 @@ var xray;
             }
         };
         Vector.Mod = function (a, b) {
+            // as implemented in GLSL
             var x = a.X - b.X * Math.floor(a.X / b.X);
             var y = a.Y - b.Y * Math.floor(a.Y / b.Y);
             var z = a.Z - b.Z * Math.floor(a.Z / b.Z);
@@ -812,6 +859,9 @@ var xray;
             var rPar = (n2 * cosI - n1 * cosT) / (n2 * cosI + n1 * cosT);
             return (rOrth * rOrth + rPar * rPar) / 2;
         };
+        //--------------------------------
+        // X X X X X X X X X X X X X X X X
+        //--------------------------------
         Vector.Pow = function (a, f) { return xyz(Math.pow(a.X, f), Math.pow(a.Y, f), Math.pow(a.Z, f)); };
         Vector.Pow_mem = function (a, f, c) {
             if (c) {
@@ -896,9 +946,11 @@ var xray;
             return d;
         };
         Utils.LoadImage = function (path) {
+            //TODO: load image using img tag and canvas
             return null;
         };
-        Utils.SavePNG = function (path, im) {
+        Utils.SavePNG = function (path, im /*Image*/) {
+            //TODO: save using file
             return null;
         };
         Utils.Median = function (items) {
@@ -915,7 +967,7 @@ var xray;
                 return (a + b) / 2;
             }
         };
-        Utils.DurationString = function (t) {
+        Utils.DurationString = function (t /*milliseconds*/) {
             var d = new Date();
             d.setHours(0);
             d.setMinutes(0);
@@ -1043,6 +1095,7 @@ var xray;
             if (numShapes == 0) {
                 return Box.NewBox();
             }
+            // let box = Shape.BoundingBox(turbo.Runtime._mem_int32[(  shapes + 4 + (4 * 0)  ) >> 2]);
             var box = Box.NewBox();
             for (var i = 0; i < numShapes; i++) {
                 var shape = turbo.Runtime._mem_int32[(shapes + 4 + (4 * i)) >> 2];
@@ -1079,7 +1132,7 @@ var xray;
         };
         Box.OuterRadius = function (SELF) {
             var center = Box.Center(SELF);
-            var tmp = Vector.Sub_mem(turbo.Runtime._mem_int32[(SELF + 4) >> 2], center);
+            var tmp = Vector.Sub_mem(turbo.Runtime._mem_int32[(SELF + 4) >> 2], center, center);
             var len = Vector.Length_mem(tmp);
             free(center);
             free(tmp);
@@ -1087,7 +1140,7 @@ var xray;
         };
         Box.InnerRadius = function (SELF) {
             var center = Box.Center(SELF);
-            var tmp = Vector.Sub_mem(center, turbo.Runtime._mem_int32[(SELF + 4) >> 2]);
+            var tmp = Vector.Sub_mem(center, turbo.Runtime._mem_int32[(SELF + 4) >> 2], center);
             var result = Vector.MaxComponent_mem(tmp);
             free(tmp);
             return result;
@@ -1096,6 +1149,7 @@ var xray;
             return Vector.Sub_mem(turbo.Runtime._mem_int32[(SELF + 8) >> 2], turbo.Runtime._mem_int32[(SELF + 4) >> 2]);
         };
         Box.Extend = function (SELF, b) {
+            //let ptr:number = Box.initInstance(turbo.Runtime.allocOrThrow(12,4));
             var min = turbo.Runtime._mem_int32[(SELF + 4) >> 2];
             var max = turbo.Runtime._mem_int32[(SELF + 8) >> 2];
             var bmin = turbo.Runtime._mem_int32[(b + 4) >> 2];
@@ -1120,6 +1174,12 @@ var xray;
         Box.Intersect = function (SELF, r) {
             var min = turbo.Runtime._mem_int32[(SELF + 4) >> 2];
             var max = turbo.Runtime._mem_int32[(SELF + 8) >> 2];
+            // x1 := (b.Min.X - r.Origin.X) / r.Direction.X
+            // y1 := (b.Min.Y - r.Origin.Y) / r.Direction.Y
+            // z1 := (b.Min.Z - r.Origin.Z) / r.Direction.Z
+            // x2 := (b.Max.X - r.Origin.X) / r.Direction.X
+            // y2 := (b.Max.Y - r.Origin.Y) / r.Direction.Y
+            // z2 := (b.Max.Z - r.Origin.Z) / r.Direction.Z
             var x1 = (turbo.Runtime._mem_float64[(min + 8) >> 3] - r.origin.x) / r.direction.x;
             var y1 = (turbo.Runtime._mem_float64[(min + 16) >> 3] - r.origin.y) / r.direction.y;
             var z1 = (turbo.Runtime._mem_float64[(min + 24) >> 3] - r.origin.z) / r.direction.z;
@@ -1146,6 +1206,28 @@ var xray;
                 tmin: Math.max(Math.max(x1, y1), z1),
                 tmax: Math.min(Math.min(x2, y2), z2)
             };
+            /*
+            * 	 x1 := (b.Min.X - r.Origin.X) / r.Direction.X
+                 y1 := (b.Min.Y - r.Origin.Y) / r.Direction.Y
+                 z1 := (b.Min.Z - r.Origin.Z) / r.Direction.Z
+                 x2 := (b.Max.X - r.Origin.X) / r.Direction.X
+                 y2 := (b.Max.Y - r.Origin.Y) / r.Direction.Y
+                 z2 := (b.Max.Z - r.Origin.Z) / r.Direction.Z
+    
+                 if x1 > x2 {
+                 x1, x2 = x2, x1
+                 }
+                 if y1 > y2 {
+                 y1, y2 = y2, y1
+                 }
+                 if z1 > z2 {
+                 z1, z2 = z2, z1
+                 }
+                 t1 := math.Max(math.Max(x1, y1), z1)
+                 t2 := math.Min(math.Min(x2, y2), z2)
+                 return t1, t2
+            *
+            **/
         };
         Box.Partition = function (SELF, axis, point) {
             var min = turbo.Runtime._mem_int32[(SELF + 4) >> 2];
@@ -1163,7 +1245,7 @@ var xray;
                     break;
                 case Axis.AxisZ:
                     left = turbo.Runtime._mem_float64[(min + 24) >> 3] <= point;
-                    right = turbo.Runtime._mem_float64[(max + 24) >> 3] >= point;
+                    right = turbo.Runtime._mem_float64[(max + 24) >> 3] >= point; // EPIC Bug :D it was min and got weird triangle intersection
                     break;
             }
             return {
@@ -1367,6 +1449,7 @@ var xray;
         Matrix.MulBox = function (a, box, c) {
             var min = turbo.Runtime._mem_int32[(box + 4) >> 2];
             var max = turbo.Runtime._mem_int32[(box + 8) >> 2];
+            // http://dev.theomader.com/transform-bounding-boxes/
             var r = Vector.Init_mem(Vector.initInstance(turbo.Runtime.allocOrThrow(32, 8)), turbo.Runtime._mem_float64[(a + 8) >> 3], turbo.Runtime._mem_float64[(a + 40) >> 3], turbo.Runtime._mem_float64[(a + 72) >> 3]);
             var u = Vector.Init_mem(Vector.initInstance(turbo.Runtime.allocOrThrow(32, 8)), turbo.Runtime._mem_float64[(a + 16) >> 3], turbo.Runtime._mem_float64[(a + 48) >> 3], turbo.Runtime._mem_float64[(a + 80) >> 3]);
             var b = Vector.Init_mem(Vector.initInstance(turbo.Runtime.allocOrThrow(32, 8)), turbo.Runtime._mem_float64[(a + 24) >> 3], turbo.Runtime._mem_float64[(a + 56) >> 3], turbo.Runtime._mem_float64[(a + 88) >> 3]);
@@ -1470,7 +1553,7 @@ var xray;
             var im = Utils.LoadImage(path);
             return Texture.NewTexture(im);
         };
-        Texture.NewTexture = function (im) {
+        Texture.NewTexture = function (im /*Image*/) {
             var size = turbo.Runtime._mem_int32[((Image.Bounds(im)) + 8) >> 2];
             var data = turbo.Runtime.allocOrThrow(4 + (4 * (turbo.Runtime._mem_float64[(size + 8) >> 3] * turbo.Runtime._mem_float64[(size + 16) >> 3])), 4);
             turbo.Runtime._mem_int32[number >> 2] = (turbo.Runtime._mem_float64[(size + 8) >> 3] * turbo.Runtime._mem_float64[(size + 16) >> 3]);
@@ -1660,6 +1743,14 @@ var xray;
         };
         Material.MaterialAt = function (shape, point) {
             var material = Shape.MaterialAt(shape, point);
+            // let uv:Vector3 = Shape.UV(shape, point);
+            // if (turbo.Runtime._mem_int32[(material + 8) >> 2]) {
+            //     turbo.Runtime._mem_int32[(material + 4) >> 2] = Texture.Sample(turbo.Runtime._mem_int32[(material + 8) >> 2], uv.x, uv.y);
+            // }
+            // if (turbo.Runtime._mem_int32[(material + 20) >> 2]) {
+            //     let c:number = Texture.Sample(turbo.Runtime._mem_int32[(material + 20) >> 2], uv.x, uv.y);
+            //     turbo.Runtime._mem_float64[(material + 48) >> 3] = (turbo.Runtime._mem_float64[(c + 8) >> 3] + turbo.Runtime._mem_float64[(c + 16) >> 3] + turbo.Runtime._mem_float64[(c + 24) >> 3]) / 3;
+            // }
             return material;
         };
         Material.initInstance = function (SELF) { turbo.Runtime._mem_int32[SELF >> 2] = 167722613; return SELF; };
@@ -1777,7 +1868,7 @@ var xray;
             return SELF;
         };
         Shape.Type_impl = function (SELF) {
-            throw ShapeType.UNKNOWN;
+            return ShapeType.UNKNOWN;
         };
         Shape.ToJSON_impl = function (SELF) {
             throw "Pure: Shape.ToJSON()";
@@ -1814,6 +1905,8 @@ var xray;
                     return Triangle.Type_impl(SELF);
                 case 48819938:
                     return Mesh.Type_impl(SELF);
+                case 122109087:
+                    return Plane.Type_impl(SELF);
                 default:
                     throw turbo.Runtime._badType(SELF);
             }
@@ -1832,6 +1925,8 @@ var xray;
                     return Triangle.ToJSON_impl(SELF);
                 case 48819938:
                     return Mesh.ToJSON_impl(SELF);
+                case 122109087:
+                    return Plane.ToJSON_impl(SELF);
                 default:
                     throw turbo.Runtime._badType(SELF);
             }
@@ -1850,6 +1945,8 @@ var xray;
                     return Triangle.Compile_impl(SELF, c);
                 case 48819938:
                     return Mesh.Compile_impl(SELF, c);
+                case 122109087:
+                    return Plane.Compile_impl(SELF, c);
                 default:
                     throw turbo.Runtime._badType(SELF);
             }
@@ -1868,6 +1965,8 @@ var xray;
                     return Triangle.BoundingBox_impl(SELF, c);
                 case 48819938:
                     return Mesh.BoundingBox_impl(SELF, c);
+                case 122109087:
+                    return Plane.BoundingBox_impl(SELF, c);
                 default:
                     throw turbo.Runtime._badType(SELF);
             }
@@ -1886,6 +1985,8 @@ var xray;
                     return Triangle.Intersect_impl(SELF, ray, c);
                 case 48819938:
                     return Mesh.Intersect_impl(SELF, ray, c);
+                case 122109087:
+                    return Plane.Intersect_impl(SELF, ray, c);
                 default:
                     throw turbo.Runtime._badType(SELF);
             }
@@ -1904,6 +2005,8 @@ var xray;
                     return Triangle.UV_impl(SELF, p, c);
                 case 48819938:
                     return Mesh.UV_impl(SELF, p, c);
+                case 122109087:
+                    return Plane.UV_impl(SELF, p, c);
                 default:
                     throw turbo.Runtime._badType(SELF);
             }
@@ -1922,6 +2025,8 @@ var xray;
                     return Triangle.NormalAt_impl(SELF, p, c);
                 case 48819938:
                     return Mesh.NormalAt_impl(SELF, p, c);
+                case 122109087:
+                    return Plane.NormalAt_impl(SELF, p, c);
                 default:
                     throw turbo.Runtime._badType(SELF);
             }
@@ -1940,6 +2045,8 @@ var xray;
                     return Triangle.MaterialAt_impl(SELF, p, c);
                 case 48819938:
                     return Mesh.MaterialAt_impl(SELF, p, c);
+                case 122109087:
+                    return Plane.MaterialAt_impl(SELF, p, c);
                 default:
                     throw turbo.Runtime._badType(SELF);
             }
@@ -2121,7 +2228,7 @@ var xray;
             return Cube.init(Cube.initInstance(turbo.Runtime.allocOrThrow(24, 4)), min, max, material, box);
         };
         Cube.Type_impl = function (SELF) {
-            throw ShapeType.CUBE;
+            return ShapeType.CUBE;
         };
         Cube.ToJSON_impl = function (SELF) {
             return {
@@ -2491,6 +2598,7 @@ var xray;
             turbo.Runtime._mem_int32[(SELF + 36) >> 2] = t2;
             turbo.Runtime._mem_int32[(SELF + 40) >> 2] = t3;
             turbo.Runtime._mem_int32[(SELF + 44) >> 2] = material;
+            //Triangle.FixNormals(SELF );
             return SELF;
         };
         Triangle.Pack = function (triangles) {
@@ -2514,6 +2622,13 @@ var xray;
             turbo.Runtime._mem_int32[(b + 44) >> 2] = Material.Clone(turbo.Runtime._mem_int32[(a + 44) >> 2]);
             return b;
         };
+        // static Vertices(SELF){
+        // 	return {
+        //        V1:turbo.Runtime._mem_int32[(SELF + 8) >> 2],
+        //        V2:turbo.Runtime._mem_int32[(SELF + 12) >> 2],
+        //        V3:turbo.Runtime._mem_int32[(SELF + 16) >> 2]
+        //    }
+        // }
         Triangle.Type_impl = function (SELF) {
             return ShapeType.TRIANGLE;
         };
@@ -2552,6 +2667,55 @@ var xray;
             }
             return Box.Init_mem(turbo.Runtime._mem_int32[(SELF + 48) >> 2], min, max);
         };
+        /*Intersect(SELF, r:Ray):Hit {
+            //Möller–Trumbore intersection algorithm
+            let V1 = new Vector3().read(turbo.Runtime._mem_int32[(SELF + 8) >> 2]);
+            let V2 = new Vector3().read(turbo.Runtime._mem_int32[(SELF + 12) >> 2]);
+            let V3 = new Vector3().read(turbo.Runtime._mem_int32[(SELF + 16) >> 2]);
+    
+            //Edge1
+            var e1:Vector3 = V2.sub(V1);
+    
+            //Edge2
+            var e2:Vector3 = V3.sub(V1);
+    
+            //Begin calculating determinant - also used to calculate u parameter
+            var p:Vector3 = r.direction.cross(e2);
+            var det:number = e1.dot(p);
+            //NOT CULLING
+            if (det > -EPS && det < EPS) {
+                return Hit.NoHit;
+            }
+            var inv:number = 1 / det;
+    
+            //calculate distance from V1 to ray origin
+            var t:Vector3 = r.origin.sub(V1);
+    
+            //Calculate u parameter and test bound
+            var u:number = t.dot(p) * inv;
+            //The intersection lies outside of the triangle
+            if (u < 0 || u > 1) {
+                return Hit.NoHit;
+            }
+    
+            //Prepare to test v parameter
+            var q:Vector3 = t.cross(e1);
+    
+            //Calculate V parameter and test bound
+            var v:number = r.direction.dot(q) * inv;
+            //The intersection lies outside of the triangle
+            if (v < 0 || u + v > 1) {
+                return Hit.NoHit;
+            }
+    
+            var d:number = e2.dot(q) * inv;
+            if (d < EPS) {
+                return Hit.NoHit
+            }
+    
+            //ray intersection
+            return new Hit(SELF, d);
+        }*/
         Triangle.Intersect_impl = function (SELF, r) {
             var e1x = turbo.Runtime._mem_float64[((turbo.Runtime._mem_int32[(SELF + 12) >> 2]) + 8) >> 3] - turbo.Runtime._mem_float64[((turbo.Runtime._mem_int32[(SELF + 8) >> 2]) + 8) >> 3];
             var e1y = turbo.Runtime._mem_float64[((turbo.Runtime._mem_int32[(SELF + 12) >> 2]) + 16) >> 3] - turbo.Runtime._mem_float64[((turbo.Runtime._mem_int32[(SELF + 8) >> 2]) + 16) >> 3];
@@ -2603,14 +2767,57 @@ var xray;
             return turbo.Runtime._mem_int32[(SELF + 44) >> 2];
         };
         Triangle.NormalAt_impl = function (SELF, p) {
+            // let V1:Vector3 = new Vector3().read(turbo.Runtime._mem_int32[(SELF + 8) >> 2]);
+            // let V2:Vector3 = new Vector3().read(turbo.Runtime._mem_int32[(SELF + 12) >> 2]);
+            // let V3:Vector3 = new Vector3().read(turbo.Runtime._mem_int32[(SELF + 16) >> 2]);
             var n1 = new Vector3().read(turbo.Runtime._mem_int32[(SELF + 20) >> 2]);
             var n2 = new Vector3().read(turbo.Runtime._mem_int32[(SELF + 24) >> 2]);
             var n3 = new Vector3().read(turbo.Runtime._mem_int32[(SELF + 28) >> 2]);
+            // let T1:Vector3 = new Vector3().read(turbo.Runtime._mem_int32[(SELF + 32) >> 2]);
+            // let T2:Vector3 = new Vector3().read(turbo.Runtime._mem_int32[(SELF + 36) >> 2]);
+            // let T3:Vector3 = new Vector3().read(turbo.Runtime._mem_int32[(SELF + 40) >> 2]);
             var uvw = Triangle.Barycentric(SELF, p);
             var n = new Vector3();
             n = n.add(n1.mulScalar(uvw.u));
             n = n.add(n2.mulScalar(uvw.v));
             n = n.add(n3.mulScalar(uvw.w));
+            /*if (turbo.Runtime._mem_int32[((turbo.Runtime._mem_int32[(SELF + 44) >> 2]) + 12) >> 2]) {
+                let b = new Vector3();
+                b = b.add(T1.mulScalar(uvw.u));
+                b = b.add(T2.mulScalar(uvw.v));
+                b = b.add(T3.mulScalar(uvw.w));
+                let ns:Vector3 = Texture.NormalSample(turbo.Runtime._mem_int32[((turbo.Runtime._mem_int32[(SELF + 44) >> 2]) + 12) >> 2], b.x, b.y);
+                let dv1 = V2.sub(V1);
+                let dv2 = V3.sub(V1);
+                let dt1 = T2.sub(T1);
+                let dt2 = T3.sub(T1);
+    
+                let T = dv1.mulScalar(dt2.y).sub(dv2.mulScalar(dt1.y)).normalize();
+                let B = dv2.mulScalar(dt1.x).sub(dv1.mulScalar(dt2.x)).normalize();
+                let N = T.cross(B);
+                let matrix = Matrix.initInstance(turbo.Runtime.allocOrThrow(136,8));
+                Matrix.init(matrix,
+                        T.x, B.x, N.x, 0,
+                        T.y, B.y, N.y, 0,
+                        T.z, B.z, N.z, 0,
+                        0, 0, 0, 1);
+                n = Matrix.MulDirection2(matrix, ns);
+            }
+            if (turbo.Runtime._mem_int32[((turbo.Runtime._mem_int32[(SELF + 44) >> 2]) + 16) >> 2]) {
+                let b = new Vector3();
+                b = b.add(T1.mulScalar(uvw.u));
+                b = b.add(T2.mulScalar(uvw.v));
+                b = b.add(T3.mulScalar(uvw.w));
+                let bump = Texture.BumpSample(turbo.Runtime._mem_int32[((turbo.Runtime._mem_int32[(SELF + 44) >> 2]) + 16) >> 2], b.x, b.y);
+                let dv1 = V2.sub(V1);
+                let dv2 = V3.sub(V1);
+                let dt1 = T2.sub(T1);
+                let dt2 = T3.sub(T1);
+                let tangent = dv1.mulScalar(dt2.y).sub(dv2.mulScalar(dt1.y)).normalize();
+                let bitangent = dv2.mulScalar(dt1.x).sub(dv1.mulScalar(dt2.x)).normalize();
+                n = n.add(tangent.mulScalar(bump.x * turbo.Runtime._mem_float64[((turbo.Runtime._mem_int32[(SELF + 44) >> 2]) + 24) >> 3]));
+                n = n.add(bitangent.mulScalar(bump.y * turbo.Runtime._mem_float64[((turbo.Runtime._mem_int32[(SELF + 44) >> 2]) + 24) >> 3]));
+            }*/
             n = n.normalize();
             return n;
         };
@@ -2775,7 +2982,7 @@ var xray;
             return Mesh.NewMesh(triangles);
         };
         Mesh.Type_impl = function (SELF) {
-            throw ShapeType.MESH;
+            return ShapeType.MESH;
         };
         Mesh.ToJSON_impl = function (SELF) {
             return {
@@ -2791,17 +2998,19 @@ var xray;
             return turbo.Runtime._mem_int32[(SELF + 16) >> 2];
         };
         Mesh.Add = function (SELF, mesh) {
+            //TODO: Implement
             Mesh.dirty(SELF);
         };
         Mesh.BoundingBox_impl = function (SELF) {
             if (!turbo.Runtime._mem_int32[(SELF + 12) >> 2]) {
                 var t = turbo.Runtime._mem_int32[((turbo.Runtime._mem_int32[(SELF + 8) >> 2]) + 4 + (4 * 0)) >> 2];
                 var min = Vector.Clone(turbo.Runtime._mem_int32[(t + 8) >> 2]);
-                var max = Vector.Clone(min);
+                var max = Vector.Clone(turbo.Runtime._mem_int32[(t + 8) >> 2]);
                 var NumTriangles = turbo.Runtime._mem_int32[(turbo.Runtime._mem_int32[(SELF + 8) >> 2]) >> 2];
                 for (var i = 1; i < NumTriangles; i++) {
-                    Vector.Min_mem(Vector.Min_mem(Vector.Min_mem(min, t.V1, min), t.V2, min), t.V3, min);
-                    Vector.Max_mem(Vector.Max_mem(Vector.Max_mem(max, t.V1, max), t.V2, max), t.V3, max);
+                    t = turbo.Runtime._mem_int32[((turbo.Runtime._mem_int32[(SELF + 8) >> 2]) + 4 + (4 * i)) >> 2];
+                    Vector.Min_mem(Vector.Min_mem(Vector.Min_mem(min, turbo.Runtime._mem_int32[(t + 8) >> 2], min), turbo.Runtime._mem_int32[(t + 12) >> 2], min), turbo.Runtime._mem_int32[(t + 16) >> 2], min);
+                    Vector.Max_mem(Vector.Max_mem(Vector.Max_mem(max, turbo.Runtime._mem_int32[(t + 8) >> 2], max), turbo.Runtime._mem_int32[(t + 12) >> 2], max), turbo.Runtime._mem_int32[(t + 16) >> 2], max);
                 }
                 var ptr = Box.initInstance(turbo.Runtime.allocOrThrow(12, 4));
                 turbo.Runtime._mem_int32[(SELF + 12) >> 2] = (Box.Init_mem(ptr, min, max));
@@ -2812,13 +3021,13 @@ var xray;
             return Tree.Intersect(turbo.Runtime._mem_int32[(SELF + 16) >> 2], r);
         };
         Mesh.UV_impl = function (SELF, p) {
-            return null;
+            return null; // not implemented
         };
         Mesh.MaterialAt_impl = function (SELF, p) {
-            return null;
+            return null; // not implemented
         };
         Mesh.NormalAt_impl = function (SELF, p) {
-            return null;
+            return null; // not implemented
         };
         Mesh._SmoothNormalsThreshold = function (SELF, normal, normals, threshold) {
             var result = Vector.NewVector();
@@ -2907,6 +3116,8 @@ var xray;
             }
         };
         Mesh.SaveSTL = function (SELF, path) {
+            //return STL.SaveSTL(path, SELF)
+            //TODO: Implement
         };
         Mesh.Type = function (SELF) {
             switch (turbo.Runtime._mem_int32[SELF >> 2]) {
@@ -2981,6 +3192,148 @@ var xray;
     }(Shape));
     xray.Mesh = Mesh;
     turbo.Runtime._idToType[48819938] = Mesh;
+    var Plane = (function (_super) {
+        __extends(Plane, _super);
+        function Plane(p) {
+            _super.call(this, p);
+        }
+        Object.defineProperty(Plane, "BASE", {
+            get: function () {
+                return Shape;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Plane.init = function (SELF, point, normal, material) {
+            turbo.Runtime._mem_int32[(SELF + 8) >> 2] = point;
+            turbo.Runtime._mem_int32[(SELF + 12) >> 2] = normal;
+            turbo.Runtime._mem_int32[(SELF + 16) >> 2] = material;
+            turbo.Runtime._mem_int32[(SELF + 20) >> 2] = 0;
+            turbo.Runtime._mem_uint8[(SELF + 24) >> 0] = 0;
+            return SELF;
+        };
+        Plane.NewPlane = function (point, normal, material) {
+            Vector.Normalize_mem(normal, normal);
+            var ptr = Plane.initInstance(turbo.Runtime.allocOrThrow(25, 4));
+            return Plane.init(ptr, point, normal, material);
+        };
+        Plane.Type_impl = function (SELF) {
+            return ShapeType.PLANE;
+        };
+        Plane.ToJSON_impl = function (SELF) {
+            return {
+                point: Vector.ToJSON(turbo.Runtime._mem_int32[(SELF + 8) >> 2]),
+                normal: Vector.ToJSON(turbo.Runtime._mem_int32[(SELF + 12) >> 2]),
+                material: Material.ToJSON(turbo.Runtime._mem_int32[(SELF + 16) >> 2]),
+                box: Box.ToJSON(turbo.Runtime._mem_int32[(SELF + 20) >> 2])
+            };
+        };
+        Plane.Compile_impl = function (SELF) {
+        };
+        Plane.BoundingBox_impl = function (SELF) {
+            if (turbo.Runtime._mem_uint8[(SELF + 24) >> 0]) {
+                return turbo.Runtime._mem_int32[(SELF + 20) >> 2];
+            }
+            var ptr = Box.initInstance(turbo.Runtime.allocOrThrow(12, 4));
+            var inf = Number.POSITIVE_INFINITY;
+            turbo.Runtime._mem_int32[(SELF + 20) >> 2] = (Box.init(ptr, Vector.NewVector(-inf, -inf, -inf), Vector.NewVector(inf, inf, inf)));
+            turbo.Runtime._mem_uint8[(SELF + 24) >> 0] = 1;
+            return ptr;
+        };
+        Plane.Intersect_impl = function (SELF, ray) {
+            var d = Vector.Dot_12(turbo.Runtime._mem_int32[(SELF + 12) >> 2], ray.direction);
+            if (Math.abs(d) < EPS) {
+                return Hit.NoHit;
+            }
+            var a = Vector.Sub_12(turbo.Runtime._mem_int32[(SELF + 8) >> 2], ray.origin);
+            var t = Vector.Dot_12(turbo.Runtime._mem_int32[(SELF + 12) >> 2], a) / d;
+            if (t < EPS) {
+                return Hit.NoHit;
+            }
+            return new Hit(SELF, t);
+        };
+        Plane.UV_impl = function (SELF, a) {
+            return new Vector3();
+        };
+        Plane.MaterialAt_impl = function (SELF, a) {
+            return turbo.Runtime._mem_int32[(SELF + 16) >> 2];
+        };
+        Plane.NormalAt_impl = function (SELF, a) {
+            return new Vector3().read(turbo.Runtime._mem_int32[(SELF + 12) >> 2]);
+        };
+        Plane.Type = function (SELF) {
+            switch (turbo.Runtime._mem_int32[SELF >> 2]) {
+                case 122109087:
+                    return Plane.Type_impl(SELF);
+                default:
+                    throw turbo.Runtime._badType(SELF);
+            }
+        };
+        Plane.ToJSON = function (SELF) {
+            switch (turbo.Runtime._mem_int32[SELF >> 2]) {
+                case 122109087:
+                    return Plane.ToJSON_impl(SELF);
+                default:
+                    throw turbo.Runtime._badType(SELF);
+            }
+        };
+        Plane.Compile = function (SELF) {
+            switch (turbo.Runtime._mem_int32[SELF >> 2]) {
+                case 122109087:
+                    return Plane.Compile_impl(SELF);
+                default:
+                    throw turbo.Runtime._badType(SELF);
+            }
+        };
+        Plane.BoundingBox = function (SELF) {
+            switch (turbo.Runtime._mem_int32[SELF >> 2]) {
+                case 122109087:
+                    return Plane.BoundingBox_impl(SELF);
+                default:
+                    throw turbo.Runtime._badType(SELF);
+            }
+        };
+        Plane.Intersect = function (SELF, ray) {
+            switch (turbo.Runtime._mem_int32[SELF >> 2]) {
+                case 122109087:
+                    return Plane.Intersect_impl(SELF, ray);
+                default:
+                    throw turbo.Runtime._badType(SELF);
+            }
+        };
+        Plane.UV = function (SELF, a) {
+            switch (turbo.Runtime._mem_int32[SELF >> 2]) {
+                case 122109087:
+                    return Plane.UV_impl(SELF, a);
+                default:
+                    throw turbo.Runtime._badType(SELF);
+            }
+        };
+        Plane.MaterialAt = function (SELF, a) {
+            switch (turbo.Runtime._mem_int32[SELF >> 2]) {
+                case 122109087:
+                    return Plane.MaterialAt_impl(SELF, a);
+                default:
+                    throw turbo.Runtime._badType(SELF);
+            }
+        };
+        Plane.NormalAt = function (SELF, a) {
+            switch (turbo.Runtime._mem_int32[SELF >> 2]) {
+                case 122109087:
+                    return Plane.NormalAt_impl(SELF, a);
+                default:
+                    throw turbo.Runtime._badType(SELF);
+            }
+        };
+        Plane.initInstance = function (SELF) { turbo.Runtime._mem_int32[SELF >> 2] = 122109087; return SELF; };
+        Plane.NAME = "Plane";
+        Plane.SIZE = 25;
+        Plane.ALIGN = 4;
+        Plane.CLSID = 122109087;
+        return Plane;
+    }(Shape));
+    xray.Plane = Plane;
+    turbo.Runtime._idToType[122109087] = Plane;
     var Node = (function (_super) {
         __extends(Node, _super);
         function Node(p) {
@@ -3080,6 +3433,7 @@ var xray;
             var right = 0;
             for (var i = 0; i < turbo.Runtime._mem_int32[(SELF + 20) >> 2]; i++) {
                 var shape = turbo.Runtime._mem_int32[((turbo.Runtime._mem_int32[(SELF + 16) >> 2]) + 4 + (4 * i)) >> 2];
+                // let box = Shape.BoundingBox(shape);
                 var box = turbo.Runtime._mem_int32[(shape + 48) >> 2];
                 var lr = Box.Partition(box, axis, point);
                 if (lr.left) {
@@ -3136,6 +3490,7 @@ var xray;
             var count = 0;
             for (var i = 0; i < turbo.Runtime._mem_int32[(SELF + 20) >> 2]; i++) {
                 var shape = turbo.Runtime._mem_int32[((turbo.Runtime._mem_int32[(SELF + 16) >> 2]) + 4 + (4 * i)) >> 2];
+                // let box = Shape.BoundingBox(shape);
                 var box = turbo.Runtime._mem_int32[(shape + 48) >> 2];
                 _xs[count] = turbo.Runtime._mem_float64[((turbo.Runtime._mem_int32[(box + 4) >> 2]) + 8) >> 3];
                 _ys[count] = turbo.Runtime._mem_float64[((turbo.Runtime._mem_int32[(box + 4) >> 2]) + 16) >> 3];
@@ -3183,7 +3538,7 @@ var xray;
             turbo.Runtime._mem_int32[(SELF + 28) >> 2] = (Node.NewNode(lr.right, lr.numRight));
             Node.Split(turbo.Runtime._mem_int32[(SELF + 24) >> 2], depth + 1);
             Node.Split(turbo.Runtime._mem_int32[(SELF + 28) >> 2], depth + 1);
-            turbo.Runtime._mem_int32[(SELF + 16) >> 2] = 0;
+            turbo.Runtime._mem_int32[(SELF + 16) >> 2] = 0; // only needed at leaf nodes
         };
         Node.initInstance = function (SELF) { turbo.Runtime._mem_int32[SELF >> 2] = 20726; return SELF; };
         Node.NAME = "Node";
@@ -3214,9 +3569,13 @@ var xray;
         Tree.NewTree = function (shapes) {
             var numShapes = turbo.Runtime._mem_int32[shapes >> 2];
             console.log("Building k-d tree (" + numShapes + " shapes)... ");
+            // console.time("Tree:BuildingBox");
             var box = Box.BoxForShapes(shapes, numShapes);
+            // console.timeEnd("Tree:BuildingBox");
             var node = Node.NewNode(shapes, numShapes);
+            // console.time("Node:Split");
             Node.Split(node, 0);
+            // console.timeEnd("Node:Split");
             var ptr = Tree.initInstance(turbo.Runtime.allocOrThrow(12, 4));
             return Tree.init(ptr, box, node);
         };
@@ -3356,6 +3715,45 @@ var xray;
             turbo.Runtime._mem_float64[(c + 32) >> 3] = Vector.Length_mem(Vector.Sub_mem(focalPoint, turbo.Runtime._mem_int32[(c + 4) >> 2]));
             turbo.Runtime._mem_float64[(c + 40) >> 3] = apertureRadius;
         };
+        /* cached camera */
+        /*static CastRay(c, x:number, y:number, w:number, h:number, u:number, v:number):number {
+    
+            if(!Camera.cache){
+                Camera.cache = {
+                    apertureRadius: turbo.Runtime._mem_float64[(c + 40) >> 3],
+                    focalDistance: turbo.Runtime._mem_float64[(c + 32) >> 3],
+                    u: new Vector3().read(turbo.Runtime._mem_int32[(c + 8) >> 2]),
+                    v: new Vector3().read(turbo.Runtime._mem_int32[(c + 12) >> 2]),
+                    p: new Vector3().read(turbo.Runtime._mem_int32[(c + 4) >> 2]),
+                    w: new Vector3().read(turbo.Runtime._mem_int32[(c + 16) >> 2]),
+                    m: turbo.Runtime._mem_float64[(c + 24) >> 3]
+                }
+            }
+            c = Camera.cache;
+    
+            let aspect = w / h;
+            let px = ((x+u-0.5)/(w-1))*2 - 1;
+            let py = ((y+v-0.5)/(h-1))*2 - 1;
+    
+    
+    
+            let d = new Vector3();
+            d = d.add(c.u.mulScalar(-px * aspect));
+            d = d.add(c.v.mulScalar(-py));
+            d = d.add(c.w.mulScalar(c.m));
+            d = d.normalize();
+            let p = c.p.clone();
+            if (c.apertureRadius > 0) {
+                let focalPoint = c.p.add(d.mulScalar(c.focalDistance));
+                let angle = Math.random() * 2 * Math.PI;
+                let radius = Math.random() * c.apertureRadius;
+    
+                p = p.add(c.u.mulScalar(Math.cos(angle) * radius));
+                p = p.add(c.v.mulScalar(Math.sin(angle) * radius));
+                d = focalPoint.sub(p).normalize();
+            }
+            return new Ray(p, d);
+        }*/
         Camera.CastRay = function (c, x, y, w, h, u, v) {
             var aspect = w / h;
             var px = ((x + u - 0.5) / (w - 1)) * 2 - 1;
@@ -3422,9 +3820,11 @@ var xray;
             return turbo.Runtime._mem_int32[(SELF + 40) >> 2];
         };
         Scene.RayCount = function (SELF) {
+            // return Atomics.load(turbo.Runtime._mem_int32, turbo.Runtime._mem_int32[(SELF + 44) >> 2]);
             return turbo.Runtime._mem_int32[(SELF + 44) >> 2];
         };
         Scene.Intersect = function (SELF, r) {
+            // Atomics.add(turbo.Runtime._mem_int32, turbo.Runtime._mem_int32[(SELF + 44) >> 2], 1);
             turbo.Runtime._mem_int32[(SELF + 44) >> 2] = (turbo.Runtime._mem_int32[(SELF + 44) >> 2] + 1);
             return Tree.Intersect(turbo.Runtime._mem_int32[(SELF + 40) >> 2], r);
         };
@@ -3442,6 +3842,8 @@ var xray;
             this.scenePtr = Scene.NewScene(color);
             this.shapes = [];
             this.lights = [];
+            // MasterScene.defaultMaterial = Material.GlossyMaterial(Color.HexColor(0xFF0000), 1.5, Utils.Radians(30));
+            // MasterScene.defaultMaterial = Material.LightMaterial(Color.HexColor(0x00FF00), 5);
             MasterScene.defaultMaterial = Material.DiffuseMaterial(Color.HexColor(0xFF0000));
         }
         MasterScene.prototype.AddDebugScene = function () {
@@ -3498,8 +3900,28 @@ var xray;
             }
         };
         BufferGeometry.buildSceneObject = function (src) {
+            /*switch (src.type) {
+                case ThreeObjects.Mesh:
+                    var material = GIJSView.getMaterial(src.material);
+                    var shape:Shape = this.buildGeometry(src.geometry, material, src.smooth);
+    
+                    var matrixWorld = src.matrixWorld;
+    
+                    if (matrixWorld.equals(this.identityMatrix)) {
+                        return shape;
+                    } else {
+                        var mat:Matrix4 = Matrix4.fromTHREEJS(matrixWorld.elements);
+                        return TransformedShape.newTransformedShape(shape, mat);
+                    }
+    
+                case ThreeObjects.PointLight:
+                    return this.getLight(src);
+    
+            }*/
+            // return null;
             var color = src.material.color || { r: 0, g: 0, b: 0 };
-            var mat = Material.DiffuseMaterial(Color.NewColor(color.r, color.g, color.b));
+            // let mat = Material.DiffuseMaterial(Color.NewColor(color.r, color.g, color.b));
+            var mat = Material.GlossyMaterial(Color.NewColor(color.r, color.g, color.b), 1.5, Utils.Radians(10));
             return this.buildGeometry(src.geometry, mat, src.smooth);
         };
         BufferGeometry.buildGeometry = function (geometry, material, smooth) {
@@ -3565,6 +3987,7 @@ var xray;
                             b = indices[i + 1];
                             a = indices[i + 2];
                         }
+                        //[....,ax,ay,az, bx,by,bz, cx,xy,xz,....]
                         var ax = a * 3;
                         var ay = (a * 3) + 1;
                         var az = (a * 3) + 2;
@@ -3601,6 +4024,78 @@ var xray;
                 else {
                     uvIndex = 0;
                     for (var i_1 = 0; i_1 < positions.length; i_1 = i_1 + 9) {
+                        // triCount++;
+                        //
+                        // let ax,ay,az;
+                        // let bx,by,bz;
+                        // let cx,cy,cz;
+                        //
+                        // let au,av;
+                        // let bu,bv;
+                        // let cu,cv;
+                        //
+                        // if (triCount % 2 !== 0) {
+                        //     ax = i;
+                        //     ay = i + 1;
+                        //     az = i + 2;
+                        //
+                        //     bx = i + 3;
+                        //     by = i + 4;
+                        //     bz = i + 5;
+                        //
+                        //     cx = i + 6;
+                        //     cy = i + 7;
+                        //     cz = i + 8;
+                        //
+                        //     au = uvIndex;
+                        //     av = uvIndex + 1;
+                        //
+                        //     bu = uvIndex + 2;
+                        //     bv = uvIndex + 3;
+                        //
+                        //     cu = uvIndex + 4;
+                        //     cv = uvIndex + 5;
+                        // } else {
+                        //     ax = i + 8;
+                        //     ay = i + 7;
+                        //     az = i + 6;
+                        //
+                        //     bx = i + 5;
+                        //     by = i + 4;
+                        //     bz = i + 3;
+                        //
+                        //     cx = i + 2;
+                        //     cy = i + 1;
+                        //     cz = i;
+                        //
+                        //     au = uvIndex + 5;
+                        //     av = uvIndex + 4;
+                        //
+                        //     bu = uvIndex + 3;
+                        //     bv = uvIndex + 2;
+                        //
+                        //     cu = uvIndex + 1;
+                        //     cv = uvIndex;
+                        // }
+                        //
+                        // //[....,ax,ay,az, bx,by,bz, cx,xy,xz,....]
+                        //
+                        //
+                        // let t = Triangle.initInstance(turbo.Runtime.allocOrThrow(53,4));
+                        // turbo.Runtime._mem_int32[(t + 44) >> 2] = material;
+                        // turbo.Runtime._mem_int32[(t + 8) >> 2] = Vector.NewVector(positions[ax], positions[ay], positions[az]);
+                        // turbo.Runtime._mem_int32[(t + 12) >> 2] = Vector.NewVector(positions[bx], positions[by], positions[bz]);
+                        // turbo.Runtime._mem_int32[(t + 16) >> 2] = Vector.NewVector(positions[cx], positions[cy], positions[cz]);
+                        //
+                        // turbo.Runtime._mem_int32[(t + 20) >> 2] = Vector.NewVector(normals[ax], normals[ay], normals[az]);
+                        // turbo.Runtime._mem_int32[(t + 24) >> 2] = Vector.NewVector(normals[bx], normals[by], normals[bz]);
+                        // turbo.Runtime._mem_int32[(t + 28) >> 2] = Vector.NewVector(normals[cx], normals[cy], normals[cz]);
+                        //
+                        // if(uv){
+                        //     turbo.Runtime._mem_int32[(t + 32) >> 2] = Vector.NewVector(uv[au], uv[av], 0);
+                        //     turbo.Runtime._mem_int32[(t + 36) >> 2] = Vector.NewVector(uv[bu], uv[bv], 0);
+                        //     turbo.Runtime._mem_int32[(t + 40) >> 2] = Vector.NewVector(uv[cu], uv[cv], 0);
+                        // }
                         var t_2 = Triangle.initInstance(turbo.Runtime.allocOrThrow(53, 4));
                         turbo.Runtime._mem_int32[(t_2 + 44) >> 2] = material;
                         turbo.Runtime._mem_int32[(t_2 + 8) >> 2] = Vector.NewVector(positions[i_1], positions[i_1 + 1], positions[i_1 + 2]);
@@ -3621,7 +4116,12 @@ var xray;
                 }
             }
             var meshRef = Mesh.NewMesh(Triangle.Pack(triangles));
+            // Mesh.SmoothNormals(meshRef);
             return meshRef;
+            // if(smooth){
+            //     mesh.smoothNormals();
+            // }
+            // return mesh;
         };
         BufferGeometry.computeNormals = function (positions) {
             return new Float32Array(positions.length);
@@ -3713,12 +4213,14 @@ var xray;
                             bounce.coefficient = 1;
                         }
                         if (bounce.coefficient > 0 && bounce.reflected) {
+                            // specular
                             var indirect = this.sample(scene, bounce.ray, bounce.reflected, 1, depth + 1);
                             var xindirect = Color.Mul2(turbo.Runtime._mem_int32[(material + 4) >> 2], indirect);
                             var tinted = indirect.mix(xindirect, turbo.Runtime._mem_float64[(material + 56) >> 3]);
                             result = result.add(tinted.mulScalar(bounce.coefficient));
                         }
                         if (bounce.coefficient > 0 && !bounce.reflected) {
+                            // diffuse
                             var indirect = this.sample(scene, bounce.ray, bounce.reflected, 1, depth + 1);
                             var direct = new Color3();
                             if (this.DirectLighting) {
@@ -3752,11 +4254,13 @@ var xray;
                 var result = new Color3();
                 for (var i = 0; i < nLights; i++) {
                     var light = turbo.Runtime._mem_int32[((turbo.Runtime._mem_int32[(scene + 32) >> 2]) + 4 + (4 * i)) >> 2];
+                    //let light = turbo.Runtime._mem_int32[(  shapes + 4 + (4 * lightIndex)  ) >> 2];
                     result.add(this.sampleLight(scene, n, light));
                 }
                 return result;
             }
             else {
+                // pick a random light
                 var rndLight = Math.round(Math.random() * (nLights - 1));
                 var light = turbo.Runtime._mem_int32[((turbo.Runtime._mem_int32[(scene + 32) >> 2]) + 4 + (4 * rndLight)) >> 2];
                 var lightColor = this.sampleLight(scene, n, light);
@@ -3764,6 +4268,7 @@ var xray;
             }
         };
         DefaultSampler.prototype.sampleLight = function (scene, n, light) {
+            // get bounding sphere center and radius
             var center;
             var radius;
             switch (Shape.Type(light)) {
@@ -3772,6 +4277,7 @@ var xray;
                     center = turbo.Runtime._mem_int32[(light + 8) >> 2];
                     break;
                 default:
+                    // get bounding sphere from bounding box
                     var box = Shape.BoundingBox(light);
                     radius = Box.OuterRadius(box);
                     center = Box.Center(box);
@@ -3779,6 +4285,7 @@ var xray;
             }
             var _center = new Vector3().read(center);
             free(center);
+            // get random point in disk
             var point = _center;
             if (this.SoftShadows) {
                 var x = void 0;
@@ -3798,15 +4305,19 @@ var xray;
                     }
                 }
             }
+            // construct ray toward light point
             var ray = new Ray(n.origin, point.sub(n.origin));
+            // get cosine term
             var diffuse = ray.direction.dot(n.direction);
             if (diffuse <= 0) {
                 return new Color3();
             }
+            // check for light visibility
             var hit = Scene.Intersect(scene, ray);
             if (!hit.Ok() || hit.Shape != light) {
                 return new Color3();
             }
+            // compute solid angle (hemisphere coverage)
             var hyp = _center.sub(n.origin).length();
             var opp = radius;
             var theta = Math.asin(opp / hyp);
@@ -3814,17 +4325,23 @@ var xray;
             var d = Math.cos(theta) * adj;
             var r = Math.sin(theta) * adj;
             var coverage = (r * r) / (d * d);
+            // TODO: fix issue where hyp < opp (point inside sphere)
             if (hyp < opp) {
                 coverage = 1;
             }
             coverage = Math.min(coverage, 1);
+            // get material properties from light
             var material = Material.MaterialAt(light, point);
+            // combine factors
             var m = turbo.Runtime._mem_float64[(material + 32) >> 3] * diffuse * coverage;
             return Color.MulScalar2(turbo.Runtime._mem_int32[(material + 4) >> 2], m);
         };
         return DefaultSampler;
     }());
     xray.DefaultSampler = DefaultSampler;
+    /**
+     * Created by Nidin Vinayakan on 10-01-2016.
+     */
     var Vector3 = (function () {
         function Vector3(x, y, z) {
             if (x === void 0) { x = 0; }
@@ -3871,12 +4388,20 @@ var xray;
         Vector3.prototype.dot = function (b) {
             return this.x * b.x + this.y * b.y + this.z * b.z;
         };
+        // SIMD_dot(_b) {
+        //     var _a = SIMD.Float32x4.load(this.data, 0);
+        //     return Vector3.SIMD.dot(_a, _b);
+        // }
         Vector3.prototype.cross = function (b) {
             var x = this.y * b.z - this.z * b.y;
             var y = this.z * b.x - this.x * b.z;
             var z = this.x * b.y - this.y * b.x;
             return new Vector3(x, y, z);
         };
+        // SIMD_cross(_b) {
+        //     var _a = SIMD.Float32x4.load(this.data, 0);
+        //     return Vector3.SIMD.cross(_a, _b);
+        // }
         Vector3.prototype.normalize = function () {
             var d = this.length();
             return new Vector3(this.x / d, this.y / d, this.z / d);
@@ -3887,6 +4412,10 @@ var xray;
         Vector3.prototype.sub = function (b) {
             return new Vector3(this.x - b.x, this.y - b.y, this.z - b.z);
         };
+        // SIMD_sub(_b) {
+        //     var _a = SIMD.Float32x4.load(this.data, 0);
+        //     return SIMD.Float32x4.sub(_a, _b);
+        // }
         Vector3.prototype.mul = function (b) {
             return new Vector3(this.x * b.x, this.y * b.y, this.z * b.z);
         };
@@ -3919,6 +4448,9 @@ var xray;
         };
         Vector3.prototype.minComponent = function () {
             return Math.min(Math.min(this.x, this.y), this.z);
+        };
+        Vector3.prototype.maxComponent = function () {
+            return Math.max(Math.max(this.x, this.y), this.z);
         };
         Vector3.prototype.reflect = function (i) {
             return i.sub(this.mulScalar(2 * this.dot(i)));
@@ -3982,11 +4514,16 @@ var xray;
             cross: function (a, b) {
                 var lvTemp1 = SIMD.Float32x4.shuffle(a, a, 1, 2, 0, 0);
                 var lvTemp2 = SIMD.Float32x4.shuffle(b, b, 2, 0, 1, 0);
-                var lvMult = SIMD.Float32x4.mul(lvTemp1, lvTemp2);
+                var lvMult = SIMD.Float32x4.mul(lvTemp1, lvTemp2); // (y1*z2), (z1*x2), (x1*y2), (x1*x2)
                 lvTemp1 = SIMD.Float32x4.shuffle(a, a, 2, 0, 1, 0);
                 lvTemp2 = SIMD.Float32x4.shuffle(b, b, 1, 2, 0, 0);
-                var lvMult2 = SIMD.Float32x4.mul(lvTemp1, lvTemp2);
+                var lvMult2 = SIMD.Float32x4.mul(lvTemp1, lvTemp2); // (z1*y2), (x1*z2), (y1*x2), (x1*x2)
                 return SIMD.Float32x4.sub(lvMult, lvMult2);
+                /*var result = SIMD.Float32x4.sub(
+                    SIMD.Float32x4.mul(b, SIMD.Float32x4.shuffle(a, a, 3, 0, 2, 1)),
+                    SIMD.Float32x4.mul(a, SIMD.Float32x4.shuffle(b, b, 3, 0, 2, 1))
+                );
+                return SIMD.Float32x4.shuffle(result, result, 3, 0, 2, 1);*/
             }
         };
         return Vector3;
@@ -4102,4 +4639,3 @@ var xray;
     }());
     xray.Color3 = Color3;
 })(xray || (xray = {}));
-//# sourceMappingURL=xray-kernel-turbo.js.map

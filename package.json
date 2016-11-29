@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc -p ./modules/xrenderer",
+    "build": "tsc -p ./src/x-ray",
     "build-example": "tsc -p ./example",
     "build-tst": "tsc ./modules/xrenderer/test/TextureTest.ts",
     "build-worker": "tsc -p ./modules/xrenderer/workers",

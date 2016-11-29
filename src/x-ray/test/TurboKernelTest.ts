@@ -33,7 +33,7 @@ export class TurboKernelTest extends SimpleGUI {
         this.xrayView.hitSamples = 1;
         // this.xrayView.cameraSamples = 4;
         this.xrayView.blockIterations = 1;
-        this.xrayView.bounces = 2;
+        this.xrayView.bounces = 8;
         //this.xrayView.scene.color.set(0, 0, 0);
         // this.xrayView.scene.color = Color.hexColor(0xFDDCBA);
         var ambient = new THREE.AmbientLight(0x5C5C5C);
@@ -50,12 +50,12 @@ export class TurboKernelTest extends SimpleGUI {
         var sphere = new THREE.Mesh(geometry, material);
 
         var pointLight1 = new THREE.PointLight(0xffffff, 3, 30);
-        pointLight1.position.set(-10, 5, 10);
+        pointLight1.position.set(-60, 60, 10);
         pointLight1.add(sphere.clone());
         // this.threeJSView.scene.add(pointLight1);
 
-        var pointLight2 = new THREE.PointLight(0xffffff, 3, 30);
-        pointLight2.position.set(10, 5, 10);
+        var pointLight2 = new THREE.PointLight(0xffffff, 1, 30);
+        pointLight2.position.set(10, 20, 10);
         pointLight2.add(sphere.clone());
         this.threeJSView.scene.add(pointLight2);
 
@@ -86,15 +86,48 @@ export class TurboKernelTest extends SimpleGUI {
         var onError = function (xhr) {
         };
 
+
+        let size = 300;
+
         // geometry = new THREE.BoxBufferGeometry( 1000, 1, 1000);
         geometry = new THREE.CubeGeometry(1000,1,1000,10,1,10);
         material = new THREE.MeshPhongMaterial({color: 0xB9B9B9});
         material.ior = 1.5;
         material.gloss = MathUtils.radians(15);
-        var mesh = new THREE.Mesh(geometry, material);
-        mesh.castShadow = false;
-        mesh.receiveShadow = true;
-        this.threeJSView.scene.add(mesh);
+        var ground = new THREE.Mesh(geometry, material);
+        ground.castShadow = false;
+        ground.receiveShadow = true;
+        this.threeJSView.scene.add(ground);
+
+        geometry = new THREE.CubeGeometry(1,size,size,1,10,10);
+        material = new THREE.MeshPhongMaterial({color: 0xFF0000});
+        material.ior = 1.5;
+        material.gloss = MathUtils.radians(15);
+        var left = new THREE.Mesh(geometry, material);
+        left.position.set(-size/2,0,0);
+        left.castShadow = false;
+        left.receiveShadow = true;
+        this.threeJSView.scene.add(left);
+
+        geometry = new THREE.CubeGeometry(1,size,size,1,10,10);
+        material = new THREE.MeshPhongMaterial({color: 0x00FF00});
+        material.ior = 1.5;
+        material.gloss = MathUtils.radians(15);
+        var right = new THREE.Mesh(geometry, material);
+        right.position.set(size/2,0,0);
+        right.castShadow = false;
+        right.receiveShadow = true;
+        this.threeJSView.scene.add(right);
+
+        geometry = new THREE.CubeGeometry(size,size,1,10,10,1);
+        material = new THREE.MeshPhongMaterial({color: 0xB9B9B9});
+        material.ior = 1.5;
+        material.gloss = MathUtils.radians(15);
+        var back = new THREE.Mesh(geometry, material);
+        back.position.set(0,0,-size/2);
+        back.castShadow = false;
+        back.receiveShadow = true;
+        this.threeJSView.scene.add(back);
 
         /*var areaLightMesh = mesh.clone();
          var pointLight3 = new THREE.PointLight(0xffffff, 1, 1000);
@@ -121,7 +154,7 @@ export class TurboKernelTest extends SimpleGUI {
             materials.preload();
             objLoader.load(name + '.obj', function (object) {
                 // object.position.y = -95;
-                // object.scale.set(0.3, 0.3, 0.3);
+                object.scale.set(5, 5, 5);
                 object.smooth = true;
 
                 self.threeJSView.scene.add(object);

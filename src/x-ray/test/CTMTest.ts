@@ -58,7 +58,7 @@ export class CTMTest extends SimpleGUI {
         // this.threeJSView.scene.add(pointLight1);
 
         var pointLight2 = new THREE.PointLight(0xffffff, 3, 30);
-        pointLight2.position.set(10, 150, 10);
+        pointLight2.position.set(30, 60, 10);
         pointLight2.add(sphere.clone());
         this.threeJSView.scene.add(pointLight2);
 
@@ -221,7 +221,7 @@ export class CTMTest extends SimpleGUI {
 
             var mm = new THREE.MeshStandardMaterial();
 
-            mm.color.setHex( 0x000000 );
+            mm.color.setHex( 0xFF0000 );
             mm.lightMap = m.map;
             mm.envMap = this.textureCube;
             mm.metalness = 0.5;

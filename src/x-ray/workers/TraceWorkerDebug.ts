@@ -77,7 +77,9 @@ export class TraceWorkerDebug {
                 this.hitSamples = e.data.hitSamples;
                 this.bounces = e.data.bounces;
 
-                this.sampler = xray.NewSampler(4, 5);
+                this.sampler = xray.NewSampler(4, 4);
+                // this.sampler = xray.NewSampler(16, 8);
+                // this.sampler = xray.NewDirectSampler();
 
                 postMessage(TraceJob.INITED);
 
