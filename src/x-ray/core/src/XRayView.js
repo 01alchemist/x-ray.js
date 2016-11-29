@@ -245,7 +245,7 @@ System.register(["./XRayRenderBase", "./ThreeObjects"], function(exports_1, cont
                         }
                     }
                     console.log("intensity:" + src.intensity);
-                    var material = xMat.LightMaterial(xColor.HexColor(src.color.getHex()), src.intensity);
+                    var material = xMat.LightMaterial(xColor.HexColor(src.color.getHex()), src.intensity * 10);
                     if (_radius) {
                         var shape = xSphere.NewSphere(xVec3.NewVector(src.position.x, src.position.y, src.position.z), _radius, material);
                     }

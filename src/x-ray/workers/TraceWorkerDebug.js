@@ -37,7 +37,7 @@ System.register(["../core/src/engine/renderer/worker/TraceJob"], function(export
                             this.cameraSamples = e.data.cameraSamples;
                             this.hitSamples = e.data.hitSamples;
                             this.bounces = e.data.bounces;
-                            this.sampler = xray.NewSampler(1, 2);
+                            this.sampler = xray.NewSampler(1, 5);
                             postMessage(TraceJob_1.TraceJob.INITED);
                             break;
                         case TraceJob_1.TraceJob.TRACE:
