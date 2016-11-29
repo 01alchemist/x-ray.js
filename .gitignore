@@ -53,3 +53,5 @@ crashlytics-build.properties
 src/**/*.js
 /models
 src/**/*.map
+/src/x-ray/test/three/models/
+/src/x-ray/test/three/textures/
