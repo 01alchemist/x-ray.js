@@ -41,6 +41,8 @@ export class TraceWorkerDebug {
     iterations:number = 1;
     private locked:boolean;
 
+    private isLeader:boolean;
+
     constructor() {
         addEventListener('message', this.onMessageReceived.bind(this), false);
     }
@@ -54,6 +56,8 @@ export class TraceWorkerDebug {
             case TraceJob.INIT:
 
                 this.id = e.data.id;
+                this.isLeader = this.id == 0;
+
                 this.flags = new Uint8Array(e.data.flagsBuffer);
                 this.pixelMemory = new Uint8ClampedArray(e.data.pixelBuffer);
                 this.sampleMemory = new Float32Array(e.data.sampleBuffer);
@@ -69,6 +73,12 @@ export class TraceWorkerDebug {
 
                 if (!this.scene) {
                     this.scene = e.data.scene;
+
+                    if(this.isLeader){
+                        console.time("Scene compiled");
+                        xray.Scene.Compile(this.scene);
+                        console.timeEnd("Scene compiled");
+                    }
                 }
 
                 this.full_width = e.data.full_width;

@@ -154,7 +154,7 @@ export class TurboKernelTest extends SimpleGUI {
             materials.preload();
             objLoader.load(name + '.obj', function (object) {
                 // object.position.y = -95;
-                // object.scale.set(5, 5, 5);
+                object.scale.set(1.001, 1.001, 1.001);
                 object.smooth = true;
 
                 self.threeJSView.scene.add(object);
@@ -169,7 +169,7 @@ export class TurboKernelTest extends SimpleGUI {
                         }
                     });
                     self.render();
-                }, 2000);
+                }, 0);
 
             }, onProgress, onError);
         });

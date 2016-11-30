@@ -510,8 +510,8 @@ export class XRayView extends XRayRenderBase {
         console.log(`intensity:${src.intensity}`);
         var material:number = xMat.LightMaterial(xColor.HexColor(src.color.getHex()), src.intensity * 10);
         if (_radius) {
-            var shape = xSphere.NewSphere(xVec3.NewVector(src.position.x, src.position.y, src.position.z), _radius, material);
-            // var shape = xSphere.NewSphere(xVec3.NewVector(), _radius, material);
+            // var shape = xSphere.NewSphere(xVec3.NewVector(src.position.x, src.position.y, src.position.z), _radius, material);
+            var shape = xSphere.NewSphere(xVec3.NewVector(), _radius, material);
         } else {
             shape = xCube.NewCube(
                 // new Vector3(src.position.x - width / 2, src.position.y, src.position.z - height / 2),
@@ -520,15 +520,15 @@ export class XRayView extends XRayRenderBase {
                 xVec3.NewVector(width / 2, src.position.y + 1, height / 2),
                 material);
         }
-        return shape;
+        // return shape;
         // var mat:Matrix = Matrix4.fromTHREEJS(src.matrix.elements);
         // return TransformedShape.newTransformedShape(sphere, mat);
-        // if (src.matrix.equals(this.identityMatrix)) {
-        //     return shape;
-        // } else {
-        //     var mat = xray.Matrix.fromTHREEJS(src.matrix.elements);
-        //     return xray.TransformedShape.NewTransformedShape(shape, mat);
-        // }
+        if (src.matrix.equals(this.identityMatrix)) {
+            return shape;
+        } else {
+            var mat = xray.Matrix.fromTHREEJS(src.matrix.elements);
+            return xray.TransformedShape.NewTransformedShape(shape, mat);
+        }
     }
 
     /*private getLight(src:any):Shape {
