@@ -30,10 +30,10 @@ export class TurboKernelTest extends SimpleGUI {
         this.threeJSView = new ThreeJSView(this.i_width, this.i_height, this.webglOutput, this.appContainer);
         this.xrayView = new XRayView(this.i_width, this.i_height, this.giOutput);
         this.xrayView.iterations = 10000000;
-        this.xrayView.hitSamples = 16;
-        this.xrayView.cameraSamples = 4;
+        this.xrayView.hitSamples = 1;
+        this.xrayView.cameraSamples = 1;
         this.xrayView.blockIterations = 1;
-        this.xrayView.bounces = 8;
+        this.xrayView.bounces = 4;
         //this.xrayView.scene.color.set(0, 0, 0);
         // this.xrayView.scene.color = Color.hexColor(0xFDDCBA);
         var ambient = new THREE.AmbientLight(0x5C5C5C);
@@ -154,9 +154,9 @@ export class TurboKernelTest extends SimpleGUI {
             materials.preload();
             objLoader.load(name + '.obj', function (object) {
                 // object.position.y = -95;
-                object.scale.set(1.001, 1.001, 1.001);
+                // object.scale.set(1.001, 1.001, 1.001);
                 object.smooth = true;
-
+                object.children[0].material.ior = 1.3;
                 self.threeJSView.scene.add(object);
 
                 self.render();

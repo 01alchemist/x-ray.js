@@ -445,7 +445,13 @@ export class XRayView extends XRayRenderBase {
         }
 
         var material:number = xMat.DiffuseMaterial(xray.Color.HexColor(srcMaterial.color.getHex()));
-        // var material:number = xMat.SpecularMaterial(xray.Color.HexColor(srcMaterial.color.getHex()), xray.Utils.Radians(15));
+
+        xMat.setIndex(material, srcMaterial.ior ? srcMaterial.ior : 1);
+        xMat.setTint(material, srcMaterial.tint ? srcMaterial.tint : 0);
+        xMat.setGloss(material, srcMaterial.gloss ? srcMaterial.gloss : 0);
+        xMat.setEmittance(material, srcMaterial.emittance ? srcMaterial.emittance : 0);
+        xMat.setTransparent(material, srcMaterial.transparent ? 1:0);
+
         return material;
     }
     /*private static getMaterial(srcMaterial:any):Material {
@@ -510,8 +516,8 @@ export class XRayView extends XRayRenderBase {
         console.log(`intensity:${src.intensity}`);
         var material:number = xMat.LightMaterial(xColor.HexColor(src.color.getHex()), src.intensity * 10);
         if (_radius) {
-            // var shape = xSphere.NewSphere(xVec3.NewVector(src.position.x, src.position.y, src.position.z), _radius, material);
-            var shape = xSphere.NewSphere(xVec3.NewVector(), _radius, material);
+            var shape = xSphere.NewSphere(xVec3.NewVector(src.position.x, src.position.y, src.position.z), _radius, material);
+            // var shape = xSphere.NewSphere(xVec3.NewVector(), _radius, material);
         } else {
             shape = xCube.NewCube(
                 // new Vector3(src.position.x - width / 2, src.position.y, src.position.z - height / 2),
@@ -520,7 +526,7 @@ export class XRayView extends XRayRenderBase {
                 xVec3.NewVector(width / 2, src.position.y + 1, height / 2),
                 material);
         }
-        // return shape;
+        return shape;
         // var mat:Matrix = Matrix4.fromTHREEJS(src.matrix.elements);
         // return TransformedShape.newTransformedShape(sphere, mat);
         if (src.matrix.equals(this.identityMatrix)) {

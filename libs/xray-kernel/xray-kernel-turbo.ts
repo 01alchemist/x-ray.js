@@ -520,7 +520,7 @@ turbo.Runtime._idToType[194603] = Color;
 
 
 
-type XYZ = {
+export type XYZ = {
     X:number,
     Y:number,
     Z:number
@@ -2022,21 +2022,31 @@ export class Material extends MemoryObject{
             transparent:turbo.Runtime._mem_uint8[(SELF + 72) >> 0]
         }
     }
-    static set(SELF, Color, Texture, NormalTexture, BumpTexture, GlossTexture, BumpMultiplier, Emittance, Index, Gloss, Tint, Reflectivity, Transparent){
-         turbo.Runtime._mem_int32[(SELF + 4) >> 2] = Color; 
-         turbo.Runtime._mem_int32[(SELF + 8) >> 2] = Texture; 
-         turbo.Runtime._mem_int32[(SELF + 12) >> 2] = NormalTexture; 
-         turbo.Runtime._mem_int32[(SELF + 16) >> 2] = BumpTexture; 
-         turbo.Runtime._mem_int32[(SELF + 20) >> 2] = GlossTexture; 
-         turbo.Runtime._mem_float64[(SELF + 24) >> 3] = BumpMultiplier; 
+
+    static setEmittance(SELF, Emittance) {
          turbo.Runtime._mem_float64[(SELF + 32) >> 3] = Emittance; 
-         turbo.Runtime._mem_float64[(SELF + 40) >> 3] = Index; 
-         turbo.Runtime._mem_float64[(SELF + 48) >> 3] = Gloss; 
-         turbo.Runtime._mem_float64[(SELF + 56) >> 3] = Tint; 
-         turbo.Runtime._mem_float64[(SELF + 64) >> 3] = Reflectivity; 
-         turbo.Runtime._mem_uint8[(SELF + 72) >> 0] = Transparent; 
-        return SELF;
     }
+
+    static setIndex(SELF, Index) {
+         turbo.Runtime._mem_float64[(SELF + 40) >> 3] = Index; 
+    }
+
+    static setGloss(SELF, Gloss) {
+         turbo.Runtime._mem_float64[(SELF + 48) >> 3] = Gloss; 
+    }
+
+    static setTint(SELF, Tint) {
+         turbo.Runtime._mem_float64[(SELF + 56) >> 3] = Tint; 
+    }
+
+    static setReflectivity(SELF, Reflectivity) {
+         turbo.Runtime._mem_float64[(SELF + 64) >> 3] = Reflectivity; 
+    }
+
+    static setTransparent(SELF, Transparent) {
+         turbo.Runtime._mem_uint8[(SELF + 72) >> 0] = Transparent; 
+    }
+
     static DiffuseMaterial(color:number):number{
         let ptr:number = Material.initInstance(turbo.Runtime.allocOrThrow(73,8));
         return Material.init(ptr, color, 0, 0, 0, 0, 1, 0, 1, 0, 0, -1, false);
@@ -2173,10 +2183,10 @@ export class Ray{
     }
 }
 
-interface Hit{
+export interface Hit{
     Shape:number;
 }
-interface Ray{
+export interface Ray{
 
 }
 

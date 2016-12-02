@@ -167,6 +167,7 @@ export class TraceJobManager {
                 job.runCount = 0;
             }
         }
+        console.timeEnd('trace::iteration completed');
     }
 
     clear() {
@@ -240,7 +241,7 @@ export class TraceJobManager {
             return;
         }
         console.log("queue:" + this.queue.length);
-        console.time('trace::start');
+        console.time('trace::iteration completed');
         var self = this;
         if (this._initialized) {
 
@@ -291,7 +292,7 @@ export class TraceJobManager {
         } else {
             if (this.isAllThreadsFree) {
                 this._finished = true;
-                console.timeEnd('trace::start');
+                console.timeEnd('trace::iteration completed');
                 this.initDeferredQueue();
             }
         }
@@ -326,7 +327,7 @@ export class TraceJobManager {
 
         self.deferredQueue = [];
 
-        console.time('trace::start');
+        console.time('trace::iteration completed');
         this.start();
     }
 }

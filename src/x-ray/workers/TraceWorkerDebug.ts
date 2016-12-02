@@ -87,7 +87,7 @@ export class TraceWorkerDebug {
                 this.hitSamples = e.data.hitSamples;
                 this.bounces = e.data.bounces;
 
-                this.sampler = xray.NewSampler(1, 5);
+                this.sampler = xray.NewSampler(this.hitSamples, this.bounces);
                 // this.sampler = xray.NewSampler(16, 8);
                 // this.sampler = xray.NewDirectSampler();
 
@@ -200,7 +200,7 @@ export class TraceWorkerDebug {
                         var fu = Math.random();
                         var fv = Math.random();
                         let ray = xray.Camera.CastRay(this.camera, x, y, this.full_width, this.full_height, fu, fv);
-                        let sample = this.sampler.sample(this.scene, ray, true, this.sampler.FirstHitSamples, 1);
+                        let sample = this.sampler.sample(this.scene, ray, true, hitSamples, 1);
                         c = c.add(sample);
                     }
                     c = c.divScalar(absCameraSamples);
@@ -212,7 +212,7 @@ export class TraceWorkerDebug {
                             var fu = (u + 0.5) / n;
                             var fv = (v + 0.5) / n;
                             let ray = xray.Camera.CastRay(this.camera, x, y, this.full_width, this.full_height, fu, fv);
-                            let sample = this.sampler.sample(this.scene, ray, true, this.sampler.FirstHitSamples, 1);
+                            let sample = this.sampler.sample(this.scene, ray, true, hitSamples, 1);
                             c = c.add(sample);
                         }
                     }
