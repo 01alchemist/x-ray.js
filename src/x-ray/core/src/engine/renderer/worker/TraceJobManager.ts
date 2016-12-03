@@ -152,6 +152,11 @@ export class TraceJobManager {
     }
 
     stop() {
+
+        if(!this.stopped){
+            console.timeEnd('trace::iteration completed');
+        }
+
         if (this.flags) {
             this.queue = null;
             this.deferredQueue = null;
@@ -167,7 +172,6 @@ export class TraceJobManager {
                 job.runCount = 0;
             }
         }
-        console.timeEnd('trace::iteration completed');
     }
 
     clear() {

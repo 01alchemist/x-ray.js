@@ -3,38 +3,39 @@
  */
 declare module UIL {
 
-    export var BW:number;
-    export var AW:number;
+    export var BW: number;
+    export var AW: number;
 
     export class Title {
-        constructor(arg:any);
+        constructor(arg: any);
     }
     export class Button {
-        constructor(arg:any);
+        constructor(arg: any);
     }
     export class Gui {
-        constructor(arg:any);
+        constructor(arg: any);
 
-        add(type:string, arg:any);
+        add(type: string, arg: any);
     }
 }
 export abstract class SimpleGUI {
 
-    public giCapable:boolean;
-    public info:UIL.Title;
-    public appContainer:HTMLElement;
-    public outputContainer:HTMLElement;
-    public controlGui:HTMLElement;
-    public giOutput:HTMLElement;
-    public webglOutput:HTMLElement;
+    public giCapable: boolean;
+    public info: UIL.Title;
+    public appContainer: HTMLElement;
+    public outputContainer: HTMLElement;
+    public controlGui: HTMLElement;
+    public giOutput: HTMLElement;
+    public webglOutput: HTMLElement;
+    public progressBar: HTMLElement;
 
-    public i_width:number = 640;
-    public i_height:number = 480;
+    public i_width: number = 640;
+    public i_height: number = 480;
 
-    public traceInitialized:boolean;
+    public traceInitialized: boolean;
 
-    protected _gi:any;
-    protected _tracing:any;
+    protected _gi: any;
+    protected _tracing: any;
 
     abstract onInit();
 
@@ -52,10 +53,13 @@ export abstract class SimpleGUI {
     }
 
     //optional abstract methods
-    toggleTrace(value) {}
-    onCameraChange(value) {}
+    toggleTrace(value) {
+    }
 
-    init():void {
+    onCameraChange(value) {
+    }
+
+    init(): void {
         /*some styling */
 
         document.body.style.margin = "0px";
@@ -64,7 +68,7 @@ export abstract class SimpleGUI {
         this.webglOutput = document.getElementById("webglOutput");
         this.controlGui = document.getElementById("control-gui");
 
-        if(!this.appContainer){
+        if (!this.appContainer) {
             this.appContainer = document.createElement("div");
             this.appContainer.setAttribute("id", "appContainer");
             document.body.appendChild(this.appContainer);
@@ -81,19 +85,19 @@ export abstract class SimpleGUI {
         this.outputContainer.style.position = "absolute";
         this.appContainer.appendChild(this.outputContainer);
 
-        if(!this.webglOutput){
+        if (!this.webglOutput) {
             this.webglOutput = document.createElement("div");
             this.webglOutput.setAttribute("id", "webglOutput");
             this.outputContainer.appendChild(this.webglOutput);
         }
 
-        if(!this.giOutput){
+        if (!this.giOutput) {
             this.giOutput = document.createElement("div");
             this.giOutput.setAttribute("id", "giOutput");
             this.outputContainer.appendChild(this.giOutput);
         }
 
-        if(!this.controlGui){
+        if (!this.controlGui) {
             this.controlGui = document.createElement("div");
             this.controlGui.setAttribute("id", "controlGui");
             document.body.appendChild(this.controlGui);
@@ -109,6 +113,15 @@ export abstract class SimpleGUI {
         this.giOutput.style.backgroundColor = "#3C3C3C";
         this.giOutput.style.position = "absolute";
         this.giOutput.style.display = "none";
+
+
+        this.progressBar = document.createElement("div");
+        this.progressBar.setAttribute("id", "progressBar");
+        this.progressBar.style.width = "0";
+        this.progressBar.style.height = 5 + "px";
+        this.progressBar.style.position = "absolute";
+        this.progressBar.style.background = "#056bd4";
+        this.outputContainer.appendChild(this.progressBar);
 
         this.resize();
 
@@ -126,7 +139,7 @@ export abstract class SimpleGUI {
             this.webglOutput.style.display = "none";
             this.giOutput.style.display = "none";
 
-            var msg:string = "Oops! Your browser does not supported. Start chrome with --enable-blink-feature=SharedArrayBuffer or use Firefox Nightly";
+            var msg: string = "Oops! Your browser does not supported. Start chrome with --enable-blink-feature=SharedArrayBuffer or use Firefox Nightly";
             new UIL.Title({
                 target: this.controlGui,
                 name: msg,
@@ -158,7 +171,7 @@ export abstract class SimpleGUI {
             this.info = new UIL.Title({
                 target: this.controlGui,
                 name: 'Info:',
-                id: "!",
+                id: "|",
                 size: 400,
                 pos: {left: '10px', bottom: '10px'},
                 simple: false
@@ -175,6 +188,22 @@ export abstract class SimpleGUI {
             this.onInit();
         }
     }
+
+    setProgress(value){
+        this.setInfo(`Loading model ${Math.round(value * 100)} %`);
+        if(this.progressBar) {
+            this.progressBar.style.width = (this.i_width * value) + "px";
+            if(value >= 1){
+                this.progressBar.style.transition = "500ms";
+                this.progressBar.style.opacity = "0";
+            }
+        }
+    }
+
+    setInfo(txt){
+        this.info.text(txt);
+    }
+
     resize() {
         this.outputContainer.style.left = (window.innerWidth - this.i_width) / 2 + "px";
         this.outputContainer.style.top = (window.innerHeight - (this.i_height)) / 2 + "px";
@@ -195,7 +224,7 @@ export abstract class SimpleGUI {
         }
     }
 
-    private initGIControls(){
+    private initGIControls() {
         var ui = new UIL.Gui({
             target: this.controlGui,
             css: 'top:10px; right:10px;',

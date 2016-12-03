@@ -20,8 +20,8 @@ export class TurboKernelTest extends SimpleGUI {
 
         Thread.workerUrl = "../workers/trace-worker-bootstrap-debug.js";
 
-        this.i_width = 2560 / 4;
-        this.i_height = 1536 / 4;
+        this.i_width = 2560 / 2;
+        this.i_height = 1536 / 2;
     }
 
     onInit() {
@@ -78,14 +78,14 @@ export class TurboKernelTest extends SimpleGUI {
 
         var onProgress = function (xhr) {
             if (xhr.lengthComputable) {
-                var percentComplete = xhr.loaded / xhr.total * 100;
-                console.log(Math.round(percentComplete) + '% downloaded');
+                var percentComplete = xhr.loaded / xhr.total;
+                // console.log(Math.round(percentComplete) + '% downloaded');
+                this.setProgress(percentComplete);
             }
-        };
+        }.bind(this);
 
         var onError = function (xhr) {
         };
-
 
         let size = 50;
 
@@ -160,9 +160,13 @@ export class TurboKernelTest extends SimpleGUI {
                 self.threeJSView.scene.add(object);
 
                 self.render();
+                self.setInfo("Model load completed");
 
                 setTimeout(function () {
+                    self.setInfo("Building scene...");
+                    let build_time = performance.now();
                     self.xrayView.setThreeJSScene(self.threeJSView.scene, function () {
+                        self.setInfo(`Ready, build time:${((performance.now() - build_time)/1000).toFixed(2)}e+3ms`);
                         self.xrayView.updateCamera(self.threeJSView.camera);
                         if (self._tracing.value) {
                             self.xrayView.toggleTrace(true);
