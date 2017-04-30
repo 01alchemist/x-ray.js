@@ -76,7 +76,7 @@ export class TraceWorkerDebug {
 
                     if(this.isLeader){
                         console.time("Scene compiled");
-                        xray.Scene.Compile(this.scene);
+                        XRAY.Scene.Compile(this.scene);
                         console.timeEnd("Scene compiled");
                     }
                 }
@@ -87,9 +87,9 @@ export class TraceWorkerDebug {
                 this.hitSamples = e.data.hitSamples;
                 this.bounces = e.data.bounces;
 
-                this.sampler = xray.NewSampler(this.hitSamples, this.bounces);
-                // this.sampler = xray.NewSampler(16, 8);
-                // this.sampler = xray.NewDirectSampler();
+                this.sampler = XRAY.NewSampler(this.hitSamples, this.bounces);
+                // this.sampler = XRAY.NewSampler(16, 8);
+                // this.sampler = XRAY.NewDirectSampler();
 
                 postMessage(TraceJob.INITED);
 
@@ -192,14 +192,14 @@ export class TraceWorkerDebug {
                 // var _x:number = x - this.xoffset;
                 // var _y:number = y - this.yoffset;
 
-                var c = new xray.Color3();
+                var c = new XRAY.Color3();
 
                 if (cameraSamples <= 0) {
                     // random subsampling
                     for (let i = 0; i < absCameraSamples; i++) {
                         var fu = Math.random();
                         var fv = Math.random();
-                        let ray = xray.Camera.CastRay(this.camera, x, y, this.full_width, this.full_height, fu, fv);
+                        let ray = XRAY.Camera.CastRay(this.camera, x, y, this.full_width, this.full_height, fu, fv);
                         let sample = this.sampler.sample(this.scene, ray, true, hitSamples, 1);
                         c = c.add(sample);
                     }
@@ -211,7 +211,7 @@ export class TraceWorkerDebug {
                         for (var v = 0; v < n; v++) {
                             var fu = (u + 0.5) / n;
                             var fv = (v + 0.5) / n;
-                            let ray = xray.Camera.CastRay(this.camera, x, y, this.full_width, this.full_height, fu, fv);
+                            let ray = XRAY.Camera.CastRay(this.camera, x, y, this.full_width, this.full_height, fu, fv);
                             let sample = this.sampler.sample(this.scene, ray, true, hitSamples, 1);
                             c = c.add(sample);
                         }

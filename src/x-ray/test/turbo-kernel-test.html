@@ -28,12 +28,12 @@
     </script>
     <script src="../../../libs/xray-kernel/turbo-runtime.js"></script>
     <script>
-        turbo.init(1024);
+        turbo.init(256);
     </script>
     <script src="../../../libs/xray-kernel/xray-kernel-turbo.js"></script>
     <script>
         System.import('TurboKernelTest').then(function (module) {
-            new module.TurboKernelTest();
+            window.demo = new module.TurboKernelTest();
         }, console.error.bind(console));
     </script>
 </head>

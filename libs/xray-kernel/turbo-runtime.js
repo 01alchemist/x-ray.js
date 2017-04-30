@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Created by Nidin Vinayakan on 6/13/2016.
  */
@@ -55,14 +54,14 @@ var RuntimeConstructor = (function () {
         this.int32x4 = { SIZE: 16, ALIGN: 16, NAME: "int32x4" };
         this.float32x4 = { SIZE: 16, ALIGN: 16, NAME: "float32x4" };
         this.float64x2 = { SIZE: 16, ALIGN: 16, NAME: "float64x2" };
-        this._mem_int8 = null;
-        this._mem_uint8 = null;
-        this._mem_int16 = null;
-        this._mem_uint16 = null;
-        this._mem_int32 = null;
-        this._mem_uint32 = null;
-        this._mem_float32 = null;
-        this._mem_float64 = null;
+        this._mem_i8 = null;
+        this._mem_u8 = null;
+        this._mem_i16 = null;
+        this._mem_u16 = null;
+        this._mem_i32 = null;
+        this._mem_u32 = null;
+        this._mem_f32 = null;
+        this._mem_f64 = null;
         this.freeList = [];
         this.totalFreeMemory = 0;
         this._now = (typeof 'performance' != 'undefined' && typeof performance.now == 'function' ?
@@ -111,30 +110,31 @@ var RuntimeConstructor = (function () {
         if (len < 16) {
             throw new Error("The memory is too small even for metadata");
         }
+        this.RAW_MEMORY = buffer;
         if (buffer instanceof ArrayBuffer) {
-            this.alloc = alloc_ab;
+            this.internal_alloc = alloc_ab;
         }
         else if (buffer instanceof SharedArrayBuffer) {
-            this.alloc = alloc_sab;
+            this.internal_alloc = alloc_sab;
         }
         else {
             throw new Error("Turbo can be initialized only on SharedArrayBuffer or ArrayBuffer");
         }
-        this._mem_int8 = new Int8Array(buffer, start, len);
-        this._mem_uint8 = new Uint8Array(buffer, start, len);
-        this._mem_int16 = new Int16Array(buffer, start, len / 2);
-        this._mem_uint16 = new Uint16Array(buffer, start, len / 2);
-        this._mem_int32 = new Int32Array(buffer, start, len / 4);
-        this._mem_uint32 = new Uint32Array(buffer, start, len / 4);
-        this._mem_float32 = new Float32Array(buffer, start, len / 4);
-        this._mem_float64 = new Float64Array(buffer, start, len / 8);
+        this._mem_i8 = new Int8Array(buffer, start, len);
+        this._mem_u8 = new Uint8Array(buffer, start, len);
+        this._mem_i16 = new Int16Array(buffer, start, len / 2);
+        this._mem_u16 = new Uint16Array(buffer, start, len / 2);
+        this._mem_i32 = new Int32Array(buffer, start, len / 4);
+        this._mem_u32 = new Uint32Array(buffer, start, len / 4);
+        this._mem_f32 = new Float32Array(buffer, start, len / 4);
+        this._mem_f64 = new Float64Array(buffer, start, len / 8);
         if (initialize) {
-            this._mem_int32[2] = len;
+            this._mem_i32[2] = len;
             if (buffer instanceof ArrayBuffer) {
-                this._mem_int32[1] = 16;
+                this._mem_i32[1] = 16;
             }
             else if (buffer instanceof SharedArrayBuffer) {
-                Atomics.store(this._mem_int32, 1, 16);
+                Atomics.store(this._mem_i32, 1, 16);
             }
         }
     };
@@ -146,7 +146,7 @@ var RuntimeConstructor = (function () {
      *
      * Return NULL if no memory is available.
      */
-    RuntimeConstructor.prototype.alloc = function (nbytes, alignment) {
+    RuntimeConstructor.prototype.internal_alloc = function (nbytes, alignment) {
         // Overridden during initialization.
         throw new Error("Not initialized");
     };
@@ -156,8 +156,8 @@ var RuntimeConstructor = (function () {
      * Interesting possibility is to avoid this function
      * and instead move the test into each initInstance().
      */
-    RuntimeConstructor.prototype.allocOrThrow = function (nbytes, alignment) {
-        var p = this.alloc(nbytes, alignment);
+    RuntimeConstructor.prototype.alloc = function (nbytes, alignment) {
+        var p = this.internal_alloc(nbytes, alignment);
         if (p == 0)
             throw new MemoryError("Out of memory");
         return p;
@@ -170,7 +170,7 @@ var RuntimeConstructor = (function () {
         // Drop it on the floor, for now
         // In the future: figure out the size from the header or other info,
         // add to free list, etc etc.
-        var type = this._idToType[this._mem_int32[p >> 2]];
+        var type = this._idToType[this._mem_i32[p >> 2]];
         this.totalFreeMemory += type.SIZE;
         this.freeList.push({ ptr: p, size: type.SIZE });
     };
@@ -181,8 +181,8 @@ var RuntimeConstructor = (function () {
     RuntimeConstructor.prototype.identify = function (p) {
         if (p == 0)
             return null;
-        if (this._idToType.hasOwnProperty(this._mem_int32[p >> 2]))
-            return this._idToType[this._mem_int32[p >> 2]];
+        if (this._idToType.hasOwnProperty(this._mem_i32[p >> 2]))
+            return this._idToType[this._mem_i32[p >> 2]];
         return null;
     };
     RuntimeConstructor.prototype._badType = function (self) {
@@ -238,7 +238,7 @@ var RuntimeConstructor = (function () {
     };
     RuntimeConstructor.prototype._synchronicLoadWhenNotEqual = function (self, mem, idx, value) {
         for (;;) {
-            var tag = Atomics.load(this._mem_int32, (self + 4) >> 2);
+            var tag = Atomics.load(this._mem_i32, (self + 4) >> 2);
             var v = Atomics.load(mem, idx);
             if (v !== value)
                 break;
@@ -248,7 +248,7 @@ var RuntimeConstructor = (function () {
     };
     RuntimeConstructor.prototype._synchronicLoadWhenEqual = function (self, mem, idx, value) {
         for (;;) {
-            var tag = Atomics.load(this._mem_int32, (self + 4) >> 2);
+            var tag = Atomics.load(this._mem_i32, (self + 4) >> 2);
             var v = Atomics.load(mem, idx);
             if (v === value)
                 break;
@@ -260,7 +260,7 @@ var RuntimeConstructor = (function () {
         var now = this._now();
         var limit = now + timeout;
         for (;;) {
-            var tag = Atomics.load(this._mem_int32, (self + 4) >> 2);
+            var tag = Atomics.load(this._mem_i32, (self + 4) >> 2);
             var v = Atomics.load(mem, idx);
             if (v !== value || now >= limit)
                 break;
@@ -298,45 +298,40 @@ var RuntimeConstructor = (function () {
         var i = 10000;
         do {
             // May want this to be a relaxed load, though on x86 it won't matter.
-            if (Atomics.load(this._mem_int32, (self + 4) >> 2) != tag)
+            if (Atomics.load(this._mem_i32, (self + 4) >> 2) != tag)
                 return;
         } while (--i > 0);
-        Atomics.add(this._mem_int32, self >> 2, 1);
-        Atomics.futexWait(this._mem_int32, (self + 4) >> 2, tag, timeout);
-        Atomics.sub(this._mem_int32, self >> 2, 1);
+        Atomics.add(this._mem_i32, self >> 2, 1);
+        Atomics.wait(this._mem_i32, (self + 4) >> 2, tag, timeout);
+        Atomics.sub(this._mem_i32, self >> 2, 1);
     };
     RuntimeConstructor.prototype._notify = function (self) {
-        Atomics.add(this._mem_int32, (self + 4) >> 2, 1);
+        Atomics.add(this._mem_i32, (self + 4) >> 2, 1);
         // Would it be appropriate & better to wake n waiters, where n
         // is the number loaded in the load()?  I almost think so,
         // since our futexes are fair.
-        if (Atomics.load(this._mem_int32, self >> 2) > 0)
-            Atomics.futexWake(this._mem_int32, (self + 4) >> 2, Number.POSITIVE_INFINITY);
+        if (Atomics.load(this._mem_i32, self >> 2) > 0)
+            Atomics.wake(this._mem_i32, (self + 4) >> 2, Number.POSITIVE_INFINITY);
     };
     return RuntimeConstructor;
 }());
-exports.RuntimeConstructor = RuntimeConstructor;
-exports.turbo = {
+var turbo = {
     Runtime: new RuntimeConstructor(),
     IsWorker: WORKER_ENV,
     init: function (MB) {
         var RAW_MEMORY = new SharedArrayBuffer(MB * 1024 * 1024);
-        exports.unsafe.RAW_MEMORY = RAW_MEMORY;
         this.Runtime.init(RAW_MEMORY, 0, RAW_MEMORY.byteLength, true);
     },
     getMemoryUsage: function () {
-        var top = Atomics.load(this.Runtime._mem_int32, 1);
+        var top = Atomics.load(this.Runtime._mem_i32, 1);
         top -= this.Runtime.totalFreeMemory;
         var usage = top / (1024 * 1024);
         var mb = Math.round(usage);
         return (mb == 0 ? usage : mb) + "MB";
     }
 };
-exports.unsafe = {
-    RAW_MEMORY: null
-};
-window["turbo"] = exports.turbo;
-window["unsafe"] = exports.unsafe;
+window["turbo"] = turbo;
+window["unsafe"] = turbo.Runtime;
 // For allocators: Do not round up nbytes, for now.  References to
 // fields within structures can be to odd addresses and there's no
 // particular reason that an object can't be allocated on an odd
@@ -356,20 +351,20 @@ function alloc_sab(nbytes, alignment) {
         });
     }
     do {
-        var p = Atomics.load(this._mem_int32, 1);
+        var p = Atomics.load(this._mem_i32, 1);
         var q = (p + (alignment - 1)) & ~(alignment - 1);
         var top = q + nbytes;
-        if (top >= this._mem_int32[2])
+        if (top >= this._mem_i32[2])
             return 0;
-    } while (Atomics.compareExchange(this._mem_int32, 1, p, top) != p);
+    } while (Atomics.compareExchange(this._mem_i32, 1, p, top) != p);
     return q;
 }
 function alloc_ab(nbytes, alignment) {
-    var p = this._mem_int32[1];
+    var p = this._mem_i32[1];
     p = (p + (alignment - 1)) & ~(alignment - 1);
     var top = p + nbytes;
-    if (top >= this._mem_int32[2])
+    if (top >= this._mem_i32[2])
         return 0;
-    this._mem_int32[1] = top;
+    this._mem_i32[1] = top;
     return p;
 }

@@ -80,7 +80,7 @@ export class TraceWorker {
                 this.hitSamples = e.data.hitSamples;
                 this.bounces = e.data.bounces;
 
-                this.sampler = xray.NewSampler(4, 5);
+                this.sampler = XRAY.NewSampler(4, 5);
 
                 postMessage(TraceJob.INITED);
                 break;
@@ -182,14 +182,14 @@ export class TraceWorker {
                 // var _x:number = x - this.xoffset;
                 // var _y:number = y - this.yoffset;
 
-                var c = new xray.Color3();
+                var c = new XRAY.Color3();
 
                 if (cameraSamples <= 0) {
                     // random subsampling
                     for (let i = 0; i < absCameraSamples; i++) {
                         var fu = Math.random();
                         var fv = Math.random();
-                        let ray = xray.Camera.CastRay(this.camera, x, y, this.full_width, this.full_height, fu, fv);
+                        let ray = XRAY.Camera.CastRay(this.camera, x, y, this.full_width, this.full_height, fu, fv);
                         let sample = this.sampler.sample(this.scene, ray, true, this.sampler.FirstHitSamples, 1);
                         c = c.add(sample);
                     }
@@ -201,7 +201,7 @@ export class TraceWorker {
                         for (var v = 0; v < n; v++) {
                             var fu = (u + 0.5) / n;
                             var fv = (v + 0.5) / n;
-                            let ray = xray.Camera.CastRay(this.camera, x, y, this.full_width, this.full_height, fu, fv);
+                            let ray = XRAY.Camera.CastRay(this.camera, x, y, this.full_width, this.full_height, fu, fv);
                             let sample = this.sampler.sample(this.scene, ray, true, this.sampler.FirstHitSamples, 1);
                             c = c.add(sample);
                         }

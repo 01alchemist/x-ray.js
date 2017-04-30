@@ -36,6 +36,7 @@ export abstract class SimpleGUI {
 
     protected _gi: any;
     protected _tracing: any;
+    protected _buildSceneOnStartup: any;
 
     abstract onInit();
 
@@ -57,6 +58,9 @@ export abstract class SimpleGUI {
     }
 
     onCameraChange(value) {
+    }
+
+    buildScene(value) {
     }
 
     init(): void {
@@ -239,6 +243,13 @@ export abstract class SimpleGUI {
             name: 'Ray Trace',
             value: false,
             callback: this.toggleTrace.bind(this),
+            height: 30
+        });
+
+        this._buildSceneOnStartup = ui.add('button', {
+            name: 'Build Scene',
+            value: false,
+            callback: this.buildScene.bind(this),
             height: 30
         });
 

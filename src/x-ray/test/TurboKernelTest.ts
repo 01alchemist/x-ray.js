@@ -20,8 +20,8 @@ export class TurboKernelTest extends SimpleGUI {
 
         Thread.workerUrl = "../workers/trace-worker-bootstrap-debug.js";
 
-        this.i_width = 2560 / 2;
-        this.i_height = 1536 / 2;
+        this.i_width = 2560 / 4;
+        this.i_height = 1536 / 4;
     }
 
     onInit() {
@@ -60,12 +60,12 @@ export class TurboKernelTest extends SimpleGUI {
         this.threeJSView.scene.add(pointLight2);
 
         var pointLight = new THREE.PointLight(color, 1, 30);
-         pointLight.position.set(5, 5, 0);
-         pointLight.castShadow = true;
-         pointLight.shadow.camera["near"] = 1;
-         pointLight.shadow.camera["far"] = 300;
-         pointLight.shadow.bias = 0.01;
-         // this.threeJSView.scene.add(pointLight);
+        pointLight.position.set(5, 5, 0);
+        pointLight.castShadow = true;
+        pointLight.shadow.camera["near"] = 1;
+        pointLight.shadow.camera["far"] = 300;
+        pointLight.shadow.bias = 0.01;
+        // this.threeJSView.scene.add(pointLight);
 
         // texture
         var manager = new THREE.LoadingManager();
@@ -90,7 +90,7 @@ export class TurboKernelTest extends SimpleGUI {
         let size = 50;
 
         // geometry = new THREE.BoxBufferGeometry( 1000, 1, 1000);
-        geometry = new THREE.CubeGeometry(1000,1,1000,10,1,10);
+        geometry = new THREE.CubeGeometry(1000, 1, 1000, 10, 1, 10);
         material = new THREE.MeshPhongMaterial({color: 0xB9B9B9});
         material.ior = 1.5;
         material.gloss = MathUtils.radians(15);
@@ -99,32 +99,32 @@ export class TurboKernelTest extends SimpleGUI {
         ground.receiveShadow = true;
         this.threeJSView.scene.add(ground);
 
-        geometry = new THREE.CubeGeometry(1,size,size,1,10,10);
+        geometry = new THREE.CubeGeometry(1, size, size, 1, 10, 10);
         material = new THREE.MeshPhongMaterial({color: 0xFF0000});
         material.ior = 1.5;
         material.gloss = MathUtils.radians(15);
         var left = new THREE.Mesh(geometry, material);
-        left.position.set(-size/2,0,0);
+        left.position.set(-size / 2, 0, 0);
         left.castShadow = false;
         left.receiveShadow = true;
         this.threeJSView.scene.add(left);
 
-        geometry = new THREE.CubeGeometry(1,size,size,1,10,10);
+        geometry = new THREE.CubeGeometry(1, size, size, 1, 10, 10);
         material = new THREE.MeshPhongMaterial({color: 0x00FF00});
         material.ior = 1.5;
         material.gloss = MathUtils.radians(15);
         var right = new THREE.Mesh(geometry, material);
-        right.position.set(size/2,0,0);
+        right.position.set(size / 2, 0, 0);
         right.castShadow = false;
         right.receiveShadow = true;
         this.threeJSView.scene.add(right);
 
-        geometry = new THREE.CubeGeometry(size,size,1,10,10,1);
+        geometry = new THREE.CubeGeometry(size, size, 1, 10, 10, 1);
         material = new THREE.MeshPhongMaterial({color: 0xB9B9B9});
         material.ior = 1.5;
         material.gloss = MathUtils.radians(15);
         var back = new THREE.Mesh(geometry, material);
-        back.position.set(0,0,-size/2);
+        back.position.set(0, 0, -size / 2);
         back.castShadow = false;
         back.receiveShadow = true;
         this.threeJSView.scene.add(back);
@@ -163,21 +163,13 @@ export class TurboKernelTest extends SimpleGUI {
                 self.setInfo("Model load completed");
 
                 setTimeout(function () {
-                    self.setInfo("Building scene...");
-                    let build_time = performance.now();
-                    self.xrayView.setThreeJSScene(self.threeJSView.scene, function () {
-                        self.setInfo(`Ready, build time:${((performance.now() - build_time)/1000).toFixed(2)}e+3ms`);
-                        self.xrayView.updateCamera(self.threeJSView.camera);
-                        if (self._tracing.value) {
-                            self.xrayView.toggleTrace(true);
-                        }
-                    });
-                    self.render();
+                    if (self._buildSceneOnStartup.value) {
+                        self.buildScene();
+                    }
                 }, 0);
 
             }, onProgress, onError);
         });
-
 
         this.threeJSView.onCameraChange = function (camera) {
             self.xrayView.updateCamera(camera);
@@ -208,6 +200,19 @@ export class TurboKernelTest extends SimpleGUI {
     render() {
         this.threeJSView.render();
     }
+
+    buildScene() {
+        this.setInfo("Building scene...");
+        let build_time = performance.now();
+        this.xrayView.setThreeJSScene(this.threeJSView.scene, () => {
+            this.setInfo(`Ready, build time:${((performance.now() - build_time) / 1000).toFixed(2)}e+3ms`);
+            this.xrayView.updateCamera(this.threeJSView.camera);
+            if (this._tracing.value) {
+                this.xrayView.toggleTrace(true);
+            }
+        });
+        this.render();
+    };
 
     //configure GUI
     toggleGI(newValue) {

@@ -6,16 +6,16 @@ import {ThreeObjects} from "./ThreeObjects";
 import {TMatrix4} from "./engine/math/TMatrix4";
 import {MathUtils} from "./engine/utils/MathUtils";
 
-var xColor = xray.Color;
-var xVec3 = xray.Vector;
-var xMat = xray.Material;
-var xCamera = xray.Camera;
-var xShape = xray.Shape;
-var xTriangle = xray.Triangle;
-var xMesh = xray.Mesh;
-var xSphere = xray.Sphere;
-var xCube = xray.Cube;
-var xMasterScene = xray.MasterScene;
+var xColor = XRAY.Color;
+var xVec3 = XRAY.Vector;
+var xMat = XRAY.Material;
+var xCamera = XRAY.Camera;
+var xShape = XRAY.Shape;
+var xTriangle = XRAY.Triangle;
+var xMesh = XRAY.Mesh;
+var xSphere = XRAY.Sphere;
+var xCube = XRAY.Cube;
+var xMasterScene = XRAY.MasterScene;
 /**
  * Created by Nidin Vinayakan on 27-02-2016.
  */
@@ -89,8 +89,8 @@ export class XRayView extends XRayRenderBase {
                 if (matrixWorld.equals(this.identityMatrix)) {
                     return shape;
                 } else {
-                    var mat = xray.Matrix.fromTHREEJS(matrixWorld.elements);
-                    return xray.TransformedShape.NewTransformedShape(shape, mat);
+                    var mat = XRAY.Matrix.fromTHREEJS(matrixWorld.elements);
+                    return XRAY.TransformedShape.NewTransformedShape(shape, mat);
                 }
 
             case ThreeObjects.PointLight:
@@ -113,24 +113,24 @@ export class XRayView extends XRayRenderBase {
             var vertices = geometry.vertices;
             var faces = geometry.faces;
             if (vertices && faces) {
-                // triangles = turbo.Runtime.allocOrThrow( 4 + ( 4 * (faces.length) ), 4 ) /*Array*/;
-                // turbo.Runtime._mem_int32[triangles >> 2] = (faces.length);
+                // triangles = turbo.Runtime.alloc( 4 + ( 4 * (faces.length) ), 4 ) /*Array*/;
+                // turbo.Runtime._mem_i32[triangles >> 2] = (faces.length);
                 for (var i = 0; i < faces.length; i++) {
                     var face = faces[i];
-                    var t:number = xTriangle.initInstance(turbo.Runtime.allocOrThrow(53,4));
+                    var t:number = xTriangle.initInstance(turbo.Runtime.alloc(53,4));
 
-                    turbo.Runtime._mem_int32[(t + 44) >> 2] = material;
-                    turbo.Runtime._mem_int32[(t + 8) >> 2] = xVec3.NewVector(vertices[face.a].x, vertices[face.a].y, vertices[face.a].z);
-                    turbo.Runtime._mem_int32[(t + 12) >> 2] = xVec3.NewVector(vertices[face.b].x, vertices[face.b].y, vertices[face.b].z);
-                    turbo.Runtime._mem_int32[(t + 16) >> 2] = xVec3.NewVector(vertices[face.c].x, vertices[face.c].y, vertices[face.c].z);
-                    turbo.Runtime._mem_int32[(t + 20) >> 2] = xVec3.NewVector();
-                    turbo.Runtime._mem_int32[(t + 24) >> 2] = xVec3.NewVector();
-                    turbo.Runtime._mem_int32[(t + 28) >> 2] = xVec3.NewVector();
+                    turbo.Runtime._mem_i32[(t + 44) >> 2] = material;
+                    turbo.Runtime._mem_i32[(t + 8) >> 2] = xVec3.NewVector(vertices[face.a].x, vertices[face.a].y, vertices[face.a].z);
+                    turbo.Runtime._mem_i32[(t + 12) >> 2] = xVec3.NewVector(vertices[face.b].x, vertices[face.b].y, vertices[face.b].z);
+                    turbo.Runtime._mem_i32[(t + 16) >> 2] = xVec3.NewVector(vertices[face.c].x, vertices[face.c].y, vertices[face.c].z);
+                    turbo.Runtime._mem_i32[(t + 20) >> 2] = xVec3.NewVector();
+                    turbo.Runtime._mem_i32[(t + 24) >> 2] = xVec3.NewVector();
+                    turbo.Runtime._mem_i32[(t + 28) >> 2] = xVec3.NewVector();
 
                     // triangle.updateBox();
                     // triangle.fixNormals();
                     triangles.push(t);
-                    // turbo.Runtime._mem_int32[(  triangles + 4 + (4 * i)  ) >> 2] = t;
+                    // turbo.Runtime._mem_i32[(  triangles + 4 + (4 * i)  ) >> 2] = t;
                 }
             } else {
                 return null;
@@ -156,8 +156,8 @@ export class XRayView extends XRayRenderBase {
 
                 var indices = indexAttribute.array;
                 var uvIndex:number = 0;
-                // triangles = turbo.Runtime.allocOrThrow( 4 + ( 4 * (indices.length) ), 4 ) /*Array*/;
-                // turbo.Runtime._mem_int32[triangles >> 2] = (indices.length);
+                // triangles = turbo.Runtime.alloc( 4 + ( 4 * (indices.length) ), 4 ) /*Array*/;
+                // turbo.Runtime._mem_i32[triangles >> 2] = (indices.length);
 
                 for (var i = 0; i < indices.length; i = i + 3) {
 
@@ -203,50 +203,50 @@ export class XRayView extends XRayRenderBase {
                     let cu = c * 2;
                     let cv = (c * 2) + 1;
 
-                    let t = xTriangle.initInstance(turbo.Runtime.allocOrThrow(53,4));
-                    turbo.Runtime._mem_int32[(t + 44) >> 2] = material;
-                    turbo.Runtime._mem_int32[(t + 8) >> 2] = xVec3.NewVector(positions[ax], positions[ay], positions[az]);
-                    turbo.Runtime._mem_int32[(t + 12) >> 2] = xVec3.NewVector(positions[bx], positions[by], positions[bz]);
-                    turbo.Runtime._mem_int32[(t + 16) >> 2] = xVec3.NewVector(positions[cx], positions[cy], positions[cz]);
+                    let t = xTriangle.initInstance(turbo.Runtime.alloc(53,4));
+                    turbo.Runtime._mem_i32[(t + 44) >> 2] = material;
+                    turbo.Runtime._mem_i32[(t + 8) >> 2] = xVec3.NewVector(positions[ax], positions[ay], positions[az]);
+                    turbo.Runtime._mem_i32[(t + 12) >> 2] = xVec3.NewVector(positions[bx], positions[by], positions[bz]);
+                    turbo.Runtime._mem_i32[(t + 16) >> 2] = xVec3.NewVector(positions[cx], positions[cy], positions[cz]);
 
-                    turbo.Runtime._mem_int32[(t + 20) >> 2] = xVec3.NewVector(normals[ax], normals[ay], normals[az]);
-                    turbo.Runtime._mem_int32[(t + 24) >> 2] = xVec3.NewVector(normals[bx], normals[by], normals[bz]);
-                    turbo.Runtime._mem_int32[(t + 28) >> 2] = xVec3.NewVector(normals[cx], normals[cy], normals[cz]);
+                    turbo.Runtime._mem_i32[(t + 20) >> 2] = xVec3.NewVector(normals[ax], normals[ay], normals[az]);
+                    turbo.Runtime._mem_i32[(t + 24) >> 2] = xVec3.NewVector(normals[bx], normals[by], normals[bz]);
+                    turbo.Runtime._mem_i32[(t + 28) >> 2] = xVec3.NewVector(normals[cx], normals[cy], normals[cz]);
 
                     if(uv){
-                        turbo.Runtime._mem_int32[(t + 32) >> 2] = xVec3.NewVector(uv[au], uv[av], 0);
-                        turbo.Runtime._mem_int32[(t + 36) >> 2] = xVec3.NewVector(uv[bu], uv[bv], 0);
-                        turbo.Runtime._mem_int32[(t + 40) >> 2] = xVec3.NewVector(uv[cu], uv[cv], 0);
+                        turbo.Runtime._mem_i32[(t + 32) >> 2] = xVec3.NewVector(uv[au], uv[av], 0);
+                        turbo.Runtime._mem_i32[(t + 36) >> 2] = xVec3.NewVector(uv[bu], uv[bv], 0);
+                        turbo.Runtime._mem_i32[(t + 40) >> 2] = xVec3.NewVector(uv[cu], uv[cv], 0);
                     }
 
                     // triangle.fixNormals();
                     // triangle.updateBox();
                     triangles.push(t);
-                    // turbo.Runtime._mem_int32[(  triangles + 4 + (4 * i)  ) >> 2] = t;
+                    // turbo.Runtime._mem_i32[(  triangles + 4 + (4 * i)  ) >> 2] = t;
                     uvIndex += 2;
                 }
 
             } else {
                 uvIndex = 0;
-                // triangles = turbo.Runtime.allocOrThrow( 4 + ( 4 * (positions.length) ), 4 ) /*Array*/;
-                // turbo.Runtime._mem_int32[triangles >> 2] = (positions.length);
+                // triangles = turbo.Runtime.alloc( 4 + ( 4 * (positions.length) ), 4 ) /*Array*/;
+                // turbo.Runtime._mem_i32[triangles >> 2] = (positions.length);
                 for (let i = 0; i < positions.length; i = i + 9) {
 
-                    let t = xTriangle.initInstance(turbo.Runtime.allocOrThrow(53,4));
-                    turbo.Runtime._mem_int32[(t + 44) >> 2] = material;
+                    let t = xTriangle.initInstance(turbo.Runtime.alloc(53,4));
+                    turbo.Runtime._mem_i32[(t + 44) >> 2] = material;
 
-                    turbo.Runtime._mem_int32[(t + 8) >> 2] = xVec3.NewVector(positions[i], positions[i + 1], positions[i + 2]);
-                    turbo.Runtime._mem_int32[(t + 12) >> 2] = xVec3.NewVector(positions[i + 3], positions[i + 4], positions[i + 5]);
-                    turbo.Runtime._mem_int32[(t + 16) >> 2] = xVec3.NewVector(positions[i + 6], positions[i + 7], positions[i + 8]);
+                    turbo.Runtime._mem_i32[(t + 8) >> 2] = xVec3.NewVector(positions[i], positions[i + 1], positions[i + 2]);
+                    turbo.Runtime._mem_i32[(t + 12) >> 2] = xVec3.NewVector(positions[i + 3], positions[i + 4], positions[i + 5]);
+                    turbo.Runtime._mem_i32[(t + 16) >> 2] = xVec3.NewVector(positions[i + 6], positions[i + 7], positions[i + 8]);
 
-                    turbo.Runtime._mem_int32[(t + 20) >> 2] = xVec3.NewVector(normals[i], normals[i + 1], normals[i + 2]);
-                    turbo.Runtime._mem_int32[(t + 24) >> 2] = xVec3.NewVector(normals[i + 3], normals[i + 4], normals[i + 5]);
-                    turbo.Runtime._mem_int32[(t + 28) >> 2] = xVec3.NewVector(normals[i + 6], normals[i + 7], normals[i + 8]);
+                    turbo.Runtime._mem_i32[(t + 20) >> 2] = xVec3.NewVector(normals[i], normals[i + 1], normals[i + 2]);
+                    turbo.Runtime._mem_i32[(t + 24) >> 2] = xVec3.NewVector(normals[i + 3], normals[i + 4], normals[i + 5]);
+                    turbo.Runtime._mem_i32[(t + 28) >> 2] = xVec3.NewVector(normals[i + 6], normals[i + 7], normals[i + 8]);
 
                     if(uv){
-                        turbo.Runtime._mem_int32[(t + 32) >> 2] = xVec3.NewVector(uv[uvIndex], uv[uvIndex + 1], 0);
-                        turbo.Runtime._mem_int32[(t + 36) >> 2] = xVec3.NewVector(uv[uvIndex + 2], uv[uvIndex + 3], 0);
-                        turbo.Runtime._mem_int32[(t + 40) >> 2] = xVec3.NewVector(uv[uvIndex + 4], uv[uvIndex + 5], 0);
+                        turbo.Runtime._mem_i32[(t + 32) >> 2] = xVec3.NewVector(uv[uvIndex], uv[uvIndex + 1], 0);
+                        turbo.Runtime._mem_i32[(t + 36) >> 2] = xVec3.NewVector(uv[uvIndex + 2], uv[uvIndex + 3], 0);
+                        turbo.Runtime._mem_i32[(t + 40) >> 2] = xVec3.NewVector(uv[uvIndex + 4], uv[uvIndex + 5], 0);
                     }
 
                     //xTriangle.UpdateBox(t);
@@ -254,7 +254,7 @@ export class XRayView extends XRayRenderBase {
                     // triangle.fixNormals();
                     // triangle.updateBox();
                     triangles.push(t);
-                    // turbo.Runtime._mem_int32[(  triangles + 4 + (4 * i)  ) >> 2] = t;
+                    // turbo.Runtime._mem_i32[(  triangles + 4 + (4 * i)  ) >> 2] = t;
                     uvIndex += 6;
                 }
             }
@@ -424,7 +424,7 @@ export class XRayView extends XRayRenderBase {
         let y = {x:e[4], y:e[5], z:e[6]};
         let z = {x:-e[8], y:-e[9], z:-e[10]};
 
-        xray.Camera.SetFromJSON(this.camera, {
+        XRAY.Camera.SetFromJSON(this.camera, {
             p:camera.position,
             u:x,
             v:y,
@@ -444,7 +444,7 @@ export class XRayView extends XRayRenderBase {
             srcMaterial = srcMaterial.materials[0];
         }
 
-        var material:number = xMat.DiffuseMaterial(xray.Color.HexColor(srcMaterial.color.getHex()));
+        var material:number = xMat.DiffuseMaterial(XRAY.Color.HexColor(srcMaterial.color.getHex()));
 
         xMat.setIndex(material, srcMaterial.ior ? srcMaterial.ior : 1);
         xMat.setTint(material, srcMaterial.tint ? srcMaterial.tint : 0);
@@ -532,8 +532,8 @@ export class XRayView extends XRayRenderBase {
         if (src.matrix.equals(this.identityMatrix)) {
             return shape;
         } else {
-            var mat = xray.Matrix.fromTHREEJS(src.matrix.elements);
-            return xray.TransformedShape.NewTransformedShape(shape, mat);
+            var mat = XRAY.Matrix.fromTHREEJS(src.matrix.elements);
+            return XRAY.TransformedShape.NewTransformedShape(shape, mat);
         }
     }
 
