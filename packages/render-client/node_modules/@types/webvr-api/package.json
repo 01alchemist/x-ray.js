@@ -1,0 +1,17 @@
+{
+    "name": "@types/webvr-api",
+    "version": "0.0.31",
+    "description": "TypeScript definitions for WebVR API",
+    "license": "MIT",
+    "author": "six a <https://github.com/lostfictions>",
+    "main": "",
+    "repository": {
+        "type": "git",
+        "url": "https://www.github.com/DefinitelyTyped/DefinitelyTyped.git"
+    },
+    "scripts": {},
+    "dependencies": {},
+    "peerDependencies": {},
+    "typesPublisherContentHash": "e069145e10a597c13b628a389d58ed2222eb06c1078d9fdb85097fdc652e35c4",
+    "typeScriptVersion": "2.0"
+}

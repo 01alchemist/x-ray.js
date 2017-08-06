@@ -1,33 +1,61 @@
 {
-  "name": "xrenderer",
-  "version": "0.0.1",
-  "description": "Global Illumination using parallel path tracing",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc -p ./modules/xrenderer",
-    "build-example": "tsc -p ./example",
-    "build-tst": "tsc ./modules/xrenderer/test/TextureTest.ts",
-    "build-worker": "tsc -p ./modules/xrenderer/workers",
-    "build-amd-worker": "tsc -p ./modules/xrenderer/workers -m amd",
-    "bundle": "tsc -p ./modules/xrenderer -d --outFile ./modules/xrenderer/bundle/system/xrenderer.js",
-    "bundle-amd": "tsc -p ./modules/xrenderer -m amd -d --outFile ./modules/xrenderer/bundle/amd/xrenderer.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/01alchemist/ParallelRayJS.git"
-  },
-  "author": "",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/01alchemist/ParallelRayJS/issues"
-  },
-  "homepage": "https://github.com/01alchemist/ParallelRayJS",
-  "dependencies": {
-    "systemjs": "0.19.6",
-    "xdata": "^2.1.15"
-  },
-  "devDependencies": {
-    "typescript": "^1.8.10"
-  }
+    "name": "xrenderer",
+    "version": "0.0.1",
+    "description": "Global Illumination using parallel path tracing",
+    "main": "index.js",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/01alchemist/x-ray.js.git"
+    },
+    "author": "",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/01alchemist/x-ray.js/issues"
+    },
+    "homepage": "https://github.com/01alchemist/x-ray.js",
+    "scripts": {
+        "dev": "jest --watch",
+        "build": "webpack --config packages/render-client/webpack.config.js",
+        "watch": "webpack --progress --colors --watch --config packages/render-client/webpack.config.js",
+        "precommit": "yarn lint",
+        "lint": "tslint --ext .ts,.js --ignore-path .gitignore .",
+        "test": "./node_modules/.bin/jest"
+    },
+    "jest": {
+        "globals": {
+            "ts-jest": {
+                "tsConfigFile": "tsconfig.base.json"
+            }
+        },
+        "transform": {
+            ".(ts|tsx)": "./node_modules/ts-jest/preprocessor.js"
+        },
+        "testRegex": "(\\.(test|spec))\\.(ts)$",
+        "moduleFileExtensions": [
+            "ts",
+            "js"
+        ],
+        "modulePathIgnorePatterns": [
+            "bin"
+        ]
+    },
+    "dependencies": {
+        "xdata": "^2.1.15"
+    },
+    "devDependencies": {
+        "@types/jest": "^20.0.6",
+        "@types/three": "^0.84.19",
+        "bin-loader": "^0.1.0",
+        "jest": "^20.0.4",
+        "lerna": "^2.0.0",
+        "raw-loader": "^0.5.1",
+        "ts-jest": "^20.0.9",
+        "ts-loader": "^2.3.2",
+        "tslint": "^5.5.0",
+        "tslint-loader": "^3.5.3",
+        "typescript": "^2.4.2",
+        "webpack": "^3.4.1",
+        "webpack-bundle-analyzer": "^2.9.0",
+        "webpack-node-externals": "^1.6.0"
+    }
 }

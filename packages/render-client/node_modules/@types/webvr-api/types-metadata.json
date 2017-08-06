@@ -1,0 +1,23 @@
+{
+    "authors": "six a <https://github.com/lostfictions>",
+    "libraryDependencies": [],
+    "moduleDependencies": [],
+    "libraryMajorVersion": 0,
+    "libraryMinorVersion": 0,
+    "typeScriptVersion": "2.0",
+    "libraryName": "WebVR API",
+    "typingsPackageName": "webvr-api",
+    "projectName": "https://w3c.github.io/webvr/",
+    "sourceRepoURL": "https://www.github.com/DefinitelyTyped/DefinitelyTyped",
+    "sourceBranch": "master",
+    "globals": [
+        "VRDisplay",
+        "VRFrameData"
+    ],
+    "declaredModules": [],
+    "files": [
+        "index.d.ts"
+    ],
+    "hasPackageJson": false,
+    "contentHash": "e069145e10a597c13b628a389d58ed2222eb06c1078d9fdb85097fdc652e35c4"
+}
